@@ -170,11 +170,40 @@ pre {
       <div>CR <b id="rnode-config-cr">—</b></div>
     </section>
 
-    <section class="card">
-      <h2>USB / RNode Hardware</h2>
+    <section class="card" style="grid-column:1/-1">
+      <h2>RNode Setup & Diagnose</h2>
+
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+        gap:8px;
+        margin-bottom:14px">
+
+        <div>
+          <b>1 · Hardware</b>
+          <div id="setup-hardware">Prüfe…</div>
+        </div>
+
+        <div>
+          <b>2 · Port</b>
+          <div id="setup-port">Prüfe…</div>
+        </div>
+
+        <div>
+          <b>3 · RNode-Test</b>
+          <div id="setup-probe">Noch nicht geprüft</div>
+        </div>
+
+        <div>
+          <b>4 · Aktivierung</b>
+          <div id="setup-activation">AUS</div>
+        </div>
+      </div>
+
       <div id="usb-status" class="value">Suche…</div>
       <div id="usb-devices"></div>
-      <div style="margin-top:12px">
+
+      <div style="margin-top:14px">
         <label><b>RNode USB-Port</b></label>
         <div id="rnode-port-list" style="margin-top:6px"></div>
         <div id="rnode-port-info" style="margin-top:6px">
@@ -184,33 +213,64 @@ pre {
         <button type="button" onclick="selectRNodePort()">
           RNode-Port übernehmen
         </button>
+
         <div id="rnode-port-save" style="margin-top:6px">
           Noch nicht gespeichert
         </div>
       </div>
 
-      <button id="rnode-probe-button" type="button" onclick="probeRNode()">RNode manuell prüfen</button>
-      <div style="margin-top:6px;font-size:.85em;opacity:.75">
-        Öffnet den gespeicherten seriellen Port für einen kurzen RNode-Info-Test.
-        Kein Flashen · keine RF-Änderung · keine automatische Aktivierung.
-      </div>
-      <div id="rnode-probe">Noch nicht geprüft</div>
+      <div style="margin-top:16px">
+        <button id="rnode-probe-button"
+                type="button"
+                onclick="probeRNode()">
+          RNode manuell prüfen
+        </button>
 
-      <div style="margin-top:14px">
+        <div style="margin-top:6px;font-size:.85em;opacity:.75">
+          Öffnet ausschließlich für den manuellen Info-Test den
+          gespeicherten seriellen Port.
+          Kein Flashen · keine RF-Änderung · keine automatische Aktivierung.
+        </div>
+
+        <div id="rnode-probe" style="margin-top:8px">
+          Noch nicht geprüft
+        </div>
+      </div>
+
+      <div style="
+        margin-top:18px;
+        padding:12px;
+        border:1px solid rgba(255,255,255,.12);
+        border-radius:8px">
+
         <b>Kompatibilitätsdiagnose</b>
-        <div id="rnode-chain" style="margin-top:6px">
+
+        <div id="rnode-chain"
+             style="margin-top:8px;font-weight:600">
           USB/Serial: prüfe…
         </div>
-        <div id="rnode-next" style="margin-top:6px;font-size:.9em;opacity:.8">
+
+        <div id="rnode-next"
+             style="margin-top:8px;opacity:.85">
           Nächster Schritt wird nach der Geräteerkennung angezeigt.
         </div>
       </div>
 
-      <button type="button" onclick="refreshUSB()">USB-Bus anzeigen</button>
-      <pre id="usb-bus">Noch nicht abgefragt</pre>
+      <details style="margin-top:16px">
+        <summary>Erweiterte Hardwarediagnose</summary>
 
-      <button type="button" onclick="checkSupervisor()">Supervisor prüfen</button>
-      <pre id="supervisor-status">Noch nicht geprüft</pre>
+        <button type="button"
+                onclick="refreshUSB()"
+                style="margin-top:10px">
+          USB-Bus anzeigen
+        </button>
+        <pre id="usb-bus">Noch nicht abgefragt</pre>
+
+        <button type="button" onclick="checkSupervisor()">
+          Supervisor prüfen
+        </button>
+        <pre id="supervisor-status">Noch nicht geprüft</pre>
+      </details>
     </section>
   </div>
 
@@ -248,6 +308,36 @@ async function detectRNode() {
     };
 
     box.textContent = labels[d.state] || "Unbekannter Zustand";
+
+    const setupHardware = document.getElementById("setup-hardware");
+    const setupPort = document.getElementById("setup-port");
+    const setupProbe = document.getElementById("setup-probe");
+    const setupActivation = document.getElementById("setup-activation");
+
+    setupActivation.textContent = "AUS";
+
+    if (d.state === "SERIAL_READY") {
+      setupHardware.textContent = "✓ erkannt";
+      setupPort.textContent =
+        d.port_source === "saved" ? "✓ gespeichert" : "Auswahl erforderlich";
+      setupProbe.textContent = "Noch nicht geprüft";
+    } else if (d.state === "NO_SERIAL") {
+      setupHardware.textContent = "✗ nicht erkannt";
+      setupPort.textContent = "—";
+      setupProbe.textContent = "Nicht möglich";
+    } else if (d.state === "SAVED_PORT_MISSING") {
+      setupHardware.textContent = "Gerät fehlt";
+      setupPort.textContent = "✗ nicht verfügbar";
+      setupProbe.textContent = "Nicht möglich";
+    } else if (d.state === "MULTIPLE_SERIAL") {
+      setupHardware.textContent = "✓ mehrere erkannt";
+      setupPort.textContent = "Auswahl erforderlich";
+      setupProbe.textContent = "Wartet auf Port";
+    } else {
+      setupHardware.textContent = "Unbekannt";
+      setupPort.textContent = "Unbekannt";
+      setupProbe.textContent = "Nicht verfügbar";
+    }
 
     if (d.state === "SERIAL_READY") {
       chain.textContent =
@@ -507,6 +597,12 @@ async function probeRNode() {
   button.disabled = true;
   box.textContent = "Prüfung läuft… serieller Port wird kurz geöffnet";
 
+  const setupProbe = document.getElementById("setup-probe");
+  const setupActivation = document.getElementById("setup-activation");
+
+  setupProbe.textContent = "Prüfung läuft…";
+  setupActivation.textContent = "AUS";
+
   try {
     const r = await fetch("api/rnode/probe", {cache:"no-store"});
     const d = await r.json();
@@ -514,6 +610,7 @@ async function probeRNode() {
     if (d.result === "RNODE_CONFIRMED" || d.detected) {
       box.textContent =
         "✓ RNode-Protokoll bestätigt · " + (d.port || "");
+      setupProbe.textContent = "✓ kompatibel";
 
       detect.textContent =
         "✓ USB/Serial erkannt · ✓ RNode-Protokoll bestätigt";
@@ -527,6 +624,7 @@ async function probeRNode() {
     } else if (d.result === "PROBE_TIMEOUT") {
       box.textContent =
         "Probe-Timeout · Serial vorhanden · keine RNode-Antwort";
+      setupProbe.textContent = "✗ keine RNode-Antwort";
 
       detect.textContent =
         "✓ USB/Serial erkannt · RNode-Protokoll nicht bestätigt · RNode bleibt AUS";
@@ -541,6 +639,7 @@ async function probeRNode() {
       box.textContent =
         "Serial vorhanden · keine gültige RNode-Antwort" +
         " · RC: " + (d.returncode ?? "—");
+      setupProbe.textContent = "✗ nicht kompatibel bestätigt";
 
       detect.textContent =
         "✓ USB/Serial erkannt · RNode-Protokoll nicht bestätigt · RNode bleibt AUS";
@@ -588,6 +687,7 @@ async function probeRNode() {
       box.textContent =
         "✗ RNode-Probe fehlgeschlagen · " +
         (d.info || "Unbekannter Fehler");
+      setupProbe.textContent = "✗ Probe-Fehler";
 
       chain.textContent =
         "Hardware/Serial vorhanden · Probe-Fehler";
