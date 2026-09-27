@@ -7,76 +7,217 @@
 <title>Reticulum</title>
 
 <style>
+* { box-sizing: border-box; }
+
 body {
     margin: 0;
-    padding: 30px;
+    padding: 24px;
     background: #10151c;
     color: #e7edf4;
     font-family: system-ui, sans-serif;
 }
 
+.wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
 h1 {
-    margin-top: 0;
+    margin: 0;
+    font-size: 32px;
+}
+
+.sub {
+    margin-top: 4px;
+    color: #8d9baa;
 }
 
 .status {
-    padding: 20px;
+    padding: 10px 16px;
     background: #18212b;
-    border-radius: 12px;
+    border-radius: 999px;
+    font-weight: 700;
 }
 
-.online {
+.online { color: #55d98b; }
+.offline { color: #ff6b6b; }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.card {
+    padding: 20px;
+    background: #18212b;
+    border: 1px solid #263442;
+    border-radius: 14px;
+}
+
+.card h2 {
+    margin: 0 0 14px;
+    font-size: 17px;
+}
+
+.card div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 0;
+    color: #9eabb8;
+}
+
+.card b {
+    color: #e7edf4;
+    text-align: right;
+}
+
+.card .value {
+    display: block;
+    margin-bottom: 8px;
     color: #55d98b;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+details {
+    margin-top: 18px;
+    padding: 16px 18px;
+    background: #18212b;
+    border: 1px solid #263442;
+    border-radius: 14px;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: 600;
 }
 
 pre {
+    margin-bottom: 0;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+    color: #b8c4cf;
+}
+
+@media (max-width: 600px) {
+    body { padding: 16px; }
+
+    header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    h1 { font-size: 27px; }
+
+    .status { padding: 8px 13px; }
 }
 </style>
 </head>
 
 <body>
+<div class="wrap">
 
-<h1>Reticulum</h1>
+  <header>
+    <div>
+      <h1>Reticulum</h1>
+      <div class="sub">Home Assistant Network Stack</div>
+    </div>
+    <div id="node-status" class="status">LOADING</div>
+  </header>
 
-<div class="status">
+  <div class="grid">
+    <section class="card">
+      <h2>Shared Instance</h2>
+      <div id="shared-name" class="value">—</div>
+      <div>Status <b id="shared-status">—</b></div>
+      <div>Serving <b id="shared-serving">—</b></div>
+      <div>Rate <b id="shared-rate">—</b></div>
+      <div>MTU <b id="shared-mtu">—</b></div>
+    </section>
 
-<div id="state">
-Loading...
-</div>
+    <section class="card">
+      <h2>AutoInterface</h2>
+      <div id="if-name" class="value">—</div>
+      <div>Status <b id="if-status">—</b></div>
+      <div>Mode <b id="if-mode">—</b></div>
+      <div>Peers <b id="if-peers">—</b></div>
+      <div>Rate <b id="if-rate">—</b></div>
+      <div>MTU <b id="if-mtu">—</b></div>
+    </section>
 
-<pre id="rnstatus"></pre>
+    <section class="card">
+      <h2>System</h2>
+      <div>Version <b id="version">—</b></div>
+      <div>Uptime <b id="uptime">—</b></div>
+    </section>
+  </div>
+
+  <details>
+    <summary>Diagnostics · rnstatus</summary>
+    <pre id="raw">Loading…</pre>
+  </details>
 
 </div>
 
 <script>
-async function update() {
-
-    const response =
-        await fetch("api/status", {
-            cache: "no-store"
-        });
-
-    const data =
-        await response.json();
-
-    const state =
-        document.getElementById("state");
-
-    state.innerHTML =
-        data.online
-        ? '<strong class="online">● ONLINE</strong>'
-        : '<strong>● OFFLINE</strong>';
-
-    document.getElementById("rnstatus")
-        .textContent =
-        data.rnstatus || data.error;
+function uptime(sec) {
+  sec = Number(sec || 0);
+  const d = Math.floor(sec / 86400);
+  const h = Math.floor((sec % 86400) / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return (d ? d + "d " : "") + h + "h " + m + "m";
 }
 
-update();
-setInterval(update, 5000);
-</script>
+async function refresh() {
+  try {
+    const r = await fetch("api/status", {cache:"no-store"});
+    const d = await r.json();
 
+    const ns = document.getElementById("node-status");
+    ns.textContent = d.online ? "● ONLINE" : "● OFFLINE";
+    ns.className = d.online ? "status online" : "status offline";
+
+    const s = d.shared_instance || {};
+    document.getElementById("shared-name").textContent = s.name || "—";
+    document.getElementById("shared-status").textContent = s.status || "—";
+    document.getElementById("shared-serving").textContent =
+      s.serving !== undefined ? s.serving : "—";
+    document.getElementById("shared-rate").textContent = s.rate || "—";
+    document.getElementById("shared-mtu").textContent = s.mtu || "—";
+
+    const i = (d.interfaces || [])[0] || {};
+    document.getElementById("if-name").textContent = i.name || "—";
+    document.getElementById("if-status").textContent = i.status || "—";
+    document.getElementById("if-mode").textContent = i.mode || "—";
+    document.getElementById("if-peers").textContent =
+      i.peers !== undefined ? i.peers : "—";
+    document.getElementById("if-rate").textContent = i.rate || "—";
+    document.getElementById("if-mtu").textContent = i.mtu || "—";
+
+    document.getElementById("version").textContent = d.version || "—";
+    document.getElementById("uptime").textContent =
+      uptime(d.uptime_seconds);
+
+    document.getElementById("raw").textContent =
+      d.rnstatus || d.error || "No rnstatus data";
+
+  } catch (e) {
+    document.getElementById("node-status").textContent = "● API ERROR";
+  }
+}
+
+refresh();
+setInterval(refresh, 5000);
+</script>
 </body>
 </html>
