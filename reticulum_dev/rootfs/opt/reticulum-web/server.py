@@ -49,6 +49,56 @@ def run_command(command, timeout=5):
         }
 
 
+def parse_rnstatus(text):
+    import re
+
+    data = {
+        "shared_instance": None,
+        "interfaces": [],
+    }
+
+    shared = re.search(
+        r"Shared Instance\[(.*?)\].*?"
+        r"Status\s*:\s*(\w+).*?"
+        r"Serving\s*:\s*(\d+) programs.*?"
+        r"Rate\s*:\s*([^,]+), MTU (\d+)",
+        text,
+        re.S,
+    )
+
+    if shared:
+        data["shared_instance"] = {
+            "name": shared.group(1),
+            "status": shared.group(2),
+            "serving": int(shared.group(3)),
+            "rate": shared.group(4).strip(),
+            "mtu": int(shared.group(5)),
+        }
+
+    interface = re.search(
+        r"AutoInterface\[(.*?)\].*?"
+        r"Status\s*:\s*(\w+).*?"
+        r"Mode\s*:\s*(\w+).*?"
+        r"Rate\s*:\s*([^,]+), MTU (\d+).*?"
+        r"Peers\s*:\s*(\d+) reachable",
+        text,
+        re.S,
+    )
+
+    if interface:
+        data["interfaces"].append({
+            "type": "AutoInterface",
+            "name": interface.group(1),
+            "status": interface.group(2),
+            "mode": interface.group(3),
+            "rate": interface.group(4).strip(),
+            "mtu": int(interface.group(5)),
+            "peers": int(interface.group(6)),
+        })
+
+    return data
+
+
 def get_status():
     rnstatus = run_command([
         "rnstatus",
@@ -61,11 +111,15 @@ def get_status():
         "--version",
     ])
 
+    parsed = parse_rnstatus(rnstatus["stdout"])
+
     return {
         "service": "reticulum",
         "online": rnstatus["ok"],
         "uptime_seconds": int(time.time() - START_TIME),
         "version": version["stdout"],
+        "shared_instance": parsed["shared_instance"],
+        "interfaces": parsed["interfaces"],
         "rnstatus": rnstatus["stdout"],
         "error": rnstatus["stderr"],
         "timestamp": int(time.time()),
