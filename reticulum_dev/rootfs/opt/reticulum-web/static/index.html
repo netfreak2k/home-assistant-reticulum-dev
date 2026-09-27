@@ -296,7 +296,16 @@ async function refreshUSB() {
       const name = [device.manufacturer, device.product]
         .filter(Boolean).join(" ");
 
+      const serial = device.serial
+        ? "  SN:" + device.serial
+        : "";
+
+      const version = device.device_version
+        ? "  DEV:" + device.device_version
+        : "";
+
       return id + (name ? "  " + name : "") +
+             serial + version +
              "  [" + (device.sysfs || "—") + "]";
     }).join("\\n");
 

@@ -11,6 +11,7 @@ RUN apk add --no-cache \
 RUN python3 -m pip install \
     --no-cache-dir \
     --break-system-packages \
+    pyserial \
     rns
 
 COPY rootfs /

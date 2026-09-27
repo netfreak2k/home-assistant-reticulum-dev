@@ -97,7 +97,9 @@ def get_usb_devices():
             "product_id": read("idProduct"),
             "manufacturer": read("manufacturer"),
             "product": read("product"),
-            "serial": bool(read("serial")),
+            "serial": read("serial"),
+            "usb_version": read("version"),
+            "device_version": read("bcdDevice"),
         })
 
     return devices
