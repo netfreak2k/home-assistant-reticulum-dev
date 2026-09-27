@@ -1,0 +1,88 @@
+#!/usr/bin/with-contenv bashio
+
+set -e
+
+CONFIG_DIR="/config/reticulum"
+CONFIG_FILE="${CONFIG_DIR}/config"
+
+mkdir -p "${CONFIG_DIR}"
+
+# Home Assistant options.
+# During standalone Docker development no Supervisor API exists,
+# therefore use safe defaults.
+
+AUTO_INTERFACE="$(bashio::config 'auto_interface' 2>/dev/null || true)"
+TRANSPORT="$(bashio::config 'transport' 2>/dev/null || true)"
+LOGLEVEL="$(bashio::config 'loglevel' 2>/dev/null || true)"
+
+[ -n "${AUTO_INTERFACE}" ] || AUTO_INTERFACE="true"
+[ -n "${TRANSPORT}" ] || TRANSPORT="false"
+[ -n "${LOGLEVEL}" ] || LOGLEVEL="info"
+
+case "${LOGLEVEL}" in
+    error)   RNS_LOGLEVEL=1 ;;
+    warning) RNS_LOGLEVEL=2 ;;
+    notice)  RNS_LOGLEVEL=3 ;;
+    info)    RNS_LOGLEVEL=4 ;;
+    verbose) RNS_LOGLEVEL=5 ;;
+    debug)   RNS_LOGLEVEL=6 ;;
+    path)    RNS_LOGLEVEL=7 ;;
+    extreme) RNS_LOGLEVEL=8 ;;
+    *)       RNS_LOGLEVEL=4 ;;
+esac
+
+if bashio::var.true "${TRANSPORT}"; then
+    RNS_TRANSPORT="Yes"
+else
+    RNS_TRANSPORT="No"
+fi
+
+if bashio::var.true "${AUTO_INTERFACE}"; then
+    RNS_AUTO="Yes"
+else
+    RNS_AUTO="No"
+fi
+
+bashio::log.info "Reticulum Network Stack"
+bashio::log.info "AutoInterface: ${AUTO_INTERFACE}"
+bashio::log.info "Transport: ${TRANSPORT}"
+bashio::log.info "Log level: ${LOGLEVEL} (${RNS_LOGLEVEL})"
+
+# Create config only if it doesn't already exist.
+# This preserves manual Reticulum configuration.
+if [ ! -f "${CONFIG_FILE}" ]; then
+
+    bashio::log.info "Creating initial Reticulum configuration"
+
+    cat > "${CONFIG_FILE}" <<CONFIG
+[reticulum]
+
+  enable_transport = ${RNS_TRANSPORT}
+  share_instance = Yes
+  instance_name = reticulum_dev
+
+
+[logging]
+
+  loglevel = ${RNS_LOGLEVEL}
+
+
+[interfaces]
+
+  [[Home Assistant AutoInterface]]
+    type = AutoInterface
+    enabled = ${RNS_AUTO}
+CONFIG
+
+else
+    bashio::log.info "Using existing Reticulum configuration"
+fi
+
+if ! command -v rnsd >/dev/null 2>&1; then
+    bashio::log.fatal "rnsd executable not found"
+    exit 1
+fi
+
+bashio::log.info "Starting rnsd"
+
+exec rnsd --config "${CONFIG_DIR}"

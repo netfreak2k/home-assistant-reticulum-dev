@@ -1,0 +1,10 @@
+#!/usr/bin/with-contenv bashio
+
+set -e
+
+bashio::log.info "Starting Reticulum Web UI on port 8099"
+
+# Kurz warten, damit rnsd zuerst hochkommen kann
+sleep 3
+
+exec python3 /opt/reticulum-web/server.py

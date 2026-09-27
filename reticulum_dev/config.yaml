@@ -1,0 +1,32 @@
+name: "Reticulum DEV"
+version: "0.2.0-dev"
+slug: "reticulum_dev"
+description: "Run a Reticulum Network Stack node directly on Home Assistant."
+startup: "application"
+boot: "auto"
+init: false
+
+ingress: true
+ingress_port: 8100
+panel_icon: "mdi:radio-tower"
+panel_title: "Reticulum DEV"
+
+arch:
+  - amd64
+  - aarch64
+
+map:
+  - type: addon_config
+    read_only: false
+
+host_network: true
+
+options:
+  auto_interface: true
+  transport: false
+  loglevel: "info"
+
+schema:
+  auto_interface: "bool"
+  transport: "bool"
+  loglevel: "list(error|warning|notice|info|verbose|debug|path|extreme)"

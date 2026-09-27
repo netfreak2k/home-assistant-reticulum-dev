@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Reticulum</title>
+
+<style>
+body {
+    margin: 0;
+    padding: 30px;
+    background: #10151c;
+    color: #e7edf4;
+    font-family: system-ui, sans-serif;
+}
+
+h1 {
+    margin-top: 0;
+}
+
+.status {
+    padding: 20px;
+    background: #18212b;
+    border-radius: 12px;
+}
+
+.online {
+    color: #55d98b;
+}
+
+pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Reticulum</h1>
+
+<div class="status">
+
+<div id="state">
+Loading...
+</div>
+
+<pre id="rnstatus"></pre>
+
+</div>
+
+<script>
+async function update() {
+
+    const response =
+        await fetch("api/status", {
+            cache: "no-store"
+        });
+
+    const data =
+        await response.json();
+
+    const state =
+        document.getElementById("state");
+
+    state.innerHTML =
+        data.online
+        ? '<strong class="online">● ONLINE</strong>'
+        : '<strong>● OFFLINE</strong>';
+
+    document.getElementById("rnstatus")
+        .textContent =
+        data.rnstatus || data.error;
+}
+
+update();
+setInterval(update, 5000);
+</script>
+
+</body>
+</html>
