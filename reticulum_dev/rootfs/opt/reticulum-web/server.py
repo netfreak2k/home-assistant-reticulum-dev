@@ -380,9 +380,21 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             except Exception as exc:
+                error_text = str(exc)
+
+                # urllib HTTP errors may contain the Supervisor's
+                # actual JSON error response in the response body.
+                try:
+                    if hasattr(exc, "read"):
+                        body = exc.read().decode("utf-8", errors="replace")
+                        if body:
+                            error_text = error_text + " | " + body
+                except Exception:
+                    pass
+
                 self.send_json({
                     "ok": False,
-                    "error": str(exc)
+                    "error": error_text
                 }, 500)
                 return
 
