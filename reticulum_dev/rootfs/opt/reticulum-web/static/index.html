@@ -48,6 +48,7 @@ h1 {
 }
 
 .online { color: #55d98b; }
+.up { color: #55d98b !important; }
 .offline { color: #ff6b6b; }
 
 .grid {
@@ -143,6 +144,10 @@ pre {
       <div>Serving <b id="shared-serving">—</b></div>
       <div>Rate <b id="shared-rate">—</b></div>
       <div>MTU <b id="shared-mtu">—</b></div>
+      <div>↑ TX <b id="shared-tx">—</b></div>
+      <div>TX Rate <b id="shared-tx-rate">—</b></div>
+      <div>↓ RX <b id="shared-rx">—</b></div>
+      <div>RX Rate <b id="shared-rx-rate">—</b></div>
     </section>
 
     <section class="card">
@@ -153,6 +158,10 @@ pre {
       <div>Peers <b id="if-peers">—</b></div>
       <div>Rate <b id="if-rate">—</b></div>
       <div>MTU <b id="if-mtu">—</b></div>
+      <div>↑ TX <b id="if-tx">—</b></div>
+      <div>TX Rate <b id="if-tx-rate">—</b></div>
+      <div>↓ RX <b id="if-rx">—</b></div>
+      <div>RX Rate <b id="if-rx-rate">—</b></div>
     </section>
 
     <section class="card">
@@ -194,6 +203,13 @@ async function refresh() {
       s.serving !== undefined ? s.serving : "—";
     document.getElementById("shared-rate").textContent = s.rate || "—";
     document.getElementById("shared-mtu").textContent = s.mtu || "—";
+    document.getElementById("shared-tx").textContent = s.tx || "—";
+    document.getElementById("shared-tx-rate").textContent = s.tx_rate || "—";
+    document.getElementById("shared-rx").textContent = s.rx || "—";
+    document.getElementById("shared-rx-rate").textContent = s.rx_rate || "—";
+
+    document.getElementById("shared-status").className =
+      String(s.status).toLowerCase() === "up" ? "up" : "";
 
     const i = (d.interfaces || [])[0] || {};
     document.getElementById("if-name").textContent = i.name || "—";
@@ -203,6 +219,13 @@ async function refresh() {
       i.peers !== undefined ? i.peers : "—";
     document.getElementById("if-rate").textContent = i.rate || "—";
     document.getElementById("if-mtu").textContent = i.mtu || "—";
+    document.getElementById("if-tx").textContent = i.tx || "—";
+    document.getElementById("if-tx-rate").textContent = i.tx_rate || "—";
+    document.getElementById("if-rx").textContent = i.rx || "—";
+    document.getElementById("if-rx-rate").textContent = i.rx_rate || "—";
+
+    document.getElementById("if-status").className =
+      String(i.status).toLowerCase() === "up" ? "up" : "";
 
     document.getElementById("version").textContent = d.version || "—";
     document.getElementById("uptime").textContent =

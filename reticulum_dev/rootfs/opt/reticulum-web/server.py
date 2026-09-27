@@ -75,6 +75,19 @@ def parse_rnstatus(text):
             "mtu": int(shared.group(5)),
         }
 
+        block = text[shared.start():]
+        traffic = re.search(
+            r"Traffic\s*:\s*↑\s*([^\n]+?)\s{2,}([^\s]+\s+bps).*?"
+            r"↓\s*([^\n]+?)\s{2,}([^\s]+\s+bps)",
+            block,
+            re.S,
+        )
+        if traffic:
+            data["shared_instance"]["tx"] = traffic.group(1).strip()
+            data["shared_instance"]["tx_rate"] = traffic.group(2).strip()
+            data["shared_instance"]["rx"] = traffic.group(3).strip()
+            data["shared_instance"]["rx_rate"] = traffic.group(4).strip()
+
     interface = re.search(
         r"AutoInterface\[(.*?)\].*?"
         r"Status\s*:\s*(\w+).*?"
@@ -95,6 +108,21 @@ def parse_rnstatus(text):
             "mtu": int(interface.group(5)),
             "peers": int(interface.group(6)),
         })
+
+        block = text[interface.start():]
+        traffic = re.search(
+            r"Traffic\s*:\s*↑\s*([^\n]+?)\s{2,}([^\s]+\s+bps).*?"
+            r"↓\s*([^\n]+?)\s{2,}([^\s]+\s+bps)",
+            block,
+            re.S,
+        )
+
+        if traffic:
+            item = data["interfaces"][-1]
+            item["tx"] = traffic.group(1).strip()
+            item["tx_rate"] = traffic.group(2).strip()
+            item["rx"] = traffic.group(3).strip()
+            item["rx_rate"] = traffic.group(4).strip()
 
     return data
 
