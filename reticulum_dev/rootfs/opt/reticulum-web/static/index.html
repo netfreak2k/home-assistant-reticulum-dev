@@ -252,7 +252,10 @@ async function refresh() {
       uptime(d.uptime_seconds);
 
     document.getElementById("raw").textContent =
-      d.rnstatus || d.error || "No rnstatus data";
+      "PARSED INTERFACES:\n" +
+      JSON.stringify(d.interfaces || [], null, 2) +
+      "\n\nRAW RNSTATUS:\n" +
+      (d.rnstatus || d.error || "No rnstatus data");
 
   } catch (e) {
     document.getElementById("node-status").textContent = "● API ERROR";
