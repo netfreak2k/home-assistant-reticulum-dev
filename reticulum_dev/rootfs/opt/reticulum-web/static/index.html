@@ -157,6 +157,12 @@ pre {
       <div>Version <b id="version">—</b></div>
       <div>Uptime <b id="uptime">—</b></div>
     </section>
+
+    <section class="card">
+      <h2>USB / RNode Hardware</h2>
+      <div id="usb-status" class="value">Suche…</div>
+      <div id="usb-devices"></div>
+    </section>
   </div>
 
   <details>
@@ -173,6 +179,40 @@ function uptime(sec) {
   const h = Math.floor((sec % 86400) / 3600);
   const m = Math.floor((sec % 3600) / 60);
   return (d ? d + "d " : "") + h + "h " + m + "m";
+}
+
+async function refreshHardware() {
+  try {
+    const r = await fetch("api/hardware", {cache:"no-store"});
+    const d = await r.json();
+    const devices = d.serial_devices || [];
+
+    const status = document.getElementById("usb-status");
+    const box = document.getElementById("usb-devices");
+
+    box.replaceChildren();
+
+    if (!devices.length) {
+      status.textContent = "Kein Serial-Gerät erkannt";
+      return;
+    }
+
+    status.textContent =
+      devices.length + (devices.length === 1 ? " Gerät erkannt" : " Geräte erkannt");
+
+    for (const device of devices) {
+      const row = document.createElement("div");
+      const value = document.createElement("b");
+
+      row.append(document.createTextNode("Port "));
+      value.textContent = device.path || "—";
+      row.appendChild(value);
+      box.appendChild(row);
+    }
+  } catch (e) {
+    document.getElementById("usb-status").textContent =
+      "Hardware-API nicht erreichbar";
+  }
 }
 
 async function refresh() {
@@ -263,7 +303,9 @@ async function refresh() {
 }
 
 refresh();
+refreshHardware();
 setInterval(refresh, 5000);
+setInterval(refreshHardware, 10000);
 </script>
 </body>
 </html>
