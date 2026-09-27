@@ -304,8 +304,12 @@ async function refreshUSB() {
         ? "  DEV:" + device.device_version
         : "";
 
+      const driver = device.driver
+        ? "  DRV:" + device.driver
+        : "";
+
       return id + (name ? "  " + name : "") +
-             serial + version +
+             serial + version + driver +
              "  [" + (device.sysfs || "—") + "]";
     }).join("\\n");
 

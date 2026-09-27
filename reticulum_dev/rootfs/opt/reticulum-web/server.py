@@ -91,8 +91,21 @@ def get_usb_devices():
             except Exception:
                 return ""
 
+        driver = ""
+        for interface in sorted(
+            Path("/sys/bus/usb/devices").glob(entry.name + ":*")
+        ):
+            link = interface / "driver"
+            try:
+                driver = link.resolve().name
+                if driver:
+                    break
+            except Exception:
+                pass
+
         devices.append({
             "sysfs": entry.name,
+            "driver": driver,
             "vendor_id": read("idVendor"),
             "product_id": read("idProduct"),
             "manufacturer": read("manufacturer"),
