@@ -163,10 +163,8 @@ pre {
       <div id="usb-status" class="value">Suche…</div>
       <div id="usb-devices"></div>
       <div style="margin-top:12px">
-        <label for="rnode-port-select"><b>RNode USB-Port</b></label>
-        <select id="rnode-port-select" style="width:100%;margin-top:6px">
-          <option value="">Noch nicht erkannt</option>
-        </select>
+        <label><b>RNode USB-Port</b></label>
+        <div id="rnode-port-list" style="margin-top:6px"></div>
         <div id="rnode-port-info" style="margin-top:6px">
           Kein Port ausgewählt
         </div>
@@ -236,9 +234,8 @@ async function refreshUSB() {
 }
 
 async function selectRNodePort() {
-  const select = document.getElementById("rnode-port-select");
   const box = document.getElementById("rnode-port-save");
-  const port = select.value;
+  const port = window.selectedRNodePort || "";
 
   if (!port) {
     box.textContent = "Kein USB-Port ausgewählt";
@@ -316,38 +313,27 @@ async function refreshHardware() {
     status.textContent =
       devices.length + (devices.length === 1 ? " Gerät erkannt" : " Geräte erkannt");
 
-    const select = document.getElementById("rnode-port-select");
+    const list = document.getElementById("rnode-port-list");
     const info = document.getElementById("rnode-port-info");
 
-    // Preserve the user's current selection across automatic refreshes.
-    const previousPort = select.value;
-
-    select.replaceChildren();
-
-    const empty = document.createElement("option");
-    empty.value = "";
-    empty.textContent = "USB-Port auswählen…";
-    select.appendChild(empty);
+    list.replaceChildren();
 
     for (const device of devices) {
-      const option = document.createElement("option");
-      option.value = device.path || "";
-      option.textContent = device.path || "Unbekannter Port";
-      select.appendChild(option);
-    }
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = device.path || "Unbekannter Port";
+      button.style.width = "100%";
+      button.style.marginTop = "4px";
+      button.style.textAlign = "left";
 
-    // Restore the previous selection if that device is still present.
-    if (previousPort &&
-        [...select.options].some(option => option.value === previousPort)) {
-      select.value = previousPort;
-      info.textContent = "Ausgewählt: " + previousPort;
-    }
+      button.onclick = () => {
+        window.selectedRNodePort = device.path || "";
+        info.textContent =
+          "Ausgewählt: " + window.selectedRNodePort;
+      };
 
-    select.onchange = () => {
-      info.textContent = select.value
-        ? "Ausgewählt: " + select.value
-        : "Kein Port ausgewählt";
-    };
+      list.appendChild(button);
+    }
 
     for (const device of devices) {
       const row = document.createElement("div");
