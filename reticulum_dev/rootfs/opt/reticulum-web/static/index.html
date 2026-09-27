@@ -162,6 +162,8 @@ pre {
       <h2>USB / RNode Hardware</h2>
       <div id="usb-status" class="value">Suche…</div>
       <div id="usb-devices"></div>
+      <button type="button" onclick="probeRNode()">RNode prüfen</button>
+      <div id="rnode-probe">Noch nicht geprüft</div>
     </section>
   </div>
 
@@ -212,6 +214,25 @@ async function refreshHardware() {
   } catch (e) {
     document.getElementById("usb-status").textContent =
       "Hardware-API nicht erreichbar";
+  }
+}
+
+async function probeRNode() {
+  const box = document.getElementById("rnode-probe");
+  box.textContent = "Prüfe RNode…";
+
+  try {
+    const r = await fetch("api/rnode/probe", {cache:"no-store"});
+    const d = await r.json();
+
+    if (d.detected) {
+      box.textContent = "✓ RNode erkannt · " + (d.port || "");
+    } else {
+      box.textContent = "✗ Kein RNode erkannt · " +
+        (d.error || d.info || "Unbekannter Fehler");
+    }
+  } catch (e) {
+    box.textContent = "✗ RNode-Prüfung nicht erreichbar";
   }
 }
 
