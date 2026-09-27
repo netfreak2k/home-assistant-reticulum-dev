@@ -319,6 +319,9 @@ async function refreshHardware() {
     const select = document.getElementById("rnode-port-select");
     const info = document.getElementById("rnode-port-info");
 
+    // Preserve the user's current selection across automatic refreshes.
+    const previousPort = select.value;
+
     select.replaceChildren();
 
     const empty = document.createElement("option");
@@ -331,6 +334,13 @@ async function refreshHardware() {
       option.value = device.path || "";
       option.textContent = device.path || "Unbekannter Port";
       select.appendChild(option);
+    }
+
+    // Restore the previous selection if that device is still present.
+    if (previousPort &&
+        [...select.options].some(option => option.value === previousPort)) {
+      select.value = previousPort;
+      info.textContent = "Ausgewählt: " + previousPort;
     }
 
     select.onchange = () => {
