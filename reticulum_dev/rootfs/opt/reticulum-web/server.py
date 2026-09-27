@@ -49,6 +49,43 @@ def run_command(command, timeout=5):
         }
 
 
+
+def get_serial_devices():
+    """Return serial devices visible inside the add-on container."""
+    devices = []
+
+    patterns = [
+        "/dev/ttyUSB*",
+        "/dev/ttyACM*",
+        "/dev/serial/by-id/*",
+    ]
+
+    for pattern in patterns:
+        for device in sorted(Path("/").glob(pattern.lstrip("/"))):
+            path = str(device)
+
+            try:
+                resolved = str(device.resolve())
+            except Exception:
+                resolved = path
+
+            devices.append({
+                "path": path,
+                "resolved": resolved,
+            })
+
+    # Remove duplicates while preserving /dev/serial/by-id aliases.
+    unique = []
+    seen = set()
+
+    for device in devices:
+        key = device["path"]
+        if key not in seen:
+            seen.add(key)
+            unique.append(device)
+
+    return unique
+
 def parse_rnstatus(text):
     import re
 
@@ -208,6 +245,12 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/status"):
             self.send_json(get_status())
+            return
+
+        if path.endswith("/api/hardware"):
+            self.send_json({
+                "serial_devices": get_serial_devices()
+            })
             return
 
         if (
