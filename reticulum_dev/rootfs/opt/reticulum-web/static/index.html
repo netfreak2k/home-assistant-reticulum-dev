@@ -196,6 +196,16 @@ pre {
       </div>
       <div id="rnode-probe">Noch nicht geprüft</div>
 
+      <div style="margin-top:14px">
+        <b>Kompatibilitätsdiagnose</b>
+        <div id="rnode-chain" style="margin-top:6px">
+          USB/Serial: prüfe…
+        </div>
+        <div id="rnode-next" style="margin-top:6px;font-size:.9em;opacity:.8">
+          Nächster Schritt wird nach der Geräteerkennung angezeigt.
+        </div>
+      </div>
+
       <button type="button" onclick="refreshUSB()">USB-Bus anzeigen</button>
       <pre id="usb-bus">Noch nicht abgefragt</pre>
 
@@ -222,6 +232,8 @@ function uptime(sec) {
 
 async function detectRNode() {
   const box = document.getElementById("rnode-detect-state");
+  const chain = document.getElementById("rnode-chain");
+  const next = document.getElementById("rnode-next");
 
   try {
     const r = await fetch("api/rnode/detect", {cache:"no-store"});
@@ -230,16 +242,55 @@ async function detectRNode() {
     const labels = {
       NO_SERIAL: "Kein Serial-Gerät",
       SERIAL_READY: "✓ USB/Serial bereit · RNode noch nicht geprüft · RNode bleibt AUS",
-      SERIAL_ONLY: "✓ USB/Serial erkannt · RNode-Protokoll nicht bestätigt · RNode bleibt AUS",
-      RNODE_CONFIRMED: "✓ USB/Serial erkannt · ✓ RNode-Protokoll bestätigt",
       MULTIPLE_SERIAL: "Mehrere Serial-Geräte",
       SAVED_PORT_MISSING: "Gespeicherter Port nicht verfügbar",
       CONFIG_ERROR: "Konfiguration nicht lesbar"
     };
 
     box.textContent = labels[d.state] || "Unbekannter Zustand";
+
+    if (d.state === "SERIAL_READY") {
+      chain.textContent =
+        "Hardware ✓  →  Serial ✓  →  RNode ?  →  Aktivierung AUS";
+
+      next.textContent =
+        d.port_source === "saved"
+          ? "Gespeicherter Port ist verfügbar. RNode-Kompatibilität kann manuell geprüft werden."
+          : "Serial-Gerät erkannt. Port zuerst übernehmen oder RNode manuell prüfen.";
+
+    } else if (d.state === "SAVED_PORT_MISSING") {
+      chain.textContent =
+        "Hardware ?  →  gespeicherter Serial-Port ✗  →  RNode nicht geprüft";
+
+      next.textContent =
+        "Gespeichertes Gerät ist nicht verfügbar. USB-Verbindung und Portauswahl prüfen.";
+
+    } else if (d.state === "MULTIPLE_SERIAL") {
+      chain.textContent =
+        "Hardware ✓  →  mehrere Serial-Geräte  →  Auswahl erforderlich";
+
+      next.textContent =
+        "Den vorgesehenen RNode-Port auswählen und speichern. Keine automatische Auswahl.";
+
+    } else if (d.state === "NO_SERIAL") {
+      chain.textContent =
+        "USB/Serial ✗  →  RNode nicht prüfbar";
+
+      next.textContent =
+        "USB-Gerät anschließen bzw. USB-Durchreichung zu Home Assistant prüfen.";
+
+    } else {
+      chain.textContent =
+        "Diagnose derzeit nicht vollständig verfügbar";
+
+      next.textContent =
+        "Supervisor- und Add-on-Status prüfen.";
+    }
+
   } catch (e) {
     box.textContent = "Erkennung nicht erreichbar";
+    chain.textContent = "Diagnose-API ✗";
+    next.textContent = "Add-on-Status und Supervisor-Verbindung prüfen.";
   }
 }
 
@@ -449,6 +500,9 @@ async function refreshHardware() {
 async function probeRNode() {
   const box = document.getElementById("rnode-probe");
   const button = document.getElementById("rnode-probe-button");
+  const detect = document.getElementById("rnode-detect-state");
+  const chain = document.getElementById("rnode-chain");
+  const next = document.getElementById("rnode-next");
 
   button.disabled = true;
   box.textContent = "Prüfung läuft… serieller Port wird kurz geöffnet";
@@ -458,23 +512,97 @@ async function probeRNode() {
     const d = await r.json();
 
     if (d.result === "RNODE_CONFIRMED" || d.detected) {
-      box.textContent = "✓ RNode-Protokoll bestätigt · " + (d.port || "");
+      box.textContent =
+        "✓ RNode-Protokoll bestätigt · " + (d.port || "");
+
+      detect.textContent =
+        "✓ USB/Serial erkannt · ✓ RNode-Protokoll bestätigt";
+
+      chain.textContent =
+        "Hardware ✓  →  Serial ✓  →  RNode ✓  →  Aktivierung weiterhin AUS";
+
+      next.textContent =
+        "RNode ist kompatibel bestätigt. Aktivierung und Funkparameter bleiben eine bewusste Konfigurationsentscheidung.";
+
     } else if (d.result === "PROBE_TIMEOUT") {
       box.textContent =
         "Probe-Timeout · Serial vorhanden · keine RNode-Antwort";
+
+      detect.textContent =
+        "✓ USB/Serial erkannt · RNode-Protokoll nicht bestätigt · RNode bleibt AUS";
+
+      chain.textContent =
+        "Hardware ✓  →  Serial ✓  →  RNode-Antwort ✗  →  Aktivierung AUS";
+
+      next.textContent =
+        "USB und Serial funktionieren. Die installierte Firmware wurde nicht als RNode bestätigt. Keine automatische Firmwareänderung.";
+
     } else if (d.result === "NO_RNODE_RESPONSE") {
       box.textContent =
         "Serial vorhanden · keine gültige RNode-Antwort" +
         " · RC: " + (d.returncode ?? "—");
+
+      detect.textContent =
+        "✓ USB/Serial erkannt · RNode-Protokoll nicht bestätigt · RNode bleibt AUS";
+
+      chain.textContent =
+        "Hardware ✓  →  Serial ✓  →  RNode-Protokoll ✗  →  Aktivierung AUS";
+
+      next.textContent =
+        "Gerät antwortet nicht als kompatibles RNode. Firmware/Kompatibilität separat prüfen.";
+
+    } else if (d.result === "SAVED_PORT_MISSING") {
+      box.textContent =
+        "✗ Gespeicherter RNode-Port ist nicht verfügbar";
+
+      detect.textContent =
+        "Gespeicherter Port nicht verfügbar";
+
+      chain.textContent =
+        "Hardware ?  →  gespeicherter Port ✗  →  keine Probe";
+
+      next.textContent =
+        "USB-Verbindung prüfen oder den korrekten Serial-Port neu auswählen.";
+
+    } else if (d.result === "MULTIPLE_SERIAL") {
+      box.textContent =
+        "Mehrere Serial-Geräte · keine automatische Auswahl";
+
+      chain.textContent =
+        "Hardware ✓  →  mehrere Serial-Geräte  →  keine Probe";
+
+      next.textContent =
+        "Den vorgesehenen RNode-Port auswählen und speichern.";
+
+    } else if (d.result === "NO_SERIAL") {
+      box.textContent = "✗ Kein Serial-Gerät vorhanden";
+      chain.textContent = "USB/Serial ✗  →  keine Probe";
+      next.textContent = "USB-Verbindung bzw. Geräte-Durchreichung prüfen.";
+
+    } else if (d.result === "CONFIG_ERROR") {
+      box.textContent = "✗ Add-on-Konfiguration nicht lesbar";
+      chain.textContent = "Supervisor/API ✗  →  keine Probe";
+      next.textContent = "Supervisor-Verbindung und Add-on-Konfiguration prüfen.";
+
     } else if (d.result === "PROBE_ERROR") {
       box.textContent =
         "✗ RNode-Probe fehlgeschlagen · " +
         (d.info || "Unbekannter Fehler");
+
+      chain.textContent =
+        "Hardware/Serial vorhanden · Probe-Fehler";
+
+      next.textContent =
+        "Fehlerdetails prüfen. Es wurden keine Firmware- oder RF-Änderungen durchgeführt.";
+
     } else {
       box.textContent = "RNode-Status unbekannt";
+      next.textContent = "Diagnosedaten prüfen.";
     }
+
   } catch (e) {
     box.textContent = "✗ RNode-Prüfung nicht erreichbar";
+    next.textContent = "Add-on-Webdienst bzw. Supervisor-Verbindung prüfen.";
   } finally {
     button.disabled = false;
   }
