@@ -326,6 +326,36 @@ class Handler(BaseHTTPRequestHandler):
                 "usb_devices": get_usb_devices()
             })
             return
+        if path.endswith("/api/supervisor"):
+            import os
+            import urllib.request
+
+            token_present = bool(os.environ.get("SUPERVISOR_TOKEN"))
+
+            result = {
+                "token_present": token_present,
+                "api_reachable": False,
+            }
+
+            if token_present:
+                try:
+                    request = urllib.request.Request(
+                        "http://supervisor/info",
+                        headers={
+                            "Authorization":
+                            "Bearer " + os.environ["SUPERVISOR_TOKEN"]
+                        },
+                    )
+
+                    with urllib.request.urlopen(request, timeout=3) as response:
+                        result["api_reachable"] = response.status == 200
+
+                except Exception as exc:
+                    result["error"] = str(exc)
+
+            self.send_json(result)
+            return
+
 
         if path.endswith("/api/rnode/probe"):
             devices = get_serial_devices()

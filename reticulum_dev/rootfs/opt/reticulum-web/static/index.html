@@ -162,8 +162,19 @@ pre {
       <h2>USB / RNode Hardware</h2>
       <div id="usb-status" class="value">Suche…</div>
       <div id="usb-devices"></div>
+      <div style="margin-top:12px">
+        <label for="rnode-port-select"><b>RNode USB-Port</b></label>
+        <select id="rnode-port-select" style="width:100%;margin-top:6px">
+          <option value="">Noch nicht erkannt</option>
+        </select>
+        <div id="rnode-port-info" style="margin-top:6px">
+          Kein Port ausgewählt
+        </div>
+      </div>
+
       <button type="button" onclick="probeRNode()">RNode prüfen</button>
       <div id="rnode-probe">Noch nicht geprüft</div>
+
       <button type="button" onclick="refreshUSB()">USB-Bus anzeigen</button>
       <pre id="usb-bus">Noch nicht abgefragt</pre>
     </section>
@@ -232,6 +243,29 @@ async function refreshHardware() {
 
     status.textContent =
       devices.length + (devices.length === 1 ? " Gerät erkannt" : " Geräte erkannt");
+
+    const select = document.getElementById("rnode-port-select");
+    const info = document.getElementById("rnode-port-info");
+
+    select.replaceChildren();
+
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "USB-Port auswählen…";
+    select.appendChild(empty);
+
+    for (const device of devices) {
+      const option = document.createElement("option");
+      option.value = device.path || "";
+      option.textContent = device.path || "Unbekannter Port";
+      select.appendChild(option);
+    }
+
+    select.onchange = () => {
+      info.textContent = select.value
+        ? "Ausgewählt: " + select.value
+        : "Kein Port ausgewählt";
+    };
 
     for (const device of devices) {
       const row = document.createElement("div");

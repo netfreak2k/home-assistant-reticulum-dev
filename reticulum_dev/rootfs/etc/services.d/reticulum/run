@@ -128,15 +128,30 @@ fi
 # Manage the RNode block independently from manual configuration.
 sed -i '/# BEGIN HOMEASSISTANT RETICULUM MANAGED RNODE/,/# END HOMEASSISTANT RETICULUM MANAGED RNODE/d' "${CONFIG_FILE}"
 
-if bashio::var.true "${RNODE_INTERFACE}"     && [ -n "${RNODE_PORT}" ]     && [ "${RNODE_FREQUENCY:-0}" -gt 0 ]; then
+if bashio::var.true "${RNODE_INTERFACE}"; then
 
     # Never auto-select a serial device.
     # The user must explicitly configure an existing local serial port.
-    if [[ "${RNODE_PORT}" != /dev/* ]] || [ ! -c "${RNODE_PORT}" ]; then
+    if [ -z "${RNODE_PORT}" ]; then
+        bashio::log.error "RNode enabled but no serial port is configured"
+        bashio::log.error "RNodeInterface will NOT be created"
+
+    elif [[ "${RNODE_PORT}" != /dev/* ]] || [ ! -c "${RNODE_PORT}" ]; then
         bashio::log.error "Configured RNode port is not an accessible serial device: ${RNODE_PORT}"
         bashio::log.error "RNodeInterface will NOT be created"
+
+    elif [ "${RNODE_FREQUENCY:-0}" -le 0 ]; then
+        bashio::log.error "RNode enabled but frequency is invalid"
+        bashio::log.error "RNodeInterface will NOT be created"
+
     else
-        bashio::log.info "Adding managed RNodeInterface on ${RNODE_PORT}"
+        bashio::log.info "RNode configuration validated"
+        bashio::log.info "RNode port: ${RNODE_PORT}"
+        bashio::log.info "RNode frequency: ${RNODE_FREQUENCY}"
+        bashio::log.info "RNode bandwidth: ${RNODE_BANDWIDTH}"
+        bashio::log.info "RNode TX power: ${RNODE_TXPOWER}"
+        bashio::log.info "RNode SF: ${RNODE_SF}"
+        bashio::log.info "RNode CR: ${RNODE_CR}"
 
     cat >> "${CONFIG_FILE}" <<CONFIG
 
@@ -153,8 +168,6 @@ if bashio::var.true "${RNODE_INTERFACE}"     && [ -n "${RNODE_PORT}" ]     && [ 
   # END HOMEASSISTANT RETICULUM MANAGED RNODE
 CONFIG
     fi
-elif bashio::var.true "${RNODE_INTERFACE}"; then
-    bashio::log.warning "RNode enabled but port or valid frequency is missing"
 fi
 
 if ! command -v rnsd >/dev/null 2>&1; then
