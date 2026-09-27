@@ -2,7 +2,7 @@
 
 set -e
 
-bashio::log.info "Starting Reticulum Web UI on port 8099"
+bashio::log.info "Starting Reticulum Web UI on port 8100"
 
 # Kurz warten, damit rnsd zuerst hochkommen kann
 sleep 3
