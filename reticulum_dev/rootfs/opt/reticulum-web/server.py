@@ -50,6 +50,33 @@ def run_command(command, timeout=5):
 
 
 
+
+def get_addon_options():
+    """Read current add-on options from Home Assistant Supervisor."""
+    import os
+    import urllib.request
+
+    token = os.environ.get("SUPERVISOR_TOKEN")
+    if not token:
+        raise RuntimeError("SUPERVISOR_TOKEN nicht vorhanden")
+
+    request = urllib.request.Request(
+        "http://supervisor/addons/self/info",
+        headers={"Authorization": "Bearer " + token},
+    )
+
+    with urllib.request.urlopen(request, timeout=5) as response:
+        info = json.loads(response.read().decode("utf-8"))
+
+    addon_info = info.get("data") or {}
+    options = addon_info.get("options") or {}
+
+    if not isinstance(options, dict):
+        raise RuntimeError("Ungültige Add-on-Optionen")
+
+    return dict(options)
+
+
 def get_usb_devices():
     """Return USB devices visible inside the add-on container."""
     devices = []
@@ -440,33 +467,8 @@ class Handler(BaseHTTPRequestHandler):
             })
             return
         if path.endswith("/api/rnode/config"):
-            import os
-            import urllib.request
-
-            token = os.environ.get("SUPERVISOR_TOKEN")
-
-            if not token:
-                self.send_json({
-                    "ok": False,
-                    "error": "SUPERVISOR_TOKEN nicht vorhanden"
-                }, 503)
-                return
-
             try:
-                request = urllib.request.Request(
-                    "http://supervisor/addons/self/info",
-                    headers={
-                        "Authorization": "Bearer " + token
-                    },
-                )
-
-                with urllib.request.urlopen(request, timeout=5) as response:
-                    info = json.loads(
-                        response.read().decode("utf-8")
-                    )
-
-                addon_info = info.get("data") or {}
-                options = addon_info.get("options") or {}
+                options = get_addon_options()
 
                 self.send_json({
                     "ok": True,
@@ -535,24 +537,59 @@ class Handler(BaseHTTPRequestHandler):
         if path.endswith("/api/rnode/detect"):
             devices = get_serial_devices()
 
+            try:
+                options = get_addon_options()
+                saved_port = str(
+                    options.get("rnode_port", "")
+                ).strip()
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "state": "CONFIG_ERROR",
+                    "error": str(exc)
+                }, 500)
+                return
+
             if not devices:
                 self.send_json({
                     "ok": True,
                     "state": "NO_SERIAL",
-                    "serial_count": 0
+                    "serial_count": 0,
+                    "saved_port": saved_port
                 })
                 return
 
-            if len(devices) > 1:
-                self.send_json({
-                    "ok": True,
-                    "state": "MULTIPLE_SERIAL",
-                    "serial_count": len(devices),
-                    "serial_devices": devices
-                })
-                return
+            available = {
+                device["path"]: device
+                for device in devices
+            }
 
-            port = devices[0]["path"]
+            if saved_port:
+                if saved_port not in available:
+                    self.send_json({
+                        "ok": True,
+                        "state": "SAVED_PORT_MISSING",
+                        "serial_count": len(devices),
+                        "saved_port": saved_port,
+                        "serial_devices": devices
+                    })
+                    return
+
+                port = saved_port
+                source = "saved"
+            else:
+                if len(devices) > 1:
+                    self.send_json({
+                        "ok": True,
+                        "state": "MULTIPLE_SERIAL",
+                        "serial_count": len(devices),
+                        "serial_devices": devices
+                    })
+                    return
+
+                port = devices[0]["path"]
+                source = "detected"
+
             probe = probe_rnode(port)
 
             self.send_json({
@@ -562,8 +599,10 @@ class Handler(BaseHTTPRequestHandler):
                     if probe.get("detected")
                     else "SERIAL_ONLY"
                 ),
-                "serial_count": 1,
+                "serial_count": len(devices),
                 "port": port,
+                "port_source": source,
+                "saved_port": saved_port,
                 "probe": probe
             })
             return

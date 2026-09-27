@@ -227,7 +227,9 @@ async function detectRNode() {
       NO_SERIAL: "Kein Serial-Gerät",
       SERIAL_ONLY: "Serial erkannt · RNode nicht bestätigt",
       RNODE_CONFIRMED: "✓ RNode bestätigt",
-      MULTIPLE_SERIAL: "Mehrere Serial-Geräte"
+      MULTIPLE_SERIAL: "Mehrere Serial-Geräte",
+      SAVED_PORT_MISSING: "Gespeicherter Port nicht verfügbar",
+      CONFIG_ERROR: "Konfiguration nicht lesbar"
     };
 
     box.textContent = labels[d.state] || "Unbekannter Zustand";
