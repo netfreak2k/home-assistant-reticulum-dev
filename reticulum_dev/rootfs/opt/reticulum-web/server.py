@@ -90,7 +90,7 @@ def parse_rnstatus(text):
 
     # Parse all Reticulum interfaces, not only AutoInterface.
     interface_header = re.compile(
-        r"^([A-Za-z][A-Za-z0-9_]*)\[(.*?)\]\s*$",
+        r"^\s*([A-Za-z][A-Za-z0-9_]*)\[(.*?)\]\s*$",
         re.M,
     )
 
