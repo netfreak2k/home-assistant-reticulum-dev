@@ -1,5 +1,5 @@
 name: "Reticulum DEV"
-version: "0.4.2-dev"
+version: "0.5.0-dev"
 slug: "reticulum_dev"
 description: "Run a Reticulum Network Stack node directly on Home Assistant."
 startup: "application"
@@ -23,10 +23,16 @@ host_network: true
 
 options:
   auto_interface: true
+  tcp_interface: false
+  tcp_host: ""
+  tcp_port: 4242
   transport: false
   loglevel: "info"
 
 schema:
   auto_interface: "bool"
+  tcp_interface: "bool"
+  tcp_host: "str?"
+  tcp_port: "port"
   transport: "bool"
   loglevel: "list(error|warning|notice|info|verbose|debug|path|extreme)"

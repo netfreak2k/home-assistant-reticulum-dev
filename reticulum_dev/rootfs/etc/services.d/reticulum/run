@@ -12,10 +12,15 @@ mkdir -p "${CONFIG_DIR}"
 # therefore use safe defaults.
 
 AUTO_INTERFACE="$(bashio::config 'auto_interface' 2>/dev/null || true)"
+TCP_INTERFACE="$(bashio::config 'tcp_interface' 2>/dev/null || true)"
+TCP_HOST="$(bashio::config 'tcp_host' 2>/dev/null || true)"
+TCP_PORT="$(bashio::config 'tcp_port' 2>/dev/null || true)"
 TRANSPORT="$(bashio::config 'transport' 2>/dev/null || true)"
 LOGLEVEL="$(bashio::config 'loglevel' 2>/dev/null || true)"
 
 [ -n "${AUTO_INTERFACE}" ] || AUTO_INTERFACE="true"
+[ -n "${TCP_INTERFACE}" ] || TCP_INTERFACE="false"
+[ -n "${TCP_PORT}" ] || TCP_PORT="4242"
 [ -n "${TRANSPORT}" ] || TRANSPORT="false"
 [ -n "${LOGLEVEL}" ] || LOGLEVEL="info"
 
@@ -74,8 +79,42 @@ if [ ! -f "${CONFIG_FILE}" ]; then
     enabled = ${RNS_AUTO}
 CONFIG
 
+    if bashio::var.true "${TCP_INTERFACE}" && [ -n "${TCP_HOST}" ]; then
+        bashio::log.info "Adding TCPClientInterface: ${TCP_HOST}:${TCP_PORT}"
+
+        cat >> "${CONFIG_FILE}" <<CONFIG
+
+  # BEGIN HOMEASSISTANT RETICULUM MANAGED TCP
+  [[Home Assistant TCP Client]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = ${TCP_HOST}
+    target_port = ${TCP_PORT}
+  # END HOMEASSISTANT RETICULUM MANAGED TCP
+CONFIG
+    fi
+
 else
     bashio::log.info "Using existing Reticulum configuration"
+
+    # Remove only the TCP block managed by this add-on.
+    sed -i '/# BEGIN HOMEASSISTANT RETICULUM MANAGED TCP/,/# END HOMEASSISTANT RETICULUM MANAGED TCP/d' "${CONFIG_FILE}"
+
+    # Recreate it from the current Home Assistant options.
+    if bashio::var.true "${TCP_INTERFACE}" && [ -n "${TCP_HOST}" ]; then
+        bashio::log.info "Updating TCPClientInterface: ${TCP_HOST}:${TCP_PORT}"
+
+        cat >> "${CONFIG_FILE}" <<CONFIG
+
+  # BEGIN HOMEASSISTANT RETICULUM MANAGED TCP
+  [[Home Assistant TCP Client]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = ${TCP_HOST}
+    target_port = ${TCP_PORT}
+  # END HOMEASSISTANT RETICULUM MANAGED TCP
+CONFIG
+    fi
 fi
 
 if ! command -v rnsd >/dev/null 2>&1; then
