@@ -177,6 +177,9 @@ pre {
 
       <button type="button" onclick="refreshUSB()">USB-Bus anzeigen</button>
       <pre id="usb-bus">Noch nicht abgefragt</pre>
+
+      <button type="button" onclick="checkSupervisor()">Supervisor prüfen</button>
+      <pre id="supervisor-status">Noch nicht geprüft</pre>
     </section>
   </div>
 
@@ -222,6 +225,27 @@ async function refreshUSB() {
 
   } catch (e) {
     box.textContent = "USB-Bus-API nicht erreichbar";
+  }
+}
+
+async function checkSupervisor() {
+  const box = document.getElementById("supervisor-status");
+  box.textContent = "Supervisor wird geprüft…";
+
+  try {
+    const r = await fetch("api/supervisor", {cache:"no-store"});
+    const d = await r.json();
+
+    const token = d.token_present ? "vorhanden" : "nicht vorhanden";
+    const api = d.api_reachable ? "erreichbar" : "nicht erreichbar";
+
+    box.textContent =
+      "Token: " + token + "\n" +
+      "API: " + api +
+      (d.error ? "\nFehler: " + d.error : "");
+
+  } catch (e) {
+    box.textContent = "Supervisor-Diagnose nicht erreichbar";
   }
 }
 
