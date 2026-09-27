@@ -89,6 +89,39 @@ def get_serial_devices():
     return unique
 
 
+def probe_rnode(port):
+    """Read-only probe of a serial device using rnodeconf."""
+    try:
+        result = subprocess.run(
+            ["rnodeconf", "-i", port],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+
+        output = (result.stdout + "\n" + result.stderr).strip()
+
+        return {
+            "detected": result.returncode == 0,
+            "returncode": result.returncode,
+            "info": output,
+        }
+
+    except subprocess.TimeoutExpired:
+        return {
+            "detected": False,
+            "returncode": None,
+            "info": "RNode probe timed out",
+        }
+
+    except Exception as exc:
+        return {
+            "detected": False,
+            "returncode": None,
+            "info": str(exc),
+        }
+
+
 def parse_rnstatus(text):
     import re
 
@@ -254,6 +287,31 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({
                 "serial_devices": get_serial_devices()
             })
+            return
+
+        if path.endswith("/api/rnode/probe"):
+            devices = get_serial_devices()
+
+            if len(devices) == 0:
+                self.send_json({
+                    "detected": False,
+                    "error": "No serial device found"
+                }, 404)
+                return
+
+            if len(devices) > 1:
+                self.send_json({
+                    "detected": False,
+                    "error": "Multiple serial devices found",
+                    "serial_devices": devices
+                }, 409)
+                return
+
+            port = devices[0]["path"]
+            result = probe_rnode(port)
+            result["port"] = port
+
+            self.send_json(result)
             return
 
         if (
