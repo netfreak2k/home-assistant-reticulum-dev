@@ -189,7 +189,11 @@ pre {
         </div>
       </div>
 
-      <button type="button" onclick="probeRNode()">RNode prüfen</button>
+      <button id="rnode-probe-button" type="button" onclick="probeRNode()">RNode manuell prüfen</button>
+      <div style="margin-top:6px;font-size:.85em;opacity:.75">
+        Öffnet den gespeicherten seriellen Port für einen kurzen RNode-Info-Test.
+        Kein Flashen · keine RF-Änderung · keine automatische Aktivierung.
+      </div>
       <div id="rnode-probe">Noch nicht geprüft</div>
 
       <button type="button" onclick="refreshUSB()">USB-Bus anzeigen</button>
@@ -444,7 +448,10 @@ async function refreshHardware() {
 
 async function probeRNode() {
   const box = document.getElementById("rnode-probe");
-  box.textContent = "Prüfe RNode…";
+  const button = document.getElementById("rnode-probe-button");
+
+  button.disabled = true;
+  box.textContent = "Prüfung läuft… serieller Port wird kurz geöffnet";
 
   try {
     const r = await fetch("api/rnode/probe", {cache:"no-store"});
@@ -468,6 +475,8 @@ async function probeRNode() {
     }
   } catch (e) {
     box.textContent = "✗ RNode-Prüfung nicht erreichbar";
+  } finally {
+    button.disabled = false;
   }
 }
 
