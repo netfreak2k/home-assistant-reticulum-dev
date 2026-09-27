@@ -217,6 +217,55 @@ def probe_rnode(port):
 
 
 
+
+def build_node_fingerprint(port, serial_device, usb_devices):
+    """Build a passive hardware fingerprint without opening serial."""
+
+    fingerprint = {
+        "serial_port": port,
+        "resolved_port": (
+            serial_device.get("resolved", "")
+            if serial_device else ""
+        ),
+        "usb_match": None,
+        "usb_identity": "UNKNOWN",
+        "firmware_state": "UNKNOWN",
+        "rnode_capable": None,
+    }
+
+    # A stable by-id path commonly contains the USB serial number.
+    # Match only against observed USB metadata; do not infer firmware.
+    candidates = []
+
+    for usb in usb_devices:
+        serial = str(usb.get("serial") or "").strip()
+
+        score = 0
+
+        if serial and serial in port:
+            score += 100
+
+        if (
+            usb.get("driver") in ("cdc_acm", "cp210x", "ch341", "ftdi_sio")
+        ):
+            score += 10
+
+        if score:
+            candidates.append((score, usb))
+
+    if candidates:
+        candidates.sort(key=lambda item: item[0], reverse=True)
+        usb = candidates[0][1]
+
+        fingerprint["usb_match"] = usb
+        fingerprint["usb_identity"] = "{}:{}".format(
+            usb.get("vendor_id") or "????",
+            usb.get("product_id") or "????"
+        )
+
+    return fingerprint
+
+
 def inspect_rnode(port):
     """Manual, non-mutating compatibility inspection."""
     devices = get_serial_devices()
@@ -227,12 +276,19 @@ def inspect_rnode(port):
         None
     )
 
+    fingerprint = build_node_fingerprint(
+        port,
+        serial,
+        usb_devices
+    )
+
     report = {
         "ok": True,
         "port": port,
         "serial": serial,
         "serial_devices": devices,
         "usb_devices": usb_devices,
+        "fingerprint": fingerprint,
         "safety": {
             "manual_only": True,
             "flash_performed": False,
@@ -255,24 +311,36 @@ def inspect_rnode(port):
     state = probe.get("result")
 
     if state == "RNODE_CONFIRMED":
+        fingerprint["firmware_state"] = "RNODE_CONFIRMED"
+        fingerprint["rnode_capable"] = True
+        report["integration"] = "READY_FOR_RNODE_CONFIGURATION"
         report["state"] = "RNODE_CONFIRMED"
         report["conclusion"] = (
             "Das angeschlossene Gerät antwortet auf das "
             "RNode-Protokoll."
         )
     elif state == "PROBE_TIMEOUT":
+        fingerprint["firmware_state"] = "NOT_IDENTIFIED"
+        fingerprint["rnode_capable"] = False
+        report["integration"] = "RNODE_PROTOCOL_NOT_CONFIRMED"
         report["state"] = "SERIAL_OK_RNODE_TIMEOUT"
         report["conclusion"] = (
             "USB und Serial sind verfügbar, aber innerhalb "
             "des Prüfzeitraums kam keine RNode-Antwort."
         )
     elif state == "NO_RNODE_RESPONSE":
+        fingerprint["firmware_state"] = "NOT_IDENTIFIED"
+        fingerprint["rnode_capable"] = False
+        report["integration"] = "RNODE_PROTOCOL_NOT_CONFIRMED"
         report["state"] = "SERIAL_OK_NO_RNODE"
         report["conclusion"] = (
             "Das Serial-Gerät antwortete nicht als "
             "kompatibles RNode."
         )
     else:
+        fingerprint["firmware_state"] = "UNKNOWN"
+        fingerprint["rnode_capable"] = None
+        report["integration"] = "INSPECTION_INCOMPLETE"
         report["state"] = "PROBE_ERROR"
         report["conclusion"] = (
             "Der manuelle RNode-Test konnte nicht "

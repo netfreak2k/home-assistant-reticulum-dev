@@ -373,10 +373,28 @@ async function inspectNode() {
     const serial = d.serial || {};
     const rn = d.rnode || {};
     const safety = d.safety || {};
+    const fp = d.fingerprint || {};
+    const usb = fp.usb_match || {};
 
     details.textContent = [
+      "=== HARDWARE ===",
       "Port: " + (d.port || "—"),
       "Serial: " + (serial.path || "—"),
+      "Aufgelöst: " + (serial.resolved || "—"),
+      "USB-ID: " + (fp.usb_identity || "—"),
+      "USB-Produkt: " + (usb.product || "—"),
+      "USB-Hersteller: " + (usb.manufacturer || "—"),
+      "USB-Seriennummer: " + (usb.serial || "—"),
+      "Treiber: " + (usb.driver || "—"),
+      "Interface: " +
+        [
+          usb.interface_class || "—",
+          usb.interface_subclass || "—",
+          usb.interface_protocol || "—"
+        ].join("/"),
+      "",
+      "=== FIRMWARE / PROTOKOLL ===",
+      "Firmware-Status: " + (fp.firmware_state || "UNKNOWN"),
       "RNode-Ergebnis: " + (rn.result || "—"),
       "Returncode: " +
         (rn.returncode === null || rn.returncode === undefined
@@ -385,6 +403,13 @@ async function inspectNode() {
       "",
       "Bewertung:",
       d.conclusion || d.error || "Keine weitere Information",
+      "",
+      "Integration: " + (d.integration || "NICHT BESTIMMT"),
+      "",
+      "Hinweis:",
+      fp.firmware_state === "RNODE_CONFIRMED"
+        ? "RNode-Protokoll wurde tatsächlich bestätigt."
+        : "USB-Hardware ist erkannt; installierte Firmware ist nicht identifiziert.",
       "",
       "Sicherheit:",
       "Flashen: " + (safety.flash_performed ? "JA" : "NEIN"),
