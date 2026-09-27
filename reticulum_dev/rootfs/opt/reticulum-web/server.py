@@ -92,9 +92,24 @@ def get_usb_devices():
                 return ""
 
         driver = ""
+        interface_class = ""
+        interface_subclass = ""
+        interface_protocol = ""
+
         for interface in sorted(
             Path("/sys/bus/usb/devices").glob(entry.name + ":*")
         ):
+            def iread(name):
+                try:
+                    return (interface / name).read_text().strip()
+                except Exception:
+                    return ""
+
+            if not interface_class:
+                interface_class = iread("bInterfaceClass")
+                interface_subclass = iread("bInterfaceSubClass")
+                interface_protocol = iread("bInterfaceProtocol")
+
             link = interface / "driver"
             try:
                 driver = link.resolve().name
@@ -106,6 +121,9 @@ def get_usb_devices():
         devices.append({
             "sysfs": entry.name,
             "driver": driver,
+            "interface_class": interface_class,
+            "interface_subclass": interface_subclass,
+            "interface_protocol": interface_protocol,
             "vendor_id": read("idVendor"),
             "product_id": read("idProduct"),
             "manufacturer": read("manufacturer"),

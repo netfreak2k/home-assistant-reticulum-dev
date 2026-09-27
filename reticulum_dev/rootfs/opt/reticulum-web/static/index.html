@@ -308,8 +308,14 @@ async function refreshUSB() {
         ? "  DRV:" + device.driver
         : "";
 
+      const iface = device.interface_class
+        ? "  IF:" + device.interface_class +
+          "/" + (device.interface_subclass || "—") +
+          "/" + (device.interface_protocol || "—")
+        : "";
+
       return id + (name ? "  " + name : "") +
-             serial + version + driver +
+             serial + version + driver + iface +
              "  [" + (device.sysfs || "—") + "]";
     }).join("\\n");
 
