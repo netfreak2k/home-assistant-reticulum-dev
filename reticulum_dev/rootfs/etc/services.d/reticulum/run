@@ -15,12 +15,20 @@ AUTO_INTERFACE="$(bashio::config 'auto_interface' 2>/dev/null || true)"
 TCP_INTERFACE="$(bashio::config 'tcp_interface' 2>/dev/null || true)"
 TCP_HOST="$(bashio::config 'tcp_host' 2>/dev/null || true)"
 TCP_PORT="$(bashio::config 'tcp_port' 2>/dev/null || true)"
+RNODE_INTERFACE="$(bashio::config 'rnode_interface' 2>/dev/null || true)"
+RNODE_PORT="$(bashio::config 'rnode_port' 2>/dev/null || true)"
+RNODE_FREQUENCY="$(bashio::config 'rnode_frequency' 2>/dev/null || true)"
+RNODE_BANDWIDTH="$(bashio::config 'rnode_bandwidth' 2>/dev/null || true)"
+RNODE_TXPOWER="$(bashio::config 'rnode_txpower' 2>/dev/null || true)"
+RNODE_SF="$(bashio::config 'rnode_spreadingfactor' 2>/dev/null || true)"
+RNODE_CR="$(bashio::config 'rnode_codingrate' 2>/dev/null || true)"
 TRANSPORT="$(bashio::config 'transport' 2>/dev/null || true)"
 LOGLEVEL="$(bashio::config 'loglevel' 2>/dev/null || true)"
 
 [ -n "${AUTO_INTERFACE}" ] || AUTO_INTERFACE="true"
 [ -n "${TCP_INTERFACE}" ] || TCP_INTERFACE="false"
 [ -n "${TCP_PORT}" ] || TCP_PORT="4242"
+[ -n "${RNODE_INTERFACE}" ] || RNODE_INTERFACE="false"
 [ -n "${TRANSPORT}" ] || TRANSPORT="false"
 [ -n "${LOGLEVEL}" ] || LOGLEVEL="info"
 
@@ -115,6 +123,33 @@ else
   # END HOMEASSISTANT RETICULUM MANAGED TCP
 CONFIG
     fi
+fi
+
+# Manage the RNode block independently from manual configuration.
+sed -i '/# BEGIN HOMEASSISTANT RETICULUM MANAGED RNODE/,/# END HOMEASSISTANT RETICULUM MANAGED RNODE/d' "${CONFIG_FILE}"
+
+if bashio::var.true "${RNODE_INTERFACE}" \
+    && [ -n "${RNODE_PORT}" ] \
+    && [ "${RNODE_FREQUENCY:-0}" -gt 0 ]; then
+
+    bashio::log.info "Adding managed RNodeInterface on ${RNODE_PORT}"
+
+    cat >> "${CONFIG_FILE}" <<CONFIG
+
+  # BEGIN HOMEASSISTANT RETICULUM MANAGED RNODE
+  [[Home Assistant RNode]]
+    type = RNodeInterface
+    enabled = Yes
+    port = ${RNODE_PORT}
+    frequency = ${RNODE_FREQUENCY}
+    bandwidth = ${RNODE_BANDWIDTH}
+    txpower = ${RNODE_TXPOWER}
+    spreadingfactor = ${RNODE_SF}
+    codingrate = ${RNODE_CR}
+  # END HOMEASSISTANT RETICULUM MANAGED RNODE
+CONFIG
+elif bashio::var.true "${RNODE_INTERFACE}"; then
+    bashio::log.warning "RNode enabled but port or valid frequency is missing"
 fi
 
 if ! command -v rnsd >/dev/null 2>&1; then

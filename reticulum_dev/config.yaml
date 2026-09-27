@@ -1,5 +1,5 @@
 name: "Reticulum DEV"
-version: "0.6.2-dev"
+version: "0.7.0-dev"
 slug: "reticulum_dev"
 description: "Run a Reticulum Network Stack node directly on Home Assistant."
 startup: "application"
@@ -29,6 +29,11 @@ options:
   tcp_port: 4242
   rnode_interface: false
   rnode_port: ""
+  rnode_frequency: 0
+  rnode_bandwidth: 125000
+  rnode_txpower: 0
+  rnode_spreadingfactor: 8
+  rnode_codingrate: 5
   transport: false
   loglevel: "info"
 
@@ -39,5 +44,10 @@ schema:
   tcp_port: "port"
   rnode_interface: "bool"
   rnode_port: "str?"
+  rnode_frequency: "int(0,1000000000)"
+  rnode_bandwidth: "int(7800,1625000)"
+  rnode_txpower: "int(0,37)"
+  rnode_spreadingfactor: "int(5,12)"
+  rnode_codingrate: "int(5,8)"
   transport: "bool"
   loglevel: "list(error|warning|notice|info|verbose|debug|path|extreme)"
