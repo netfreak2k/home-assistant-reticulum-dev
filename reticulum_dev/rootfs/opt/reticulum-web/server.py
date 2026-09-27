@@ -88,28 +88,39 @@ def parse_rnstatus(text):
             data["shared_instance"]["rx"] = traffic.group(3).strip()
             data["shared_instance"]["rx_rate"] = traffic.group(4).strip()
 
-    interface = re.search(
-        r"AutoInterface\[(.*?)\].*?"
-        r"Status\s*:\s*(\w+).*?"
-        r"Mode\s*:\s*(\w+).*?"
-        r"Rate\s*:\s*([^,]+), MTU (\d+).*?"
-        r"Peers\s*:\s*(\d+) reachable",
-        text,
-        re.S,
+    # Parse all Reticulum interfaces, not only AutoInterface.
+    interface_header = re.compile(
+        r"^([A-Za-z][A-Za-z0-9_]*)\[(.*?)\]\s*$",
+        re.M,
     )
 
-    if interface:
-        data["interfaces"].append({
-            "type": "AutoInterface",
-            "name": interface.group(1),
-            "status": interface.group(2),
-            "mode": interface.group(3),
-            "rate": interface.group(4).strip(),
-            "mtu": int(interface.group(5)),
-            "peers": int(interface.group(6)),
-        })
+    matches = list(interface_header.finditer(text))
 
-        block = text[interface.start():]
+    for pos, match in enumerate(matches):
+        interface_type = match.group(1)
+
+        # Shared Instance is handled separately above.
+        if interface_type == "Instance":
+            continue
+
+        block_end = matches[pos + 1].start() if pos + 1 < len(matches) else len(text)
+        block = text[match.start():block_end]
+
+        status = re.search(r"Status\s*:\s*(\w+)", block)
+        mode = re.search(r"Mode\s*:\s*(\w+)", block)
+        rate = re.search(r"Rate\s*:\s*([^,\n]+),\s*MTU\s*(\d+)", block)
+        peers = re.search(r"Peers\s*:\s*(\d+)\s+reachable", block)
+
+        item = {
+            "type": interface_type,
+            "name": match.group(2),
+            "status": status.group(1) if status else None,
+            "mode": mode.group(1) if mode else None,
+            "rate": rate.group(1).strip() if rate else None,
+            "mtu": int(rate.group(2)) if rate else None,
+            "peers": int(peers.group(1)) if peers else None,
+        }
+
         traffic = re.search(
             r"Traffic\s*:\s*↑\s*([^\n]+?)\s{2,}([^\s]+\s+bps).*?"
             r"↓\s*([^\n]+?)\s{2,}([^\s]+\s+bps)",
@@ -118,11 +129,12 @@ def parse_rnstatus(text):
         )
 
         if traffic:
-            item = data["interfaces"][-1]
             item["tx"] = traffic.group(1).strip()
             item["tx_rate"] = traffic.group(2).strip()
             item["rx"] = traffic.group(3).strip()
             item["rx_rate"] = traffic.group(4).strip()
+
+        data["interfaces"].append(item)
 
     return data
 

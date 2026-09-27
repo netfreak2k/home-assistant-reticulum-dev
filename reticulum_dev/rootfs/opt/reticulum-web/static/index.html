@@ -150,19 +150,7 @@ pre {
       <div>RX Rate <b id="shared-rx-rate">—</b></div>
     </section>
 
-    <section class="card">
-      <h2>AutoInterface</h2>
-      <div id="if-name" class="value">—</div>
-      <div>Status <b id="if-status">—</b></div>
-      <div>Mode <b id="if-mode">—</b></div>
-      <div>Peers <b id="if-peers">—</b></div>
-      <div>Rate <b id="if-rate">—</b></div>
-      <div>MTU <b id="if-mtu">—</b></div>
-      <div>↑ TX <b id="if-tx">—</b></div>
-      <div>TX Rate <b id="if-tx-rate">—</b></div>
-      <div>↓ RX <b id="if-rx">—</b></div>
-      <div>RX Rate <b id="if-rx-rate">—</b></div>
-    </section>
+    <div id="interfaces" style="display:contents"></div>
 
     <section class="card">
       <h2>System</h2>
@@ -211,21 +199,53 @@ async function refresh() {
     document.getElementById("shared-status").className =
       String(s.status).toLowerCase() === "up" ? "up" : "";
 
-    const i = (d.interfaces || [])[0] || {};
-    document.getElementById("if-name").textContent = i.name || "—";
-    document.getElementById("if-status").textContent = i.status || "—";
-    document.getElementById("if-mode").textContent = i.mode || "—";
-    document.getElementById("if-peers").textContent =
-      i.peers !== undefined ? i.peers : "—";
-    document.getElementById("if-rate").textContent = i.rate || "—";
-    document.getElementById("if-mtu").textContent = i.mtu || "—";
-    document.getElementById("if-tx").textContent = i.tx || "—";
-    document.getElementById("if-tx-rate").textContent = i.tx_rate || "—";
-    document.getElementById("if-rx").textContent = i.rx || "—";
-    document.getElementById("if-rx-rate").textContent = i.rx_rate || "—";
+    const interfaces = document.getElementById("interfaces");
+    interfaces.replaceChildren();
 
-    document.getElementById("if-status").className =
-      String(i.status).toLowerCase() === "up" ? "up" : "";
+    for (const i of (d.interfaces || [])) {
+      const card = document.createElement("section");
+      card.className = "card";
+
+      const rows = [
+        ["Status", i.status],
+        ["Mode", i.mode],
+        ["Peers", i.peers],
+        ["Rate", i.rate],
+        ["MTU", i.mtu],
+        ["↑ TX", i.tx],
+        ["TX Rate", i.tx_rate],
+        ["↓ RX", i.rx],
+        ["RX Rate", i.rx_rate],
+      ];
+
+      const title = document.createElement("h2");
+      title.textContent = i.type || "Interface";
+      card.appendChild(title);
+
+      const name = document.createElement("div");
+      name.className = "value";
+      name.textContent = i.name || "—";
+      card.appendChild(name);
+
+      for (const [label, value] of rows) {
+        const row = document.createElement("div");
+        const b = document.createElement("b");
+
+        row.append(document.createTextNode(label + " "));
+        b.textContent =
+          value !== undefined && value !== null ? value : "—";
+
+        if (label === "Status" &&
+            String(value).toLowerCase() === "up") {
+          b.className = "up";
+        }
+
+        row.appendChild(b);
+        card.appendChild(row);
+      }
+
+      interfaces.appendChild(card);
+    }
 
     document.getElementById("version").textContent = d.version || "—";
     document.getElementById("uptime").textContent =
