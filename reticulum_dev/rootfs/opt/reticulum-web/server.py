@@ -439,6 +439,68 @@ class Handler(BaseHTTPRequestHandler):
                 "usb_devices": get_usb_devices()
             })
             return
+        if path.endswith("/api/rnode/config"):
+            import os
+            import urllib.request
+
+            token = os.environ.get("SUPERVISOR_TOKEN")
+
+            if not token:
+                self.send_json({
+                    "ok": False,
+                    "error": "SUPERVISOR_TOKEN nicht vorhanden"
+                }, 503)
+                return
+
+            try:
+                request = urllib.request.Request(
+                    "http://supervisor/addons/self/info",
+                    headers={
+                        "Authorization": "Bearer " + token
+                    },
+                )
+
+                with urllib.request.urlopen(request, timeout=5) as response:
+                    info = json.loads(
+                        response.read().decode("utf-8")
+                    )
+
+                addon_info = info.get("data") or {}
+                options = addon_info.get("options") or {}
+
+                self.send_json({
+                    "ok": True,
+                    "rnode_interface": options.get(
+                        "rnode_interface", False
+                    ),
+                    "rnode_port": options.get(
+                        "rnode_port", ""
+                    ),
+                    "rnode_frequency": options.get(
+                        "rnode_frequency", 0
+                    ),
+                    "rnode_bandwidth": options.get(
+                        "rnode_bandwidth", 125000
+                    ),
+                    "rnode_txpower": options.get(
+                        "rnode_txpower", 0
+                    ),
+                    "rnode_spreadingfactor": options.get(
+                        "rnode_spreadingfactor", 8
+                    ),
+                    "rnode_codingrate": options.get(
+                        "rnode_codingrate", 5
+                    ),
+                })
+                return
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc)
+                }, 500)
+                return
+
         if path.endswith("/api/supervisor"):
             import os
             import urllib.request

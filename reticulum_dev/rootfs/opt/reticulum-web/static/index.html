@@ -159,6 +159,17 @@ pre {
     </section>
 
     <section class="card">
+      <h2>RNode-Konfiguration</h2>
+      <div>Status <b id="rnode-config-status">—</b></div>
+      <div>Port <b id="rnode-config-port">—</b></div>
+      <div>Frequenz <b id="rnode-config-frequency">—</b></div>
+      <div>Bandbreite <b id="rnode-config-bandwidth">—</b></div>
+      <div>TX Power <b id="rnode-config-txpower">—</b></div>
+      <div>SF <b id="rnode-config-sf">—</b></div>
+      <div>CR <b id="rnode-config-cr">—</b></div>
+    </section>
+
+    <section class="card">
       <h2>USB / RNode Hardware</h2>
       <div id="usb-status" class="value">Suche…</div>
       <div id="usb-devices"></div>
@@ -202,6 +213,44 @@ function uptime(sec) {
   const h = Math.floor((sec % 86400) / 3600);
   const m = Math.floor((sec % 3600) / 60);
   return (d ? d + "d " : "") + h + "h " + m + "m";
+}
+
+async function refreshRNodeConfig() {
+  try {
+    const r = await fetch("api/rnode/config", {cache:"no-store"});
+    const d = await r.json();
+
+    if (!d.ok) {
+      document.getElementById("rnode-config-status").textContent =
+        "Fehler";
+      return;
+    }
+
+    document.getElementById("rnode-config-status").textContent =
+      d.rnode_interface ? "AKTIV" : "AUS";
+
+    document.getElementById("rnode-config-port").textContent =
+      d.rnode_port || "nicht gesetzt";
+
+    document.getElementById("rnode-config-frequency").textContent =
+      d.rnode_frequency ? d.rnode_frequency + " Hz" : "nicht gesetzt";
+
+    document.getElementById("rnode-config-bandwidth").textContent =
+      d.rnode_bandwidth + " Hz";
+
+    document.getElementById("rnode-config-txpower").textContent =
+      d.rnode_txpower + " dBm";
+
+    document.getElementById("rnode-config-sf").textContent =
+      d.rnode_spreadingfactor;
+
+    document.getElementById("rnode-config-cr").textContent =
+      d.rnode_codingrate;
+
+  } catch (e) {
+    document.getElementById("rnode-config-status").textContent =
+      "API nicht erreichbar";
+  }
 }
 
 async function refreshUSB() {
@@ -461,6 +510,7 @@ async function refresh() {
 }
 
 refresh();
+refreshRNodeConfig();
 refreshHardware();
 setInterval(refresh, 5000);
 setInterval(refreshHardware, 10000);
