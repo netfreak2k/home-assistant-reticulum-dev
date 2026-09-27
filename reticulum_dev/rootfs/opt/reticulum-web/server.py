@@ -625,20 +625,14 @@ class Handler(BaseHTTPRequestHandler):
                 port = devices[0]["path"]
                 source = "detected"
 
-            probe = probe_rnode(port)
-
             self.send_json({
                 "ok": True,
-                "state": (
-                    "RNODE_CONFIRMED"
-                    if probe.get("detected")
-                    else "SERIAL_ONLY"
-                ),
+                "state": "SERIAL_READY",
+                "compatibility": "NOT_TESTED",
                 "serial_count": len(devices),
                 "port": port,
                 "port_source": source,
-                "saved_port": saved_port,
-                "probe": probe
+                "saved_port": saved_port
             })
             return
 
