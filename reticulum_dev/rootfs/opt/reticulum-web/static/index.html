@@ -160,6 +160,7 @@ pre {
 
     <section class="card">
       <h2>RNode-Konfiguration</h2>
+      <div>Geräteerkennung <b id="rnode-detect-state">Prüfe…</b></div>
       <div>Status <b id="rnode-config-status">—</b></div>
       <div>Port <b id="rnode-config-port">—</b></div>
       <div>Frequenz <b id="rnode-config-frequency">—</b></div>
@@ -213,6 +214,26 @@ function uptime(sec) {
   const h = Math.floor((sec % 86400) / 3600);
   const m = Math.floor((sec % 3600) / 60);
   return (d ? d + "d " : "") + h + "h " + m + "m";
+}
+
+async function detectRNode() {
+  const box = document.getElementById("rnode-detect-state");
+
+  try {
+    const r = await fetch("api/rnode/detect", {cache:"no-store"});
+    const d = await r.json();
+
+    const labels = {
+      NO_SERIAL: "Kein Serial-Gerät",
+      SERIAL_ONLY: "Serial erkannt · RNode nicht bestätigt",
+      RNODE_CONFIRMED: "✓ RNode bestätigt",
+      MULTIPLE_SERIAL: "Mehrere Serial-Geräte"
+    };
+
+    box.textContent = labels[d.state] || "Unbekannter Zustand";
+  } catch (e) {
+    box.textContent = "Erkennung nicht erreichbar";
+  }
 }
 
 async function refreshRNodeConfig() {
@@ -516,6 +537,7 @@ async function refresh() {
 }
 
 refresh();
+detectRNode();
 refreshRNodeConfig();
 refreshHardware();
 setInterval(refresh, 5000);

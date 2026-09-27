@@ -532,6 +532,42 @@ class Handler(BaseHTTPRequestHandler):
             return
 
 
+        if path.endswith("/api/rnode/detect"):
+            devices = get_serial_devices()
+
+            if not devices:
+                self.send_json({
+                    "ok": True,
+                    "state": "NO_SERIAL",
+                    "serial_count": 0
+                })
+                return
+
+            if len(devices) > 1:
+                self.send_json({
+                    "ok": True,
+                    "state": "MULTIPLE_SERIAL",
+                    "serial_count": len(devices),
+                    "serial_devices": devices
+                })
+                return
+
+            port = devices[0]["path"]
+            probe = probe_rnode(port)
+
+            self.send_json({
+                "ok": True,
+                "state": (
+                    "RNODE_CONFIRMED"
+                    if probe.get("detected")
+                    else "SERIAL_ONLY"
+                ),
+                "serial_count": 1,
+                "port": port,
+                "probe": probe
+            })
+            return
+
         if path.endswith("/api/rnode/probe"):
             devices = get_serial_devices()
 
