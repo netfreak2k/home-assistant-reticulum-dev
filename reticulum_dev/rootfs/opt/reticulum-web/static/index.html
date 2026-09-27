@@ -256,6 +256,37 @@ pre {
         </div>
       </div>
 
+      <div style="
+        margin-top:18px;
+        padding:14px;
+        border:1px solid rgba(255,255,255,.12);
+        border-radius:8px">
+
+        <b>Node Inspector</b>
+
+        <div style="margin-top:6px;font-size:.9em;opacity:.8">
+          Manuelle Analyse des gespeicherten USB-Nodes.
+          Öffnet den seriellen Port einmal für den bekannten
+          RNode-Info-Test. Kein Flashen · keine RF-Änderung ·
+          keine Aktivierung.
+        </div>
+
+        <button id="node-inspect-button"
+                type="button"
+                onclick="inspectNode()"
+                style="margin-top:10px">
+          Angeschlossenen Node analysieren
+        </button>
+
+        <div id="node-inspect-summary"
+             style="margin-top:10px">
+          Noch nicht analysiert
+        </div>
+
+        <pre id="node-inspect-details"
+             style="margin-top:10px;white-space:pre-wrap">—</pre>
+      </div>
+
       <details style="margin-top:16px">
         <summary>Erweiterte Hardwarediagnose</summary>
 
@@ -289,6 +320,89 @@ function uptime(sec) {
   const m = Math.floor((sec % 3600) / 60);
   return (d ? d + "d " : "") + h + "h " + m + "m";
 }
+
+async function inspectNode() {
+  const button = document.getElementById("node-inspect-button");
+  const summary = document.getElementById("node-inspect-summary");
+  const details = document.getElementById("node-inspect-details");
+  const setupProbe = document.getElementById("setup-probe");
+  const setupActivation = document.getElementById("setup-activation");
+
+  button.disabled = true;
+  summary.textContent = "Analyse läuft… serieller Port wird einmal geöffnet";
+  details.textContent = "Bitte warten…";
+  setupProbe.textContent = "Analyse läuft…";
+  setupActivation.textContent = "AUS";
+
+  try {
+    const r = await fetch("api/rnode/inspect", {cache:"no-store"});
+    const d = await r.json();
+
+    const stateLabels = {
+      RNODE_CONFIRMED: "✓ RNode-Protokoll bestätigt",
+      SERIAL_OK_RNODE_TIMEOUT:
+        "USB/Serial ✓ · keine RNode-Antwort",
+      SERIAL_OK_NO_RNODE:
+        "USB/Serial ✓ · RNode nicht bestätigt",
+      PROBE_ERROR:
+        "USB/Serial erkannt · RNode-Test fehlgeschlagen",
+      NO_SAVED_PORT:
+        "Kein gespeicherter RNode-Port",
+      SAVED_PORT_MISSING:
+        "Gespeicherter RNode-Port nicht verfügbar",
+      CONFIG_ERROR:
+        "Add-on-Konfiguration nicht lesbar"
+    };
+
+    summary.textContent =
+      stateLabels[d.state] || ("Status: " + (d.state || "unbekannt"));
+
+    if (d.state === "RNODE_CONFIRMED") {
+      setupProbe.textContent = "✓ kompatibel";
+    } else if (
+      d.state === "SERIAL_OK_RNODE_TIMEOUT" ||
+      d.state === "SERIAL_OK_NO_RNODE"
+    ) {
+      setupProbe.textContent = "✗ keine RNode-Bestätigung";
+    } else {
+      setupProbe.textContent = "Nicht bestätigt";
+    }
+
+    setupActivation.textContent = "AUS";
+
+    const serial = d.serial || {};
+    const rn = d.rnode || {};
+    const safety = d.safety || {};
+
+    details.textContent = [
+      "Port: " + (d.port || "—"),
+      "Serial: " + (serial.path || "—"),
+      "RNode-Ergebnis: " + (rn.result || "—"),
+      "Returncode: " +
+        (rn.returncode === null || rn.returncode === undefined
+          ? "—" : rn.returncode),
+      "Antwort: " + (rn.info || "—"),
+      "",
+      "Bewertung:",
+      d.conclusion || d.error || "Keine weitere Information",
+      "",
+      "Sicherheit:",
+      "Flashen: " + (safety.flash_performed ? "JA" : "NEIN"),
+      "RF geändert: " + (safety.rf_changed ? "JA" : "NEIN"),
+      "Aktivierung geändert: " +
+        (safety.activation_changed ? "JA" : "NEIN")
+    ].join("\n");
+
+  } catch (e) {
+    summary.textContent = "Node-Analyse fehlgeschlagen";
+    details.textContent = String(e);
+    setupProbe.textContent = "Analysefehler";
+    setupActivation.textContent = "AUS";
+  } finally {
+    button.disabled = false;
+  }
+}
+
 
 async function detectRNode() {
   const box = document.getElementById("rnode-detect-state");

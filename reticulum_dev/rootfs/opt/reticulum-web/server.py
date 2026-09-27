@@ -216,6 +216,72 @@ def probe_rnode(port):
         }
 
 
+
+def inspect_rnode(port):
+    """Manual, non-mutating compatibility inspection."""
+    devices = get_serial_devices()
+    usb_devices = get_usb_devices()
+
+    serial = next(
+        (d for d in devices if d.get("path") == port),
+        None
+    )
+
+    report = {
+        "ok": True,
+        "port": port,
+        "serial": serial,
+        "serial_devices": devices,
+        "usb_devices": usb_devices,
+        "safety": {
+            "manual_only": True,
+            "flash_performed": False,
+            "rf_changed": False,
+            "activation_changed": False,
+        },
+    }
+
+    if serial is None:
+        report["state"] = "PORT_MISSING"
+        report["rnode"] = {
+            "detected": False,
+            "result": "SAVED_PORT_MISSING",
+        }
+        return report
+
+    probe = probe_rnode(port)
+    report["rnode"] = probe
+
+    state = probe.get("result")
+
+    if state == "RNODE_CONFIRMED":
+        report["state"] = "RNODE_CONFIRMED"
+        report["conclusion"] = (
+            "Das angeschlossene Gerät antwortet auf das "
+            "RNode-Protokoll."
+        )
+    elif state == "PROBE_TIMEOUT":
+        report["state"] = "SERIAL_OK_RNODE_TIMEOUT"
+        report["conclusion"] = (
+            "USB und Serial sind verfügbar, aber innerhalb "
+            "des Prüfzeitraums kam keine RNode-Antwort."
+        )
+    elif state == "NO_RNODE_RESPONSE":
+        report["state"] = "SERIAL_OK_NO_RNODE"
+        report["conclusion"] = (
+            "Das Serial-Gerät antwortete nicht als "
+            "kompatibles RNode."
+        )
+    else:
+        report["state"] = "PROBE_ERROR"
+        report["conclusion"] = (
+            "Der manuelle RNode-Test konnte nicht "
+            "abgeschlossen werden."
+        )
+
+    return report
+
+
 def parse_rnstatus(text):
     import re
 
@@ -634,6 +700,51 @@ class Handler(BaseHTTPRequestHandler):
                 "port_source": source,
                 "saved_port": saved_port
             })
+            return
+
+        if path.endswith("/api/rnode/inspect"):
+            devices = get_serial_devices()
+
+            try:
+                options = get_addon_options()
+                saved_port = str(
+                    options.get("rnode_port", "")
+                ).strip()
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "state": "CONFIG_ERROR",
+                    "error": str(exc)
+                }, 500)
+                return
+
+            if not saved_port:
+                self.send_json({
+                    "ok": False,
+                    "state": "NO_SAVED_PORT",
+                    "serial_devices": devices,
+                    "error": "Kein RNode-Port gespeichert"
+                }, 409)
+                return
+
+            available = {
+                device["path"]: device
+                for device in devices
+            }
+
+            if saved_port not in available:
+                self.send_json({
+                    "ok": False,
+                    "state": "SAVED_PORT_MISSING",
+                    "port": saved_port,
+                    "serial_devices": devices
+                }, 409)
+                return
+
+            report = inspect_rnode(saved_port)
+            report["port_source"] = "saved"
+
+            self.send_json(report)
             return
 
         if path.endswith("/api/rnode/probe"):
