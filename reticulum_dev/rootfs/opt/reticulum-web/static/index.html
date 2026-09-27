@@ -170,6 +170,13 @@ pre {
         <div id="rnode-port-info" style="margin-top:6px">
           Kein Port ausgewählt
         </div>
+
+        <button type="button" onclick="selectRNodePort()">
+          RNode-Port übernehmen
+        </button>
+        <div id="rnode-port-save" style="margin-top:6px">
+          Noch nicht gespeichert
+        </div>
       </div>
 
       <button type="button" onclick="probeRNode()">RNode prüfen</button>
@@ -225,6 +232,47 @@ async function refreshUSB() {
 
   } catch (e) {
     box.textContent = "USB-Bus-API nicht erreichbar";
+  }
+}
+
+async function selectRNodePort() {
+  const select = document.getElementById("rnode-port-select");
+  const box = document.getElementById("rnode-port-save");
+  const port = select.value;
+
+  if (!port) {
+    box.textContent = "Kein USB-Port ausgewählt";
+    return;
+  }
+
+  box.textContent = "Port wird übernommen…";
+
+  try {
+    const r = await fetch("api/rnode/select", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        port: port
+      })
+    });
+
+    const d = await r.json();
+
+    if (d.ok) {
+      box.textContent =
+        "✓ Port gespeichert: " + d.port +
+        " · RNode bleibt " +
+        (d.rnode_interface ? "AKTIV" : "AUS");
+    } else {
+      box.textContent =
+        "✗ Port nicht gespeichert · " +
+        (d.error || "Unbekannter Fehler");
+    }
+
+  } catch (e) {
+    box.textContent = "✗ Port-API nicht erreichbar";
   }
 }
 

@@ -298,6 +298,99 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
 
+    def do_POST(self):
+        path = self.path.split("?", 1)[0]
+
+        if path.endswith("/api/rnode/select"):
+            import os
+            import urllib.request
+
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                raw = self.rfile.read(length)
+                payload = json.loads(raw.decode("utf-8"))
+
+                port = str(payload.get("port", "")).strip()
+
+                # Nur tatsächlich erkannte Serial-Ports akzeptieren.
+                devices = get_serial_devices()
+                allowed = {d["path"] for d in devices}
+
+                if not port:
+                    self.send_json({
+                        "ok": False,
+                        "error": "Kein Port angegeben"
+                    }, 400)
+                    return
+
+                if port not in allowed:
+                    self.send_json({
+                        "ok": False,
+                        "error": "Port wurde nicht als Serial-Gerät erkannt"
+                    }, 400)
+                    return
+
+                token = os.environ.get("SUPERVISOR_TOKEN")
+
+                if not token:
+                    self.send_json({
+                        "ok": False,
+                        "error": "SUPERVISOR_TOKEN nicht vorhanden"
+                    }, 503)
+                    return
+
+                # Aktuelle Add-on-Optionen lesen.
+                request = urllib.request.Request(
+                    "http://supervisor/addons/self/info",
+                    headers={
+                        "Authorization": "Bearer " + token
+                    },
+                )
+
+                with urllib.request.urlopen(request, timeout=5) as response:
+                    info = json.loads(response.read().decode("utf-8"))
+
+                options = dict(info.get("options") or {})
+                options["rnode_port"] = port
+
+                # Nur rnode_port ändern; bestehende Optionen bleiben erhalten.
+                body = json.dumps({
+                    "options": options
+                }).encode("utf-8")
+
+                request = urllib.request.Request(
+                    "http://supervisor/addons/self/options",
+                    data=body,
+                    method="POST",
+                    headers={
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json",
+                    },
+                )
+
+                with urllib.request.urlopen(request, timeout=5) as response:
+                    result = response.read().decode("utf-8")
+
+                self.send_json({
+                    "ok": True,
+                    "port": port,
+                    "rnode_interface": options.get("rnode_interface", False),
+                    "supervisor_response": result[:200]
+                })
+                return
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc)
+                }, 500)
+                return
+
+        self.send_json({
+            "ok": False,
+            "error": "Unknown POST endpoint"
+        }, 404)
+
     def do_GET(self):
 
         path = self.path.split("?", 1)[0]
