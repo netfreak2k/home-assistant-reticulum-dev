@@ -350,7 +350,15 @@ class Handler(BaseHTTPRequestHandler):
                 with urllib.request.urlopen(request, timeout=5) as response:
                     info = json.loads(response.read().decode("utf-8"))
 
-                options = dict(info.get("options") or {})
+                # Supervisor responses wrap add-on information in "data".
+                addon_info = info.get("data") or {}
+                options = dict(addon_info.get("options") or {})
+
+                if not options:
+                    raise RuntimeError(
+                        "Supervisor lieferte keine Add-on-Optionen"
+                    )
+
                 options["rnode_port"] = port
 
                 # Nur rnode_port ändern; bestehende Optionen bleiben erhalten.
