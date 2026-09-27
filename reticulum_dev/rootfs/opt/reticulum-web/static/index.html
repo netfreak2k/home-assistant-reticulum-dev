@@ -164,6 +164,8 @@ pre {
       <div id="usb-devices"></div>
       <button type="button" onclick="probeRNode()">RNode prüfen</button>
       <div id="rnode-probe">Noch nicht geprüft</div>
+      <button type="button" onclick="refreshUSB()">USB-Bus anzeigen</button>
+      <pre id="usb-bus">Noch nicht abgefragt</pre>
     </section>
   </div>
 
@@ -181,6 +183,35 @@ function uptime(sec) {
   const h = Math.floor((sec % 86400) / 3600);
   const m = Math.floor((sec % 3600) / 60);
   return (d ? d + "d " : "") + h + "h " + m + "m";
+}
+
+async function refreshUSB() {
+  const box = document.getElementById("usb-bus");
+  box.textContent = "USB-Bus wird abgefragt…";
+
+  try {
+    const r = await fetch("api/usb", {cache:"no-store"});
+    const d = await r.json();
+    const devices = d.usb_devices || [];
+
+    if (!devices.length) {
+      box.textContent = "Keine USB-Geräte sichtbar";
+      return;
+    }
+
+    box.textContent = devices.map(device => {
+      const id = (device.vendor_id || "????") + ":" +
+                 (device.product_id || "????");
+      const name = [device.manufacturer, device.product]
+        .filter(Boolean).join(" ");
+
+      return id + (name ? "  " + name : "") +
+             "  [" + (device.sysfs || "—") + "]";
+    }).join("\\n");
+
+  } catch (e) {
+    box.textContent = "USB-Bus-API nicht erreichbar";
+  }
 }
 
 async function refreshHardware() {

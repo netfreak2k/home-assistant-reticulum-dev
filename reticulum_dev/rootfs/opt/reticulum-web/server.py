@@ -50,6 +50,32 @@ def run_command(command, timeout=5):
 
 
 
+def get_usb_devices():
+    """Return USB devices visible inside the add-on container."""
+    devices = []
+
+    for entry in sorted(Path("/sys/bus/usb/devices").glob("*")):
+        if not (entry / "idVendor").exists():
+            continue
+
+        def read(name):
+            try:
+                return (entry / name).read_text().strip()
+            except Exception:
+                return ""
+
+        devices.append({
+            "sysfs": entry.name,
+            "vendor_id": read("idVendor"),
+            "product_id": read("idProduct"),
+            "manufacturer": read("manufacturer"),
+            "product": read("product"),
+            "serial": bool(read("serial")),
+        })
+
+    return devices
+
+
 def get_serial_devices():
     """Return unique serial devices, preferring stable by-id paths."""
     found = []
@@ -292,6 +318,12 @@ class Handler(BaseHTTPRequestHandler):
         if path.endswith("/api/hardware"):
             self.send_json({
                 "serial_devices": get_serial_devices()
+            })
+            return
+
+        if path.endswith("/api/usb"):
+            self.send_json({
+                "usb_devices": get_usb_devices()
             })
             return
 
