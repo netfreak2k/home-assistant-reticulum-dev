@@ -410,9 +410,15 @@ async function probeRNode() {
     if (d.detected) {
       box.textContent = "✓ RNode erkannt · " + (d.port || "");
     } else if (d.result === "unknown_serial_device") {
-      box.textContent = "USB-Gerät vorhanden · kein RNode bestätigt";
+      box.textContent =
+        "USB-Gerät vorhanden · kein RNode bestätigt" +
+        " · RC: " + (d.returncode ?? "timeout") +
+        " · " + (d.info || "keine Ausgabe");
     } else if (d.device_present) {
-      box.textContent = "USB-Gerät vorhanden · kein RNode erkannt";
+      box.textContent =
+        "USB-Gerät vorhanden · kein RNode erkannt" +
+        " · RC: " + (d.returncode ?? "—") +
+        " · " + (d.info || "keine Ausgabe");
     } else {
       box.textContent = "✗ RNode-Prüfung fehlgeschlagen · " +
         (d.error || d.info || "Unbekannter Fehler");
