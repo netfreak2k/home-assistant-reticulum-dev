@@ -101,8 +101,12 @@ def probe_rnode(port):
 
         output = (result.stdout + "\n" + result.stderr).strip()
 
+        detected = result.returncode == 0
+
         return {
-            "detected": result.returncode == 0,
+            "detected": detected,
+            "device_present": True,
+            "result": "rnode" if detected else "serial_device_only",
             "returncode": result.returncode,
             "info": output,
         }
@@ -110,8 +114,10 @@ def probe_rnode(port):
     except subprocess.TimeoutExpired:
         return {
             "detected": False,
+            "device_present": True,
+            "result": "unknown_serial_device",
             "returncode": None,
-            "info": "RNode probe timed out",
+            "info": "Serial device present, but no RNode response",
         }
 
     except Exception as exc:

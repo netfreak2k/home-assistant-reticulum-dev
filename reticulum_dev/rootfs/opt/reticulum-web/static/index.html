@@ -227,8 +227,12 @@ async function probeRNode() {
 
     if (d.detected) {
       box.textContent = "✓ RNode erkannt · " + (d.port || "");
+    } else if (d.result === "unknown_serial_device") {
+      box.textContent = "USB-Gerät vorhanden · kein RNode bestätigt";
+    } else if (d.device_present) {
+      box.textContent = "USB-Gerät vorhanden · kein RNode erkannt";
     } else {
-      box.textContent = "✗ Kein RNode erkannt · " +
+      box.textContent = "✗ RNode-Prüfung fehlgeschlagen · " +
         (d.error || d.info || "Unbekannter Fehler");
     }
   } catch (e) {
