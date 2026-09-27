@@ -192,7 +192,7 @@ def probe_rnode(port):
         return {
             "detected": detected,
             "device_present": True,
-            "result": "rnode" if detected else "serial_device_only",
+            "result": "RNODE_CONFIRMED" if detected else "NO_RNODE_RESPONSE",
             "returncode": result.returncode,
             "info": output,
         }
@@ -201,7 +201,7 @@ def probe_rnode(port):
         return {
             "detected": False,
             "device_present": True,
-            "result": "unknown_serial_device",
+            "result": "PROBE_TIMEOUT",
             "returncode": None,
             "info": "Serial device present, but no RNode response",
         }
@@ -209,6 +209,8 @@ def probe_rnode(port):
     except Exception as exc:
         return {
             "detected": False,
+            "device_present": True,
+            "result": "PROBE_ERROR",
             "returncode": None,
             "info": str(exc),
         }
@@ -643,24 +645,59 @@ class Handler(BaseHTTPRequestHandler):
         if path.endswith("/api/rnode/probe"):
             devices = get_serial_devices()
 
-            if len(devices) == 0:
+            try:
+                options = get_addon_options()
+                saved_port = options.get("rnode_port") or ""
+            except Exception as exc:
                 self.send_json({
                     "detected": False,
-                    "error": "No serial device found"
-                }, 404)
+                    "result": "CONFIG_ERROR",
+                    "error": str(exc)
+                }, 500)
                 return
 
-            if len(devices) > 1:
-                self.send_json({
-                    "detected": False,
-                    "error": "Multiple serial devices found",
-                    "serial_devices": devices
-                }, 409)
-                return
+            available = {
+                device["path"]: device
+                for device in devices
+            }
 
-            port = devices[0]["path"]
+            if saved_port:
+                if saved_port not in available:
+                    self.send_json({
+                        "detected": False,
+                        "result": "SAVED_PORT_MISSING",
+                        "port": saved_port,
+                        "serial_devices": devices
+                    }, 409)
+                    return
+
+                port = saved_port
+                port_source = "saved"
+
+            else:
+                if len(devices) == 0:
+                    self.send_json({
+                        "detected": False,
+                        "result": "NO_SERIAL",
+                        "error": "No serial device found"
+                    }, 404)
+                    return
+
+                if len(devices) > 1:
+                    self.send_json({
+                        "detected": False,
+                        "result": "MULTIPLE_SERIAL",
+                        "error": "Multiple serial devices found",
+                        "serial_devices": devices
+                    }, 409)
+                    return
+
+                port = devices[0]["path"]
+                port_source = "detected"
+
             result = probe_rnode(port)
             result["port"] = port
+            result["port_source"] = port_source
 
             self.send_json(result)
             return

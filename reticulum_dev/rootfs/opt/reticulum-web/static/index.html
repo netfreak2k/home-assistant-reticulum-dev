@@ -449,21 +449,21 @@ async function probeRNode() {
     const r = await fetch("api/rnode/probe", {cache:"no-store"});
     const d = await r.json();
 
-    if (d.detected) {
-      box.textContent = "✓ RNode erkannt · " + (d.port || "");
-    } else if (d.result === "unknown_serial_device") {
+    if (d.result === "RNODE_CONFIRMED" || d.detected) {
+      box.textContent = "✓ RNode-Protokoll bestätigt · " + (d.port || "");
+    } else if (d.result === "PROBE_TIMEOUT") {
       box.textContent =
-        "USB-Gerät vorhanden · kein RNode bestätigt" +
-        " · RC: " + (d.returncode ?? "timeout") +
-        " · " + (d.info || "keine Ausgabe");
-    } else if (d.device_present) {
+        "Probe-Timeout · Serial vorhanden · keine RNode-Antwort";
+    } else if (d.result === "NO_RNODE_RESPONSE") {
       box.textContent =
-        "USB-Gerät vorhanden · kein RNode erkannt" +
-        " · RC: " + (d.returncode ?? "—") +
-        " · " + (d.info || "keine Ausgabe");
+        "Serial vorhanden · keine gültige RNode-Antwort" +
+        " · RC: " + (d.returncode ?? "—");
+    } else if (d.result === "PROBE_ERROR") {
+      box.textContent =
+        "✗ RNode-Probe fehlgeschlagen · " +
+        (d.info || "Unbekannter Fehler");
     } else {
-      box.textContent = "✗ RNode-Prüfung fehlgeschlagen · " +
-        (d.error || d.info || "Unbekannter Fehler");
+      box.textContent = "RNode-Status unbekannt";
     }
   } catch (e) {
     box.textContent = "✗ RNode-Prüfung nicht erreichbar";
