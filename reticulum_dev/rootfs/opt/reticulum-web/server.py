@@ -1125,6 +1125,64 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(request_node_announce())
             return
 
+        if path.endswith("/api/node/lxmf/send"):
+            try:
+                length = int(
+                    self.headers.get("Content-Length", "0")
+                )
+                raw = self.rfile.read(length)
+                payload = json.loads(raw.decode("utf-8"))
+
+                destination_hash = str(
+                    payload.get("destination_hash", "")
+                ).strip()
+
+                content = str(
+                    payload.get("content", "")
+                ).strip()
+
+                title = str(
+                    payload.get("title", "")
+                ).strip()
+
+                if len(destination_hash) != 32:
+                    raise ValueError(
+                        "Ungültiger LXMF Destination Hash"
+                    )
+
+                if not content:
+                    raise ValueError(
+                        "Nachricht darf nicht leer sein"
+                    )
+
+                request_file = Path(
+                    "/config/reticulum/homeassistant-node/"
+                    "lxmf_outbound.json"
+                )
+
+                request_file.write_text(
+                    json.dumps({
+                        "destination_hash": destination_hash,
+                        "content": content,
+                        "title": title,
+                        "requested_at": int(time.time()),
+                    }),
+                    encoding="utf-8",
+                )
+
+                self.send_json({
+                    "ok": True,
+                    "state": "QUEUED",
+                })
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc),
+                }, 400)
+
+            return
+
         if path.endswith("/api/node/lxmf/announce"):
             self.send_json(request_lxmf_announce())
             return

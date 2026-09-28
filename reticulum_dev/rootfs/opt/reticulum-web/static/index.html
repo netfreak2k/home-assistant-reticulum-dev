@@ -610,6 +610,33 @@ pre {
   </button>
 
   <div id="lxmf-result"></div>
+  <div style="margin-top:12px">
+    <input
+      id="lxmf-send-destination"
+      placeholder="LXMF Destination Hash"
+      style="width:100%"
+    >
+
+    <textarea
+      id="lxmf-send-content"
+      placeholder="Nachricht an MeshChatX…"
+      rows="3"
+      style="width:100%;margin-top:6px"
+    ></textarea>
+
+    <button
+      id="lxmf-send-button"
+      type="button"
+      onclick="sendLXMF()"
+      style="margin-top:6px"
+    >
+      An MeshChatX senden
+    </button>
+
+    <div id="lxmf-send-result"></div>
+  </div>
+
+
 
   <hr>
 
@@ -1021,6 +1048,53 @@ function escapeHTML(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+async function sendLXMF() {
+  const destination =
+    document.getElementById("lxmf-send-destination").value.trim();
+
+  const content =
+    document.getElementById("lxmf-send-content").value.trim();
+
+  const result =
+    document.getElementById("lxmf-send-result");
+
+  if (!destination || !content) {
+    result.textContent =
+      "Destination und Nachricht erforderlich.";
+    return;
+  }
+
+  result.textContent = "LXMF wird gesendet…";
+
+  try {
+    const response = await fetch(
+      "api/node/lxmf/send",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          destination_hash: destination,
+          content: content,
+          title: "Home Assistant"
+        }),
+        cache: "no-store"
+      }
+    );
+
+    const data = await response.json();
+
+    result.textContent =
+      data.ok
+        ? "LXMF Nachricht zur Übertragung eingereiht."
+        : (data.error || "LXMF Versand fehlgeschlagen.");
+
+  } catch (error) {
+    result.textContent = "LXMF API nicht erreichbar.";
+  }
 }
 
 async function announceLXMF() {

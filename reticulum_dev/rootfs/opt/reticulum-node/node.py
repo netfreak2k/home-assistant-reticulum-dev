@@ -102,6 +102,31 @@ lxmf_router = LXMF.LXMRouter(
     name="Home Assistant",
 )
 
+OUTBOUND_REQUEST = STATE_DIR / "lxmf_outbound.json"
+
+def send_lxmf_message(destination_hash, content, title=""):
+    destination_hash = bytes.fromhex(destination_hash)
+
+    destination = RNS.Destination(
+        RNS.Destination.OUT,
+        RNS.Destination.SINGLE,
+        "lxmf",
+        "delivery",
+    )
+
+    destination.hash = destination_hash
+
+    message = LXMF.LXMessage(
+        destination,
+        lxmf_destination,
+        content,
+        title=title,
+    )
+
+    lxmf_router.handle_outbound(message)
+
+    return message
+
 lxmf_destination = lxmf_router.register_delivery_identity(
     identity=identity,
     display_name=LXMF_DISPLAY_NAME,
@@ -340,6 +365,43 @@ while running:
             except Exception as exc:
                 state["lxmf_announce_result"] = "ERROR"
                 state["lxmf_announce_error"] = str(exc)
+
+    if OUTBOUND_REQUEST.exists():
+        try:
+            request = json.loads(
+                OUTBOUND_REQUEST.read_text()
+            )
+
+            destination_hash = str(
+                request.get("destination_hash", "")
+            ).strip()
+
+            content = str(
+                request.get("content", "")
+            )
+
+            title = str(
+                request.get("title", "")
+            )
+
+            if not destination_hash or not content:
+                raise ValueError("destination_hash/content fehlt")
+
+            message = send_lxmf_message(
+                destination_hash,
+                content,
+                title,
+            )
+
+            state["lxmf_outbound_result"] = "QUEUED"
+            state["lxmf_outbound_error"] = None
+            state["lxmf_outbound_requested_at"] = int(time.time())
+
+            request.unlink()
+
+        except Exception as exc:
+            state["lxmf_outbound_result"] = "ERROR"
+            state["lxmf_outbound_error"] = str(exc)
 
     if ANNOUNCE_REQUEST.exists():
         try:
