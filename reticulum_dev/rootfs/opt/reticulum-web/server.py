@@ -1319,6 +1319,51 @@ def get_lxmf_outbox():
 
 
 
+def get_messenger_contacts():
+    path = Path(
+        "/config/reticulum/homeassistant-node/"
+        "contacts.json"
+    )
+
+    try:
+        if not path.exists():
+            contacts = []
+        else:
+            contacts = json.loads(
+                path.read_text(encoding="utf-8")
+            )
+
+        if not isinstance(contacts, list):
+            contacts = []
+
+        contacts = [
+            item for item in contacts
+            if isinstance(item, dict)
+            and item.get("destination_hash")
+        ]
+
+        contacts.sort(
+            key=lambda item: int(
+                item.get("last_seen") or 0
+            ),
+            reverse=True,
+        )
+
+        return {
+            "ok": True,
+            "count": len(contacts),
+            "contacts": contacts,
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "count": 0,
+            "contacts": [],
+            "error": str(exc),
+        }
+
+
 def get_messenger_data():
     base = Path(
         "/config/reticulum/homeassistant-node"
@@ -1326,6 +1371,7 @@ def get_messenger_data():
 
     inbox_file = base / "lxmf-inbox.json"
     outbox_file = base / "lxmf-outbox.json"
+    contacts_file = base / "contacts.json"
 
     def load_list(path):
         try:
@@ -1343,6 +1389,24 @@ def get_messenger_data():
 
     inbox = load_list(inbox_file)
     outbox = load_list(outbox_file)
+    contacts = load_list(contacts_file)
+
+    contact_names = {}
+
+    for item in contacts:
+        if not isinstance(item, dict):
+            continue
+
+        peer = str(
+            item.get("destination_hash") or ""
+        ).strip()
+
+        name = str(
+            item.get("display_name") or ""
+        ).strip()
+
+        if peer and name:
+            contact_names[peer] = name
 
     conversations = {}
 
@@ -1351,10 +1415,13 @@ def get_messenger_data():
             conversations[peer] = {
                 "peer_hash": peer,
                 "display_name": (
-                    "Kontakt " +
-                    peer[:6].upper()
-                    if peer
-                    else "Unbekannt"
+                    contact_names.get(peer)
+                    or (
+                        "Kontakt " +
+                        peer[:6].upper()
+                        if peer
+                        else "Unbekannt"
+                    )
                 ),
                 "messages": [],
                 "last_timestamp": 0,
@@ -1692,6 +1759,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/node/lxmf/outbox"):
             self.send_json(get_lxmf_outbox())
+            return
+
+        if path.endswith("/api/messenger/contacts"):
+            self.send_json(get_messenger_contacts())
             return
 
         if path.endswith("/api/messenger"):

@@ -120,6 +120,173 @@ LXMF_OUTBOX_FILE = STATE_DIR / "lxmf-outbox.json"
 LXMF_OUTBOX_LIMIT = 100
 
 
+# --------------------------------------------------
+# LXMF CONTACT DISCOVERY
+# --------------------------------------------------
+
+CONTACTS_FILE = STATE_DIR / "contacts.json"
+CONTACTS_LIMIT = 500
+
+
+def _read_contacts():
+    try:
+        if not CONTACTS_FILE.exists():
+            return []
+
+        data = json.loads(
+            CONTACTS_FILE.read_text(encoding="utf-8")
+        )
+
+        return data if isinstance(data, list) else []
+
+    except Exception:
+        return []
+
+
+def _write_contacts(contacts):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+
+    tmp = Path(str(CONTACTS_FILE) + ".tmp")
+
+    tmp.write_text(
+        json.dumps(
+            contacts[-CONTACTS_LIMIT:],
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    tmp.replace(CONTACTS_FILE)
+
+
+def _announce_text(app_data):
+    if app_data is None:
+        return ""
+
+    if isinstance(app_data, bytes):
+        # LXMF display names are normally encoded using
+        # LXMF announce data. Try the LXMF helper first.
+        try:
+            value = LXMF.display_name_from_app_data(
+                app_data
+            )
+
+            if value:
+                return str(value).strip()
+
+        except Exception:
+            pass
+
+        try:
+            return app_data.decode(
+                "utf-8",
+                errors="replace",
+            ).strip()
+
+        except Exception:
+            return ""
+
+    return str(app_data).strip()
+
+
+def remember_lxmf_contact(
+    destination_hash,
+    announced_identity,
+    app_data,
+):
+    try:
+        if isinstance(destination_hash, bytes):
+            peer = destination_hash.hex()
+        else:
+            peer = str(destination_hash or "").strip()
+
+        if len(peer) != 32:
+            return
+
+        # Never add ourselves to the contact list.
+        if peer == lxmf_destination.hash.hex():
+            return
+
+        display_name = _announce_text(app_data)
+
+        if not display_name:
+            display_name = "Kontakt " + peer[:6].upper()
+
+        now = int(time.time())
+        contacts = _read_contacts()
+
+        existing = None
+
+        for item in contacts:
+            if str(item.get("destination_hash")) == peer:
+                existing = item
+                break
+
+        if existing is None:
+            existing = {
+                "destination_hash": peer,
+                "first_seen": now,
+            }
+            contacts.append(existing)
+
+        existing["display_name"] = display_name
+        existing["last_seen"] = now
+        existing["source"] = "lxmf_announce"
+
+        if announced_identity is not None:
+            try:
+                ih = getattr(
+                    announced_identity,
+                    "hash",
+                    None,
+                )
+
+                if isinstance(ih, bytes):
+                    existing["identity_hash"] = ih.hex()
+
+            except Exception:
+                pass
+
+        _write_contacts(contacts)
+
+        print(
+            "LXMF CONTACT:",
+            display_name,
+            peer[:16],
+        )
+
+    except Exception as exc:
+        print(
+            "LXMF CONTACT ERROR:",
+            str(exc),
+        )
+
+
+class LXMFAnnounceHandler:
+    aspect_filter = "lxmf.delivery"
+
+    def received_announce(
+        self,
+        destination_hash,
+        announced_identity,
+        app_data,
+    ):
+        remember_lxmf_contact(
+            destination_hash,
+            announced_identity,
+            app_data,
+        )
+
+
+lxmf_announce_handler = LXMFAnnounceHandler()
+
+RNS.Transport.register_announce_handler(
+    lxmf_announce_handler
+)
+
+
+
 def append_lxmf_outbox(message):
     try:
         if LXMF_OUTBOX_FILE.exists():
