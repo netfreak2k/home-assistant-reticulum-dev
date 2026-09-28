@@ -205,6 +205,72 @@ pre {
 
     .status { padding: 8px 13px; }
 }
+
+.network-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.network-stat {
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  background: rgba(255,255,255,.025);
+}
+
+.network-stat-label {
+  font-size: 11px;
+  opacity: .62;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.network-stat-value {
+  margin-top: 5px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.network-paths {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.network-paths th,
+.network-paths td {
+  text-align: left;
+  padding: 7px 6px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.network-paths th {
+  opacity: .6;
+  font-weight: 600;
+}
+
+.network-hash {
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.network-empty {
+  padding: 12px 0;
+  opacity: .55;
+}
+
+@media (max-width: 800px) {
+  .network-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .network-table-wrap {
+    overflow-x: auto;
+  }
+}
+
 </style>
 </head>
 
@@ -455,6 +521,58 @@ pre {
 
 </div>
 
+
+<section class="card" id="reticulum-network">
+  <h2>Reticulum Network</h2>
+
+  <div class="network-summary">
+    <div class="network-stat">
+      <div class="network-stat-label">Known Paths</div>
+      <div id="net-paths" class="network-stat-value">—</div>
+    </div>
+
+    <div class="network-stat">
+      <div class="network-stat-label">Interfaces</div>
+      <div id="net-interfaces" class="network-stat-value">—</div>
+    </div>
+
+    <div class="network-stat">
+      <div class="network-stat-label">Internet Uplinks</div>
+      <div id="net-uplinks" class="network-stat-value">—</div>
+    </div>
+
+    <div class="network-stat">
+      <div class="network-stat-label">Total TX</div>
+      <div id="net-tx" class="network-stat-value">—</div>
+    </div>
+
+    <div class="network-stat">
+      <div class="network-stat-label">Total RX</div>
+      <div id="net-rx" class="network-stat-value">—</div>
+    </div>
+  </div>
+
+  <div class="network-table-wrap">
+    <table class="network-paths">
+      <thead>
+        <tr>
+          <th>Destination</th>
+          <th>Hops</th>
+          <th>Next Hop</th>
+          <th>Interface</th>
+        </tr>
+      </thead>
+      <tbody id="network-path-list">
+        <tr>
+          <td colspan="4" class="network-empty">
+            Lade Reticulum-Netzwerksicht…
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
 <script>
 function uptime(sec) {
   sec = Number(sec || 0);
@@ -583,6 +701,146 @@ function setPath(id, text, state) {
     state === "wait" ? "path-wait" :
     "path-off"
   );
+}
+
+
+
+function formatNetworkBytes(value) {
+  const bytes = Number(value || 0);
+
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return "0 B";
+  }
+
+  const units = ["B", "KB", "MB", "GB"];
+  let number = bytes;
+  let unit = 0;
+
+  while (number >= 1000 && unit < units.length - 1) {
+    number /= 1000;
+    unit += 1;
+  }
+
+  return (
+    (number >= 10 || unit === 0
+      ? number.toFixed(0)
+      : number.toFixed(1)
+    ) + " " + units[unit]
+  );
+}
+
+
+function shortHash(value) {
+  const text = String(value || "");
+
+  if (text.length <= 20) {
+    return text || "—";
+  }
+
+  return text.slice(0, 10) + "…" + text.slice(-8);
+}
+
+
+async function refreshReticulumNetwork() {
+  const body = document.getElementById("network-path-list");
+
+  try {
+    const response = await fetch(
+      "api/network",
+      {cache:"no-store"}
+    );
+
+    const data = await response.json();
+
+    document.getElementById("net-paths").textContent =
+      Number(data.path_count || 0);
+
+    document.getElementById("net-interfaces").textContent =
+      Number(data.interfaces_up || 0) +
+      "/" +
+      Number(data.interfaces_total || 0);
+
+    document.getElementById("net-uplinks").textContent =
+      Number(data.internet_up || 0) +
+      "/" +
+      Number(data.internet_total || 0);
+
+    document.getElementById("net-tx").textContent =
+      formatNetworkBytes(data.tx_bytes);
+
+    document.getElementById("net-rx").textContent =
+      formatNetworkBytes(data.rx_bytes);
+
+    const paths = Array.isArray(data.paths)
+      ? data.paths
+      : [];
+
+    body.innerHTML = "";
+
+    if (!paths.length) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+
+      cell.colSpan = 4;
+      cell.className = "network-empty";
+      cell.textContent =
+        "Noch keine bekannten Reticulum-Pfade.";
+
+      row.appendChild(cell);
+      body.appendChild(row);
+      return;
+    }
+
+    paths.slice(0, 50).forEach(path => {
+      const row = document.createElement("tr");
+
+      const destination = document.createElement("td");
+      destination.className = "network-hash";
+      destination.textContent =
+        shortHash(path.destination);
+      destination.title =
+        String(path.destination || "");
+
+      const hops = document.createElement("td");
+      hops.textContent =
+        path.hops === null ||
+        path.hops === undefined
+          ? "—"
+          : String(path.hops);
+
+      const nextHop = document.createElement("td");
+      nextHop.className = "network-hash";
+      nextHop.textContent =
+        shortHash(path.next_hop);
+      nextHop.title =
+        String(path.next_hop || "");
+
+      const iface = document.createElement("td");
+      iface.textContent =
+        String(path.interface || "—");
+
+      row.appendChild(destination);
+      row.appendChild(hops);
+      row.appendChild(nextHop);
+      row.appendChild(iface);
+
+      body.appendChild(row);
+    });
+
+  } catch (error) {
+    body.innerHTML = "";
+
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+
+    cell.colSpan = 4;
+    cell.className = "network-empty";
+    cell.textContent =
+      "Netzwerksicht derzeit nicht verfügbar.";
+
+    row.appendChild(cell);
+    body.appendChild(row);
+  }
 }
 
 
@@ -1254,6 +1512,10 @@ refreshHardware();
 setInterval(refresh, 5000);
 setInterval(refreshHardware, 10000);
 setInterval(refreshNodeOverview, 5000);
+
+refreshReticulumNetwork();
+setInterval(refreshReticulumNetwork, 10000);
+
 </script>
 </body>
 </html>

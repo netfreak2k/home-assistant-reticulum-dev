@@ -627,6 +627,257 @@ def get_reticulum_discovery():
 
 
 
+
+def get_network_snapshot():
+    """
+    Read-only Reticulum network overview.
+
+    Uses rnpath/rnstatus only. No identity generation,
+    path requests, serial access or configuration changes.
+    """
+
+    result = {
+        "ok": False,
+        "timestamp": int(time.time()),
+        "paths": [],
+        "path_count": 0,
+        "interfaces_total": 0,
+        "interfaces_up": 0,
+        "internet_total": 0,
+        "internet_up": 0,
+        "tx_bytes": 0,
+        "rx_bytes": 0,
+        "errors": [],
+    }
+
+    # ----------------------------------------------
+    # Known Reticulum paths
+    # ----------------------------------------------
+    paths_cmd = run_command([
+        "rnpath",
+        "-t",
+        "-j",
+        "--config",
+        CONFIG_DIR,
+    ], timeout=8)
+
+    if paths_cmd["ok"]:
+        try:
+            raw = json.loads(paths_cmd["stdout"] or "{}")
+
+            candidates = []
+
+            if isinstance(raw, list):
+                candidates = raw
+
+            elif isinstance(raw, dict):
+                for key in (
+                    "paths",
+                    "path_table",
+                    "entries",
+                    "table",
+                    "results",
+                ):
+                    value = raw.get(key)
+                    if isinstance(value, list):
+                        candidates = value
+                        break
+
+                # Some RNS versions may use destination
+                # hashes as dictionary keys.
+                if not candidates:
+                    dictionary_entries = []
+
+                    for key, value in raw.items():
+                        if isinstance(value, dict):
+                            entry = dict(value)
+                            entry.setdefault("destination", key)
+                            dictionary_entries.append(entry)
+
+                    candidates = dictionary_entries
+
+            normalised = []
+
+            for item in candidates:
+                if not isinstance(item, dict):
+                    continue
+
+                destination = (
+                    item.get("destination")
+                    or item.get("destination_hash")
+                    or item.get("hash")
+                    or item.get("dest")
+                    or ""
+                )
+
+                next_hop = (
+                    item.get("next_hop")
+                    or item.get("via")
+                    or item.get("received_from")
+                    or ""
+                )
+
+                hops = item.get("hops")
+                if hops is None:
+                    hops = item.get("hop_count")
+
+                expires = (
+                    item.get("expires")
+                    or item.get("expires_in")
+                    or item.get("expiry")
+                )
+
+                interface = (
+                    item.get("interface")
+                    or item.get("interface_name")
+                    or ""
+                )
+
+                normalised.append({
+                    "destination": str(destination),
+                    "next_hop": str(next_hop),
+                    "hops": hops,
+                    "expires": expires,
+                    "interface": str(interface),
+                })
+
+            result["paths"] = normalised
+            result["path_count"] = len(normalised)
+
+        except Exception as exc:
+            result["errors"].append(
+                "rnpath JSON: " + str(exc)
+            )
+    else:
+        result["errors"].append(
+            "rnpath: " +
+            (paths_cmd["stderr"] or "command failed")
+        )
+
+    # ----------------------------------------------
+    # Current interface state / traffic
+    # Reuse our proven rnstatus parser.
+    # ----------------------------------------------
+    status_cmd = run_command([
+        "rnstatus",
+        "--config",
+        CONFIG_DIR,
+    ], timeout=8)
+
+    if status_cmd["ok"]:
+        parsed = parse_rnstatus(status_cmd["stdout"])
+
+        interfaces = parsed.get("interfaces", [])
+        if not isinstance(interfaces, list):
+            interfaces = []
+
+        result["interfaces_total"] = len(interfaces)
+
+        def is_up(interface):
+            state = str(
+                interface.get("status", "")
+            ).strip().lower()
+
+            return state in (
+                "up",
+                "online",
+                "connected",
+            )
+
+        def is_internet(interface):
+            name = str(
+                interface.get("name", "")
+            ).lower()
+
+            kind = str(
+                interface.get("type", "")
+            ).lower()
+
+            return (
+                "tcp" in kind
+                or "backbone" in kind
+                or "tcp" in name
+                or "backbone" in name
+                or "bootstrap" in name
+                or "internet" in name
+            )
+
+        up_interfaces = [
+            interface
+            for interface in interfaces
+            if is_up(interface)
+        ]
+
+        internet_interfaces = [
+            interface
+            for interface in interfaces
+            if is_internet(interface)
+        ]
+
+        internet_up = [
+            interface
+            for interface in internet_interfaces
+            if is_up(interface)
+        ]
+
+        result["interfaces_up"] = len(up_interfaces)
+        result["internet_total"] = len(internet_interfaces)
+        result["internet_up"] = len(internet_up)
+
+        def byte_value(value):
+            if isinstance(value, (int, float)):
+                return int(value)
+
+            text = str(value or "").strip().lower()
+            if not text:
+                return 0
+
+            try:
+                parts = text.replace(",", ".").split()
+                number = float(parts[0])
+                unit = parts[1] if len(parts) > 1 else "b"
+
+                factors = {
+                    "b": 1,
+                    "kb": 1000,
+                    "mb": 1000 ** 2,
+                    "gb": 1000 ** 3,
+                    "kib": 1024,
+                    "mib": 1024 ** 2,
+                    "gib": 1024 ** 3,
+                }
+
+                return int(
+                    number * factors.get(unit, 1)
+                )
+            except Exception:
+                return 0
+
+        tx_total = 0
+        rx_total = 0
+
+        for interface in interfaces:
+            tx_total += byte_value(
+                interface.get("tx", 0)
+            )
+            rx_total += byte_value(
+                interface.get("rx", 0)
+            )
+
+        result["tx_bytes"] = tx_total
+        result["rx_bytes"] = rx_total
+
+    else:
+        result["errors"].append(
+            "rnstatus: " +
+            (status_cmd["stderr"] or "command failed")
+        )
+
+    result["ok"] = status_cmd["ok"]
+
+    return result
+
+
 def get_status():
     rnstatus = run_command([
         "rnstatus",
@@ -809,6 +1060,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/status"):
             self.send_json(get_status())
+            return
+
+        if path.endswith("/api/network"):
+            self.send_json(get_network_snapshot())
             return
 
         if path.endswith("/api/internet/diagnostic"):
