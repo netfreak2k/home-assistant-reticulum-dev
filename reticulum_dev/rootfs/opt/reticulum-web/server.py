@@ -360,36 +360,114 @@ def parse_rnstatus(text):
         "interfaces": [],
     }
 
-    shared = re.search(
-        r"Shared Instance\[(.*?)\].*?"
-        r"Status\s*:\s*(\w+).*?"
-        r"Serving\s*:\s*(\d+) programs.*?"
-        r"Rate\s*:\s*([^,]+), MTU (\d+)",
+    # -----------------------------------------------------
+    # Shared Instance
+    #
+    # RNS output differs slightly between versions/builds.
+    # Do not require every field to exist in one regex.
+    # -----------------------------------------------------
+
+    shared_header = re.search(
+        r"^\s*Shared\s+Instance(?:\[(.*?)\])?\s*$",
         text,
-        re.S,
+        re.M | re.I,
     )
 
-    if shared:
-        data["shared_instance"] = {
-            "name": shared.group(1),
-            "status": shared.group(2),
-            "serving": int(shared.group(3)),
-            "rate": shared.group(4).strip(),
-            "mtu": int(shared.group(5)),
+    if shared_header:
+        next_header = re.search(
+            r"^\s*[A-Za-z][A-Za-z0-9_]*\[.*?\]\s*$",
+            text[shared_header.end():],
+            re.M,
+        )
+
+        if next_header:
+            block_end = (
+                shared_header.end()
+                + next_header.start()
+            )
+        else:
+            block_end = len(text)
+
+        block = text[
+            shared_header.start():block_end
+        ]
+
+        def field(pattern):
+            match = re.search(
+                pattern,
+                block,
+                re.I | re.M,
+            )
+            return (
+                match.group(1).strip()
+                if match else None
+            )
+
+        name = (
+            shared_header.group(1)
+            or "Shared Instance"
+        )
+
+        serving_raw = field(
+            r"Serving\s*:\s*(\d+)"
+        )
+
+        mtu_raw = field(
+            r"MTU\s*:?\s*(\d+)"
+        )
+
+        # Some rnstatus versions print:
+        # Rate : 1.00 Mbps, MTU 1064
+        rate_match = re.search(
+            r"Rate\s*:\s*([^,\n]+)"
+            r"(?:,\s*MTU\s*:?\s*(\d+))?",
+            block,
+            re.I,
+        )
+
+        shared = {
+            "name": name,
+            "status": field(
+                r"Status\s*:\s*([^\n]+)"
+            ),
+            "serving": (
+                int(serving_raw)
+                if serving_raw is not None
+                else None
+            ),
+            "rate": (
+                rate_match.group(1).strip()
+                if rate_match else None
+            ),
+            "mtu": (
+                int(rate_match.group(2))
+                if rate_match
+                and rate_match.group(2)
+                else (
+                    int(mtu_raw)
+                    if mtu_raw is not None
+                    else None
+                )
+            ),
         }
 
-        block = text[shared.start():]
         traffic = re.search(
-            r"Traffic\s*:\s*↑\s*([^\n]+?)\s{2,}([^\s]+\s+bps).*?"
-            r"↓\s*([^\n]+?)\s{2,}([^\s]+\s+bps)",
+            r"Traffic\s*:\s*"
+            r"↑\s*([^\n]+?)\s{2,}"
+            r"([^\s]+\s+bps).*?"
+            r"↓\s*([^\n]+?)\s{2,}"
+            r"([^\s]+\s+bps)",
             block,
-            re.S,
+            re.S | re.I,
         )
+
         if traffic:
-            data["shared_instance"]["tx"] = traffic.group(1).strip()
-            data["shared_instance"]["tx_rate"] = traffic.group(2).strip()
-            data["shared_instance"]["rx"] = traffic.group(3).strip()
-            data["shared_instance"]["rx_rate"] = traffic.group(4).strip()
+            shared["tx"] = traffic.group(1).strip()
+            shared["tx_rate"] = traffic.group(2).strip()
+            shared["rx"] = traffic.group(3).strip()
+            shared["rx_rate"] = traffic.group(4).strip()
+
+        data["shared_instance"] = shared
 
     # Parse all Reticulum interfaces, not only AutoInterface.
     interface_header = re.compile(
@@ -1097,6 +1175,21 @@ def build_status_snapshot():
         rnstatus["stdout"]
     )
 
+    # Passive health check only. No configuration,
+    # serial or RF state is changed.
+    try:
+        internet_health = get_internet_diagnostic()
+    except Exception as exc:
+        internet_health = {
+            "dns": False,
+            "tcp": False,
+            "path_state": "UNKNOWN",
+            "peer_count": 0,
+            "reachable_peers": 0,
+            "peers": [],
+            "error": str(exc),
+        }
+
     return {
         "service": "reticulum",
         "online": rnstatus["ok"],
@@ -1108,6 +1201,8 @@ def build_status_snapshot():
             parsed["shared_instance"],
         "interfaces":
             parsed["interfaces"],
+        "internet_health":
+            internet_health,
         "rnstatus":
             rnstatus["stdout"],
         "error":

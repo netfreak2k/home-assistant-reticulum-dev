@@ -5837,7 +5837,7 @@ if (document.readyState === "loading") {
 .msg-net-state.offline::before { background:#c85b5b; }
 </style>
 
-<script id="status-engine-068">
+<script id="status-engine-070">
 (() => {
   "use strict";
 
@@ -5914,7 +5914,7 @@ if (document.readyState === "loading") {
     );
   }
 
-  function render068(d) {
+  function render070(d) {
     const online =
       d?.online === true;
 
@@ -5975,18 +5975,41 @@ if (document.readyState === "loading") {
     const internetUp =
       internet.filter(interfaceUp).length;
 
-    if (internetUp >= 2) {
+    const health =
+      d?.internet_health || {};
+
+    const reachable =
+      Number(health.reachable_peers || 0);
+
+    const peerCount =
+      Number(health.peer_count || 0);
+
+    /*
+     * User-facing Internet state:
+     *
+     * ONLINE   = TCP path to at least one known peer
+     * DEGRADED = DNS/path hints exist but no TCP peer
+     * OFFLINE  = no usable external path
+     *
+     * Interface count remains diagnostic only.
+     */
+    if (health.tcp === true) {
       path(
         "hero-internet",
         "● ONLINE",
         "up"
       );
-    } else if (internetUp === 1) {
+
+    } else if (
+      health.dns === true ||
+      internetUp > 0
+    ) {
       path(
         "hero-internet",
         "● DEGRADED",
         "wait"
       );
+
     } else {
       path(
         "hero-internet",
@@ -5995,12 +6018,22 @@ if (document.readyState === "loading") {
       );
     }
 
-    setText(
-      "hero-internet-detail",
-      internet.length
-        ? `${internetUp}/${internet.length} Uplinks aktiv`
-        : "Keine Internet-Uplinks"
-    );
+    if (peerCount > 0) {
+      setText(
+        "hero-internet-detail",
+        `${reachable}/${peerCount} Peers erreichbar`
+      );
+    } else if (internet.length) {
+      setText(
+        "hero-internet-detail",
+        `${internetUp}/${internet.length} Interfaces aktiv`
+      );
+    } else {
+      setText(
+        "hero-internet-detail",
+        "Kein Internetpfad erkannt"
+      );
+    }
 
     const rnode =
       interfaces.find(i =>
@@ -6050,7 +6083,7 @@ if (document.readyState === "loading") {
     }
   }
 
-  async function refresh068() {
+  async function refresh070() {
     if (requestRunning) return;
 
     requestRunning = true;
@@ -6088,7 +6121,7 @@ if (document.readyState === "loading") {
       const data =
         JSON.parse(raw);
 
-      render068(data);
+      render070(data);
 
     } catch (e) {
       topStatus(
@@ -6104,7 +6137,7 @@ if (document.readyState === "loading") {
     }
   }
 
-  function readBootstrap068() {
+  function readBootstrap070() {
     const node =
       document.getElementById(
         "reticulum-bootstrap-data"
@@ -6120,7 +6153,7 @@ if (document.readyState === "loading") {
           node.textContent || "{}"
         );
 
-      render068(data);
+      render070(data);
       return true;
 
     } catch (_) {
@@ -6128,13 +6161,13 @@ if (document.readyState === "loading") {
     }
   }
 
-  function boot068() {
+  function boot070() {
     /*
      * Initialer Status kommt direkt mit index.html.
      * Kein Fetch für den ersten Bildschirm.
      */
     const bootstrapped =
-      readBootstrap068();
+      readBootstrap070();
 
     if (!bootstrapped) {
       topStatus(
@@ -6149,17 +6182,17 @@ if (document.readyState === "loading") {
      * bleibt der Bootstrap-Status sichtbar.
      */
     setTimeout(
-      refresh068,
+      refresh070,
       5000
     );
 
     setInterval(
-      refresh068,
+      refresh070,
       15000
     );
   }
 
-  boot068();
+  boot070();
 
 })();
 </script>
