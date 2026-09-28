@@ -634,6 +634,23 @@ pre {
     </button>
 
     <div id="lxmf-send-result"></div>
+    <div style="margin-top:10px">
+      Versandstatus:
+      <b id="lxmf-outbound-stage">—</b>
+    </div>
+    <div>
+      Pfad:
+      <b id="lxmf-outbound-path">—</b>
+      · Identity:
+      <b id="lxmf-outbound-identity">—</b>
+    </div>
+    <div>
+      Ziel:
+      <code id="lxmf-outbound-target">—</code>
+    </div>
+    <div id="lxmf-outbound-error"
+         style="margin-top:4px"></div>
+
   </div>
 
 
@@ -1223,6 +1240,41 @@ async function refreshNodeIdentity() {
             data.lxmf_last_announce*1000
           ).toLocaleString()
         : "—";
+
+    document.getElementById(
+      "lxmf-outbound-stage"
+    ).textContent =
+      data.lxmf_outbound_stage || "—";
+
+    document.getElementById(
+      "lxmf-outbound-path"
+    ).textContent =
+      data.lxmf_outbound_path === true
+        ? "JA"
+        : data.lxmf_outbound_path === false
+        ? "NEIN"
+        : "—";
+
+    document.getElementById(
+      "lxmf-outbound-identity"
+    ).textContent =
+      data.lxmf_outbound_identity === true
+        ? "JA"
+        : data.lxmf_outbound_identity === false
+        ? "NEIN"
+        : "—";
+
+    document.getElementById(
+      "lxmf-outbound-target"
+    ).textContent =
+      data.lxmf_outbound_target || "—";
+
+    document.getElementById(
+      "lxmf-outbound-error"
+    ).textContent =
+      data.lxmf_outbound_error
+        ? "Fehler: " + data.lxmf_outbound_error
+        : "";
 
     const identity =
       document.getElementById("identity-hash");

@@ -104,14 +104,29 @@ lxmf_router = LXMF.LXMRouter(
 
 OUTBOUND_REQUEST = STATE_DIR / "lxmf_outbound.json"
 
-def send_lxmf_message(destination_hash, content, title=""):
+def send_lxmf_message(destination_hash, content, title="", state=None):
     recipient_hash = bytes.fromhex(destination_hash)
+
+    if state is not None:
+        state["lxmf_outbound_stage"] = "REQUESTED"
+        state["lxmf_outbound_target"] = destination_hash
+        state["lxmf_outbound_error"] = None
+        state["updated"] = int(time.time())
+        write_state(state)
 
     if len(recipient_hash) != RNS.Identity.TRUNCATED_HASHLENGTH // 8:
         raise ValueError("Ungültiger LXMF Destination Hash")
 
     # Für verschlüsselte SINGLE-Destinations benötigen wir
     # die öffentliche Identity des Empfängers.
+    if state is not None:
+        state["lxmf_outbound_stage"] = "PATH"
+        state["lxmf_outbound_path"] = bool(
+            RNS.Transport.has_path(recipient_hash)
+        )
+        state["updated"] = int(time.time())
+        write_state(state)
+
     if not RNS.Transport.has_path(recipient_hash):
         RNS.Transport.request_path(recipient_hash)
 
@@ -126,7 +141,20 @@ def send_lxmf_message(destination_hash, content, title=""):
     if not RNS.Transport.has_path(recipient_hash):
         raise RuntimeError("Kein Reticulum-Pfad zum Empfänger")
 
+    if state is not None:
+        state["lxmf_outbound_path"] = True
+        state["lxmf_outbound_stage"] = "IDENTITY"
+        state["updated"] = int(time.time())
+        write_state(state)
+
     recipient_identity = RNS.Identity.recall(recipient_hash)
+
+    if state is not None:
+        state["lxmf_outbound_identity"] = (
+            recipient_identity is not None
+        )
+        state["updated"] = int(time.time())
+        write_state(state)
 
     if recipient_identity is None:
         raise RuntimeError(
@@ -146,6 +174,11 @@ def send_lxmf_message(destination_hash, content, title=""):
     if destination.hash != recipient_hash:
         raise RuntimeError("LXMF Destination Hash stimmt nicht überein")
 
+    if state is not None:
+        state["lxmf_outbound_stage"] = "LXMF"
+        state["updated"] = int(time.time())
+        write_state(state)
+
     message = LXMF.LXMessage(
         destination,
         lxmf_destination,
@@ -154,6 +187,13 @@ def send_lxmf_message(destination_hash, content, title=""):
     )
 
     lxmf_router.handle_outbound(message)
+
+    if state is not None:
+        state["lxmf_outbound_stage"] = "QUEUED"
+        state["lxmf_outbound_result"] = "QUEUED"
+        state["lxmf_outbound_error"] = None
+        state["updated"] = int(time.time())
+        write_state(state)
 
     return message
 
@@ -421,6 +461,7 @@ while running:
                 destination_hash,
                 content,
                 title,
+                state=state,
             )
 
             state["lxmf_outbound_result"] = "QUEUED"
@@ -430,8 +471,11 @@ while running:
             request.unlink()
 
         except Exception as exc:
+            state["lxmf_outbound_stage"] = "ERROR"
             state["lxmf_outbound_result"] = "ERROR"
             state["lxmf_outbound_error"] = str(exc)
+            state["updated"] = int(time.time())
+            write_state(state)
 
     if ANNOUNCE_REQUEST.exists():
         try:
