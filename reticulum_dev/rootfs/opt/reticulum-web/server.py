@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import socket
 import subprocess
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -440,6 +441,49 @@ def parse_rnstatus(text):
     return data
 
 
+
+def get_internet_diagnostic():
+    host = "sideband.connect.reticulum.network"
+    port = 7822
+
+    result = {
+        "host": host,
+        "port": port,
+        "dns": False,
+        "addresses": [],
+        "tcp": False,
+        "error": None,
+    }
+
+    try:
+        infos = socket.getaddrinfo(
+            host,
+            port,
+            type=socket.SOCK_STREAM,
+        )
+
+        addresses = []
+        for info in infos:
+            address = info[4][0]
+            if address not in addresses:
+                addresses.append(address)
+
+        result["addresses"] = addresses
+        result["dns"] = bool(addresses)
+
+    except Exception as exc:
+        result["error"] = "DNS: " + str(exc)
+        return result
+
+    try:
+        with socket.create_connection((host, port), timeout=5):
+            result["tcp"] = True
+    except Exception as exc:
+        result["error"] = "TCP: " + str(exc)
+
+    return result
+
+
 def get_status():
     rnstatus = run_command([
         "rnstatus",
@@ -622,6 +666,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/status"):
             self.send_json(get_status())
+            return
+
+        if path.endswith("/api/internet/diagnostic"):
+            self.send_json(get_internet_diagnostic())
             return
 
         if path.endswith("/api/hardware"):
