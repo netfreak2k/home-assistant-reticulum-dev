@@ -623,6 +623,7 @@ async function refreshNodeOverview() {
       const name = String(i.name || "").toLowerCase();
       return name.includes("tcp") ||
              name.includes("backbone") ||
+             name.includes("bootstrap") ||
              name.includes("internet");
     });
 
@@ -648,7 +649,7 @@ async function refreshNodeOverview() {
       detail.textContent = tcp.name || "TCP / Backbone";
     } else {
       setPath("hero-internet", "○ NICHT KONFIGURIERT", "off");
-      detail.textContent = "Bootstrap-Peer erforderlich";
+      detail.textContent = "Internet-Bootstrap wird geprüft";
     }
 
     if (cfg && cfg.rnode_interface && rnode) {
