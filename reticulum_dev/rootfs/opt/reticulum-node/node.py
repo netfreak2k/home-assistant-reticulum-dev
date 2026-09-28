@@ -128,6 +128,12 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
         write_state(state)
 
     if not RNS.Transport.has_path(recipient_hash):
+        if state is not None:
+            state["lxmf_outbound_path_request"] = "SENT"
+            state["lxmf_outbound_path_requested_at"] = int(time.time())
+            state["updated"] = int(time.time())
+            write_state(state)
+
         RNS.Transport.request_path(recipient_hash)
 
         timeout = time.time() + 15
@@ -139,7 +145,16 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
             time.sleep(0.25)
 
     if not RNS.Transport.has_path(recipient_hash):
-        raise RuntimeError("Kein Reticulum-Pfad zum Empfänger")
+        if state is not None:
+            state["lxmf_outbound_stage"] = "PATH"
+            state["lxmf_outbound_path"] = False
+            state["lxmf_outbound_result"] = "NO_PATH"
+            state["updated"] = int(time.time())
+            write_state(state)
+
+        raise RuntimeError(
+            "Kein Reticulum-Pfad zum Empfänger nach 15 Sekunden"
+        )
 
     if state is not None:
         state["lxmf_outbound_path"] = True

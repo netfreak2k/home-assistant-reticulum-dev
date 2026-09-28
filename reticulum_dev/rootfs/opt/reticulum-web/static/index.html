@@ -271,6 +271,127 @@ pre {
   }
 }
 
+
+.lxmf-send-panel {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(140,160,180,.25);
+  border-radius: 12px;
+  background: rgba(20,28,36,.55);
+}
+
+.lxmf-send-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.lxmf-send-subtitle {
+  margin-top: 3px;
+  margin-bottom: 16px;
+  opacity: .7;
+  font-size: 13px;
+}
+
+.lxmf-label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 5px;
+  font-size: 13px;
+  opacity: .8;
+}
+
+.lxmf-input,
+.lxmf-textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.lxmf-input {
+  font-family: monospace;
+}
+
+.lxmf-textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.lxmf-send-button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lxmf-send-result {
+  min-height: 20px;
+  margin-top: 9px;
+  font-size: 13px;
+}
+
+.lxmf-diagnostic {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(0,0,0,.18);
+}
+
+.lxmf-diagnostic-title {
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.lxmf-diag-grid {
+  display: grid;
+  grid-template-columns: minmax(120px, 160px) minmax(0, 1fr);
+  gap: 7px 12px;
+  align-items: start;
+}
+
+.lxmf-diag-grid span {
+  opacity: .7;
+}
+
+.lxmf-diag-grid code {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.lxmf-diagnostic-info {
+  margin-top: 12px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  background: rgba(255,255,255,.05);
+  font-size: 13px;
+}
+
+.lxmf-diagnostic-error {
+  margin-top: 8px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .lxmf-send-panel {
+    padding: 12px;
+  }
+
+  .lxmf-diag-grid {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .lxmf-diag-grid b,
+  .lxmf-diag-grid code {
+    margin-bottom: 8px;
+  }
+}
+
 </style>
 </head>
 
@@ -610,47 +731,77 @@ pre {
   </button>
 
   <div id="lxmf-result"></div>
-  <div style="margin-top:12px">
+  <div class="lxmf-send-panel">
+    <div class="lxmf-send-title">HA → MeshChatX</div>
+    <div class="lxmf-send-subtitle">
+      LXMF-Nachricht über das Reticulum-Netz senden
+    </div>
+
+    <label class="lxmf-label" for="lxmf-send-destination">
+      Ziel · LXMF Destination
+    </label>
+
     <input
       id="lxmf-send-destination"
-      placeholder="LXMF Destination Hash"
-      style="width:100%"
+      class="lxmf-input"
+      placeholder="32-stelliger Destination Hash"
+      autocomplete="off"
+      spellcheck="false"
     >
+
+    <label class="lxmf-label" for="lxmf-send-content">
+      Nachricht
+    </label>
 
     <textarea
       id="lxmf-send-content"
+      class="lxmf-textarea"
       placeholder="Nachricht an MeshChatX…"
-      rows="3"
-      style="width:100%;margin-top:6px"
+      rows="4"
     ></textarea>
 
     <button
       id="lxmf-send-button"
       type="button"
       onclick="sendLXMF()"
-      style="margin-top:6px"
+      class="lxmf-send-button"
     >
-      An MeshChatX senden
+      Nachricht senden
     </button>
 
-    <div id="lxmf-send-result"></div>
-    <div style="margin-top:10px">
-      Versandstatus:
-      <b id="lxmf-outbound-stage">—</b>
-    </div>
-    <div>
-      Pfad:
-      <b id="lxmf-outbound-path">—</b>
-      · Identity:
-      <b id="lxmf-outbound-identity">—</b>
-    </div>
-    <div>
-      Ziel:
-      <code id="lxmf-outbound-target">—</code>
-    </div>
-    <div id="lxmf-outbound-error"
-         style="margin-top:4px"></div>
+    <div id="lxmf-send-result" class="lxmf-send-result"></div>
 
+    <div class="lxmf-diagnostic">
+      <div class="lxmf-diagnostic-title">
+        Versanddiagnose
+      </div>
+
+      <div class="lxmf-diag-grid">
+        <span>Status</span>
+        <b id="lxmf-outbound-stage">—</b>
+
+        <span>Reticulum-Pfad</span>
+        <b id="lxmf-outbound-path">—</b>
+
+        <span>Empfänger-Identity</span>
+        <b id="lxmf-outbound-identity">—</b>
+
+        <span>Ziel</span>
+        <code id="lxmf-outbound-target">—</code>
+      </div>
+
+      <div
+        id="lxmf-outbound-explanation"
+        class="lxmf-diagnostic-info">
+        Noch kein Versandversuch.
+      </div>
+
+      <div
+        id="lxmf-outbound-error"
+        class="lxmf-diagnostic-error">
+      </div>
+    </div>
+  </div>
   </div>
 
 
@@ -1241,10 +1392,12 @@ async function refreshNodeIdentity() {
           ).toLocaleString()
         : "—";
 
+    const outboundStage =
+      data.lxmf_outbound_stage || "—";
+
     document.getElementById(
       "lxmf-outbound-stage"
-    ).textContent =
-      data.lxmf_outbound_stage || "—";
+    ).textContent = outboundStage;
 
     document.getElementById(
       "lxmf-outbound-path"
@@ -1275,6 +1428,43 @@ async function refreshNodeIdentity() {
       data.lxmf_outbound_error
         ? "Fehler: " + data.lxmf_outbound_error
         : "";
+
+    const explanation =
+      document.getElementById("lxmf-outbound-explanation");
+
+    if (
+      data.lxmf_outbound_stage === "PATH" &&
+      data.lxmf_outbound_path === false
+    ) {
+      explanation.textContent =
+        "Kein Reticulum-Pfad zum Empfänger gefunden. " +
+        "Die Nachricht wurde noch nicht an LXMF übergeben.";
+    } else if (
+      data.lxmf_outbound_stage === "IDENTITY" &&
+      data.lxmf_outbound_identity === false
+    ) {
+      explanation.textContent =
+        "Reticulum-Pfad vorhanden, aber die Empfänger-Identity " +
+        "ist noch nicht aus einem Announce bekannt.";
+    } else if (
+      data.lxmf_outbound_stage === "LXMF"
+    ) {
+      explanation.textContent =
+        "Pfad und Identity vorhanden. Nachricht wird an LXMF übergeben.";
+    } else if (
+      data.lxmf_outbound_stage === "QUEUED"
+    ) {
+      explanation.textContent =
+        "Nachricht wurde von LXMF zur Übertragung angenommen.";
+    } else if (
+      data.lxmf_outbound_stage === "ERROR"
+    ) {
+      explanation.textContent =
+        "Versand abgebrochen. Details stehen unter Fehler.";
+    } else {
+      explanation.textContent =
+        "Noch kein abgeschlossener Versandstatus.";
+    }
 
     const identity =
       document.getElementById("identity-hash");
