@@ -3596,15 +3596,15 @@ detectRNode();
 refreshRNodeConfig();
 refreshHardware();
 
-setInterval(refreshHardware, 10000);
+setInterval(refreshHardware, 60000);
 
 
 refreshReticulumNetwork();
-setInterval(refreshReticulumNetwork, 10000);
+setInterval(refreshReticulumNetwork, 30000);
 
 
 refreshNodeIdentity();
-setInterval(refreshNodeIdentity, 10000);
+setInterval(refreshNodeIdentity, 60000);
 
 </script>
 
@@ -6572,7 +6572,7 @@ if (document.readyState === "loading") {
   refresh();
 
   state.timer =
-    setInterval(refresh, 12000);
+    setInterval(refresh, 20000);
 
   window.reticulumMessenger080 = {
     refresh,
