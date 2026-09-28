@@ -636,6 +636,31 @@ pre {
   }
 }
 
+
+/* 0.31.1 · Inbox Reply */
+
+.lxmf-reply-button {
+  display: block !important;
+  width: 100% !important;
+  min-height: 44px !important;
+  box-sizing: border-box !important;
+
+  margin: 12px 0 0 0 !important;
+  padding: 9px 14px !important;
+
+  border-radius: 8px !important;
+  font: inherit !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+
+@media (max-width: 600px) {
+  .lxmf-reply-button {
+    min-height: 48px !important;
+    font-size: 16px !important;
+  }
+}
+
 </style>
 </head>
 
@@ -1349,6 +1374,43 @@ function compactIdentityHash(value) {
 
 
 
+
+function replyLXMF(sourceHash) {
+  const destination =
+    document.getElementById("lxmf-send-destination");
+
+  const content =
+    document.getElementById("lxmf-send-content");
+
+  const result =
+    document.getElementById("lxmf-send-result");
+
+  if (!sourceHash) {
+    result.textContent =
+      "Diese Nachricht enthält keinen Absender-Hash.";
+    return;
+  }
+
+  destination.value = sourceHash;
+  content.value = "";
+
+  result.textContent =
+    "Antwortziel aus der empfangenen Nachricht übernommen.";
+
+  const panel =
+    document.querySelector(".lxmf-send-panel");
+
+  if (panel) {
+    panel.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
+  setTimeout(() => content.focus(), 350);
+}
+
+
 async function refreshLXMFInbox() {
 
   const box =
@@ -1439,10 +1501,27 @@ async function refreshLXMFInbox() {
 
             </div>
 
+            <button
+              type="button"
+              class="lxmf-reply-button"
+              data-lxmf-reply="${escapeHTML(source)}">
+              Antworten
+            </button>
+
           </div>
         `;
       }
     ).join("");
+
+    box.querySelectorAll("[data-lxmf-reply]").forEach(
+      (button) => {
+        button.addEventListener("click", () => {
+          replyLXMF(
+            button.getAttribute("data-lxmf-reply") || ""
+          );
+        });
+      }
+    );
 
   } catch (error) {
 
