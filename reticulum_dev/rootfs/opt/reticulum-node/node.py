@@ -452,10 +452,25 @@ while running:
                 state["lxmf_announce_error"] = str(exc)
 
     if OUTBOUND_REQUEST.exists():
+        processing_request = Path(
+            str(OUTBOUND_REQUEST) + ".processing"
+        )
+
         try:
+            # Request zuerst atomar aus der Eingangsqueue entfernen.
+            # Damit kann dieselbe Datei nicht erneut verarbeitet werden.
+            if processing_request.exists():
+                processing_request.unlink()
+
+            OUTBOUND_REQUEST.replace(processing_request)
+
             request = json.loads(
-                OUTBOUND_REQUEST.read_text()
+                processing_request.read_text()
             )
+
+            request_id = str(
+                request.get("request_id", "")
+            ).strip()
 
             destination_hash = str(
                 request.get("destination_hash", "")
@@ -469,28 +484,55 @@ while running:
                 request.get("title", "")
             )
 
+            if not request_id:
+                raise ValueError("request_id fehlt")
+
             if not destination_hash or not content:
                 raise ValueError("destination_hash/content fehlt")
 
-            message = send_lxmf_message(
-                destination_hash,
-                content,
-                title,
-                state=state,
-            )
+            if state.get("lxmf_last_request_id") == request_id:
+                state["lxmf_outbound_stage"] = "DUPLICATE_BLOCKED"
+                state["lxmf_outbound_result"] = "DUPLICATE_BLOCKED"
+                state["lxmf_outbound_error"] = None
+                state["updated"] = int(time.time())
+                write_state(state)
 
-            state["lxmf_outbound_result"] = "QUEUED"
-            state["lxmf_outbound_error"] = None
-            state["lxmf_outbound_requested_at"] = int(time.time())
+            else:
+                state["lxmf_active_request_id"] = request_id
+                state["lxmf_outbound_stage"] = "PROCESSING"
+                state["lxmf_outbound_result"] = "PROCESSING"
+                state["lxmf_outbound_error"] = None
+                state["updated"] = int(time.time())
+                write_state(state)
 
-            request.unlink()
+                message = send_lxmf_message(
+                    destination_hash,
+                    content,
+                    title,
+                    state=state,
+                )
+
+                state["lxmf_last_request_id"] = request_id
+                state["lxmf_active_request_id"] = None
+                state["lxmf_outbound_result"] = "QUEUED"
+                state["lxmf_outbound_error"] = None
+                state["lxmf_outbound_requested_at"] = int(time.time())
+                state["updated"] = int(time.time())
+                write_state(state)
 
         except Exception as exc:
+            state["lxmf_active_request_id"] = None
             state["lxmf_outbound_stage"] = "ERROR"
             state["lxmf_outbound_result"] = "ERROR"
             state["lxmf_outbound_error"] = str(exc)
             state["updated"] = int(time.time())
             write_state(state)
+
+        finally:
+            try:
+                processing_request.unlink()
+            except FileNotFoundError:
+                pass
 
     if ANNOUNCE_REQUEST.exists():
         try:

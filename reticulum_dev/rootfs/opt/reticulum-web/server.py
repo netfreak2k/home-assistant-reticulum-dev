@@ -6,6 +6,7 @@ import subprocess
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import uuid
 
 HOST = "0.0.0.0"
 PORT = 8100
@@ -1162,6 +1163,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 request_file.write_text(
                     json.dumps({
+                        "request_id": uuid.uuid4().hex,
                         "destination_hash": destination_hash,
                         "content": content,
                         "title": title,
