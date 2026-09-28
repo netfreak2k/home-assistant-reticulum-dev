@@ -623,7 +623,12 @@ async function refreshNodeOverview() {
       String(i.name || "").toLowerCase().includes("auto")
     );
 
-    const tcp = interfaces.find(i => {
+    /*
+     * Alle Internet-Uplinks gemeinsam bewerten.
+     * Ein einzelnes DOWN-Interface darf funktionierende
+     * Reticulum-Uplinks nicht mehr überdecken.
+     */
+    const internetInterfaces = interfaces.filter(i => {
       const name = String(i.name || "").toLowerCase();
       const type = String(i.type || "").toLowerCase();
 
@@ -636,6 +641,19 @@ async function refreshNodeOverview() {
              name.includes("internet");
     });
 
+    const isInterfaceUp = i => {
+      const st = String(i.status || "").trim().toLowerCase();
+      return st === "up" ||
+             st === "online" ||
+             st === "connected";
+    };
+
+    const activeInternetInterfaces =
+      internetInterfaces.filter(isInterfaceUp);
+
+    const internetTotal = internetInterfaces.length;
+    const internetUp = activeInternetInterfaces.length;
+
     const rnode = interfaces.find(i =>
       String(i.name || "").toLowerCase().includes("rnode")
     );
@@ -646,26 +664,28 @@ async function refreshNodeOverview() {
       setPath("hero-lan", "○ NICHT AKTIV", "off");
     }
 
-    if (tcp) {
-      const st = String(tcp.status || "").trim().toLowerCase();
-      const label = tcp.name || tcp.type || "TCP / Backbone";
-
-      if (st === "up" || st === "online" || st === "connected") {
-        setPath("hero-internet", "● VERBUNDEN", "up");
-        detail.textContent = label + " · Up";
-      } else if (st === "down" || st === "offline" || st === "disconnected") {
-        setPath("hero-internet", "● DOWN", "off");
-        detail.textContent = label + " · keine Verbindung";
-      } else if (st) {
-        setPath("hero-internet", "○ " + st.toUpperCase(), "wait");
-        detail.textContent = label + " · Status " + st;
-      } else {
-        setPath("hero-internet", "○ STATUS UNBEKANNT", "wait");
-        detail.textContent = label + " · Interface erkannt";
-      }
+    /*
+     * Internet Health:
+     * ONLINE   = mindestens zwei Reticulum-Uplinks Up
+     * DEGRADED = genau ein Uplink Up
+     * OFFLINE  = kein Uplink Up
+     */
+    if (internetUp >= 2) {
+      setPath("hero-internet", "● ONLINE", "up");
+      detail.textContent =
+        internetUp + "/" + internetTotal + " Uplinks aktiv";
+    } else if (internetUp === 1) {
+      setPath("hero-internet", "● DEGRADED", "wait");
+      detail.textContent =
+        "1/" + internetTotal + " Uplinks aktiv";
+    } else if (internetTotal > 0) {
+      setPath("hero-internet", "● OFFLINE", "off");
+      detail.textContent =
+        "0/" + internetTotal + " Uplinks aktiv";
     } else {
       setPath("hero-internet", "○ NICHT AKTIV", "off");
-      detail.textContent = "Kein Internet-/Backbone-Interface in rnstatus";
+      detail.textContent =
+        "Kein Internet-/Backbone-Interface in rnstatus";
     }
 
     /*
@@ -684,15 +704,10 @@ async function refreshNodeOverview() {
         ? Number(internet.peer_count) : 0;
 
     let rnsState = "Reticulum ?";
-    if (tcp) {
-      const st = String(tcp.status || "").trim().toLowerCase();
-      if (st === "up" || st === "online" || st === "connected") {
-        rnsState = "Reticulum ✓";
-      } else if (st === "down" || st === "offline" || st === "disconnected") {
-        rnsState = "Reticulum DOWN";
-      } else if (st) {
-        rnsState = "Reticulum " + st.toUpperCase();
-      }
+    if (internetUp > 0) {
+      rnsState = "Reticulum ✓";
+    } else if (internetTotal > 0) {
+      rnsState = "Reticulum DOWN";
     }
 
     const discoveredCount =
@@ -700,9 +715,11 @@ async function refreshNodeOverview() {
         ? discovery.interfaces.length : 0;
 
     detail.textContent =
-      dnsState + " · " +
-      tcpState + " · " +
-      rnsState + " · Peers " +
+      rnsState + " · Uplinks " +
+      internetUp + "/" + internetTotal +
+      " · " + dnsState +
+      " · " + tcpState +
+      " · Peers " +
       reachablePeers + "/" + peerCount +
       " · Discovery " + discoveredCount;
 
