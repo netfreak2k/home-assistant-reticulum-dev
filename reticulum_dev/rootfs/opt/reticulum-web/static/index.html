@@ -6295,11 +6295,15 @@ if (document.readyState === "loading") {
   }
 
   #messenger-app.messenger-app {
-    min-height: calc(100dvh - 16px);
+    min-height: 0 !important;
+    height: auto !important;
   }
 
   .lxmf-chat.messenger-conversation {
-    min-height: 100dvh;
+    min-height: 0 !important;
+    height: calc(100dvh - 8px) !important;
+    max-height: calc(100dvh - 8px) !important;
+    overflow: hidden;
   }
 
   #messenger-chat-list .messenger-contact {
@@ -6333,7 +6337,8 @@ if (document.readyState === "loading") {
     conversations: [],
     currentPeer: null,
     timer: null,
-    busy: false
+    busy: false,
+    renderSignature: ""
   };
 
   const $ = id => document.getElementById(id);
@@ -6524,13 +6529,30 @@ if (document.readyState === "loading") {
 
       const data = await response.json();
 
-      state.conversations =
+      const next =
         Array.isArray(data?.conversations)
           ? data.conversations
           : [];
 
-      renderList();
-      normalizeOutgoingLabels();
+      const signature =
+        JSON.stringify(
+          next.map(chat => ({
+            peer: chat.peer_hash,
+            last: chat.last_timestamp,
+            unread: chat.unread,
+            count: Array.isArray(chat.messages)
+              ? chat.messages.length : 0,
+            preview: chat.last_message
+          }))
+        );
+
+      state.conversations = next;
+
+      if (signature !== state.renderSignature) {
+        state.renderSignature = signature;
+        renderList();
+        normalizeOutgoingLabels();
+      }
 
     } catch (_) {
       /* Keep last rendered state. */
@@ -6543,20 +6565,14 @@ if (document.readyState === "loading") {
    * Existing backend returns QUEUED.
    * UI must never upgrade that to "delivered".
    */
-  const observer =
-    new MutationObserver(() => {
-      normalizeOutgoingLabels();
-    });
-
-  observer.observe(
-    document.body,
-    {childList:true, subtree:true}
-  );
-
+  /*
+   * Kein globaler MutationObserver mehr.
+   * Statuslabels werden beim Daten-Refresh normalisiert.
+   */
   refresh();
 
   state.timer =
-    setInterval(refresh, 7000);
+    setInterval(refresh, 12000);
 
   window.reticulumMessenger080 = {
     refresh,
