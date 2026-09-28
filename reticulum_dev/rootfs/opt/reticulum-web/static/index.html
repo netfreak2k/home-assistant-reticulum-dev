@@ -583,6 +583,16 @@ pre {
   <div>Name <b id="destination-name">homeassistant.node</b></div>
   <div>Persistenz <b id="identity-persistent">—</b></div>
   <div>Announce <b id="identity-announce">MANUELL</b></div>
+  <div>Letzter Announce <b id="identity-last-announce">—</b></div>
+
+  <button
+    id="identity-announce-button"
+    type="button"
+    onclick="announceReticulumNode()">
+    Node jetzt announcen
+  </button>
+
+  <div id="identity-announce-result"></div>
 </section>
 
 <script>
@@ -866,6 +876,51 @@ function compactIdentityHash(value) {
 }
 
 
+
+async function announceReticulumNode() {
+  const button =
+    document.getElementById("identity-announce-button");
+
+  const result =
+    document.getElementById("identity-announce-result");
+
+  button.disabled = true;
+  result.textContent = "Announce wird angefordert…";
+
+  try {
+    const response = await fetch(
+      "api/node/announce",
+      {
+        method: "POST",
+        cache: "no-store"
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.ok) {
+      result.textContent = "Announce angefordert.";
+      setTimeout(refreshNodeIdentity, 2500);
+    } else if (data.retry_after) {
+      result.textContent =
+        "Cooldown: noch " +
+        data.retry_after +
+        " Sekunden.";
+    } else {
+      result.textContent =
+        data.error || "Announce fehlgeschlagen.";
+    }
+
+  } catch (error) {
+    result.textContent = "Announce API nicht erreichbar.";
+  }
+
+  setTimeout(() => {
+    button.disabled = false;
+  }, 2500);
+}
+
+
 async function refreshNodeIdentity() {
   try {
     const response = await fetch(
@@ -910,9 +965,23 @@ async function refreshNodeIdentity() {
     document.getElementById(
       "identity-announce"
     ).textContent =
-      data.announced
+      data.announce_result === "SENT"
         ? "GESENDET"
+        : data.announce_result === "ERROR"
+        ? "FEHLER"
+        : data.announce_result === "COOLDOWN"
+        ? "COOLDOWN"
         : "MANUELL / NOCH NICHT";
+
+    const last =
+      document.getElementById("identity-last-announce");
+
+    last.textContent =
+      data.last_announce
+        ? new Date(
+            data.last_announce * 1000
+          ).toLocaleString()
+        : "—";
 
   } catch (error) {
     document.getElementById(

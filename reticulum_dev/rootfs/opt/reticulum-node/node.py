@@ -13,6 +13,8 @@ CONFIG_DIR = "/config/reticulum"
 STATE_DIR = Path(CONFIG_DIR) / "homeassistant-node"
 IDENTITY_FILE = STATE_DIR / "identity"
 STATE_FILE = STATE_DIR / "state.json"
+ANNOUNCE_REQUEST = STATE_DIR / "announce.request"
+ANNOUNCE_COOLDOWN = 60
 
 APP_NAME = "homeassistant"
 ASPECT = "node"
@@ -106,9 +108,49 @@ state = {
 write_state(state)
 
 while running:
-    state["updated"] = int(time.time())
+    now = int(time.time())
+
+    if ANNOUNCE_REQUEST.exists():
+        try:
+            request = json.loads(
+                ANNOUNCE_REQUEST.read_text() or "{}"
+            )
+        except Exception:
+            request = {}
+
+        try:
+            ANNOUNCE_REQUEST.unlink()
+        except FileNotFoundError:
+            pass
+
+        requested_at = int(
+            request.get("requested_at", now) or now
+        )
+
+        last = int(state.get("last_announce") or 0)
+
+        if last and now - last < ANNOUNCE_COOLDOWN:
+            state["announce_result"] = "COOLDOWN"
+            state["announce_error"] = None
+            state["announce_requested_at"] = requested_at
+        else:
+            try:
+                destination.announce()
+
+                state["announced"] = True
+                state["last_announce"] = now
+                state["announce_requested_at"] = requested_at
+                state["announce_result"] = "SENT"
+                state["announce_error"] = None
+
+            except Exception as exc:
+                state["announce_result"] = "ERROR"
+                state["announce_error"] = str(exc)
+                state["announce_requested_at"] = requested_at
+
+    state["updated"] = now
     write_state(state)
-    time.sleep(10)
+    time.sleep(2)
 
 state["ok"] = False
 state["updated"] = int(time.time())

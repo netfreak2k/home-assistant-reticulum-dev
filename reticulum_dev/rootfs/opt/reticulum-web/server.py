@@ -879,6 +879,65 @@ def get_network_snapshot():
 
 
 
+
+def request_node_announce():
+    state_dir = Path(
+        "/config/reticulum/homeassistant-node"
+    )
+    state_file = state_dir / "state.json"
+    request_file = state_dir / "announce.request"
+
+    if not state_file.exists():
+        return {
+            "ok": False,
+            "error": "Node service is not ready",
+        }
+
+    try:
+        state = json.loads(state_file.read_text())
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": "Node state: " + str(exc),
+        }
+
+    if not state.get("identity_hash") or not state.get(
+        "destination_hash"
+    ):
+        return {
+            "ok": False,
+            "error": "Node identity is not ready",
+        }
+
+    now = int(time.time())
+    last = int(state.get("last_announce") or 0)
+
+    if last and now - last < 60:
+        return {
+            "ok": False,
+            "error": "Announce cooldown active",
+            "retry_after": 60 - (now - last),
+        }
+
+    state_dir.mkdir(parents=True, exist_ok=True)
+
+    tmp = request_file.with_suffix(".tmp")
+    tmp.write_text(json.dumps({
+        "requested_at": now,
+        "source": "homeassistant-web",
+    }))
+    tmp.replace(request_file)
+
+    return {
+        "ok": True,
+        "queued": True,
+        "requested_at": now,
+        "destination_hash": state.get(
+            "destination_hash"
+        ),
+    }
+
+
 def get_node_identity_status():
     state_file = Path(
         "/config/reticulum/homeassistant-node/state.json"
@@ -975,6 +1034,12 @@ class Handler(BaseHTTPRequestHandler):
 
 
     def do_POST(self):
+        path = self.path.rstrip("/")
+
+        if path.endswith("/api/node/announce"):
+            self.send_json(request_node_announce())
+            return
+
         path = self.path.split("?", 1)[0]
 
         if path.endswith("/api/rnode/select"):
