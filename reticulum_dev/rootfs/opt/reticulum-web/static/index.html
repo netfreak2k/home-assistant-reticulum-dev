@@ -3590,14 +3590,14 @@ async function refresh() {
   }
 }
 
-refresh();
-refreshNodeOverview();
+
+
 detectRNode();
 refreshRNodeConfig();
 refreshHardware();
-setInterval(refresh, 5000);
+
 setInterval(refreshHardware, 10000);
-setInterval(refreshNodeOverview, 5000);
+
 
 refreshReticulumNetwork();
 setInterval(refreshReticulumNetwork, 10000);
@@ -3607,10 +3607,8 @@ refreshNodeIdentity();
 setInterval(refreshNodeIdentity, 10000);
 
 </script>
-</body>
-</html>
 
-
+<!-- CONSOLIDATED EXTENSIONS · 0.62 -->
 <script>
 setInterval(
   refreshLXMFInbox,
@@ -6012,3 +6010,6 @@ if (document.readyState === "loading") {
   }
 })();
 </script>
+
+</body>
+</html>
