@@ -219,20 +219,14 @@ fi
 bashio::log.info "=== GENERATED RETICULUM CONFIG ==="
 sed 's/^/[RNS-CONFIG] /' "${CONFIG_FILE}" >&2
 
-bashio::log.info "=== RNS CONFIG VALIDATION ==="
+bashio::log.info "Starting rnsd with exit diagnostics"
 
 set +e
-RNS_OUTPUT="$(rnsd --print-stats --config "${CONFIG_DIR}" 2>&1)"
+rnsd --config "${CONFIG_DIR}"
 RNS_RC=$?
 set -e
 
-if [ "${RNS_RC}" -ne 0 ]; then
-    bashio::log.error "rnsd validation failed with exit code ${RNS_RC}"
-    printf '%s\n' "${RNS_OUTPUT}" >&2
-else
-    bashio::log.info "rnsd configuration validation passed"
-fi
+bashio::log.error "rnsd exited with code ${RNS_RC}"
+bashio::log.error "Reticulum service will stop for Supervisor restart"
 
-bashio::log.info "Starting rnsd"
-
-exec rnsd --config "${CONFIG_DIR}"
+exit "${RNS_RC}"
