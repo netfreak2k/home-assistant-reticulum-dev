@@ -1065,32 +1065,130 @@ def get_node_identity_status():
         }
 
 
-def get_status():
+# ---------------------------------------------------------
+# Status Snapshot Engine 0.67
+#
+# rnstatus/rnsd are intentionally NOT executed for every
+# browser request. A short-lived snapshot protects the UI
+# against slow CLI calls and request bursts.
+# ---------------------------------------------------------
+
+STATUS_CACHE = {
+    "data": None,
+    "updated": 0.0,
+}
+
+STATUS_CACHE_TTL = 8.0
+
+
+def build_status_snapshot():
     rnstatus = run_command([
         "rnstatus",
         "--config",
         CONFIG_DIR,
-    ])
+    ], timeout=4)
 
     version = run_command([
         "rnsd",
         "--version",
-    ])
+    ], timeout=3)
 
-    parsed = parse_rnstatus(rnstatus["stdout"])
+    parsed = parse_rnstatus(
+        rnstatus["stdout"]
+    )
 
     return {
         "service": "reticulum",
         "online": rnstatus["ok"],
-        "uptime_seconds": int(time.time() - START_TIME),
+        "uptime_seconds": int(
+            time.time() - START_TIME
+        ),
         "version": version["stdout"],
-        "shared_instance": parsed["shared_instance"],
-        "interfaces": parsed["interfaces"],
-        "rnstatus": rnstatus["stdout"],
-        "error": rnstatus["stderr"],
-        "timestamp": int(time.time()),
+        "shared_instance":
+            parsed["shared_instance"],
+        "interfaces":
+            parsed["interfaces"],
+        "rnstatus":
+            rnstatus["stdout"],
+        "error":
+            rnstatus["stderr"],
+        "timestamp":
+            int(time.time()),
+        "snapshot": True,
     }
 
+
+def get_status():
+    now = time.time()
+
+    cached = STATUS_CACHE["data"]
+    age = now - STATUS_CACHE["updated"]
+
+    # Fast path: return recent snapshot immediately.
+    if cached is not None and age < STATUS_CACHE_TTL:
+        result = dict(cached)
+
+        result["uptime_seconds"] = int(
+            time.time() - START_TIME
+        )
+
+        result["cache_age_seconds"] = round(
+            age, 2
+        )
+
+        result["cached"] = True
+
+        return result
+
+    try:
+        fresh = build_status_snapshot()
+
+        STATUS_CACHE["data"] = fresh
+        STATUS_CACHE["updated"] = time.time()
+
+        result = dict(fresh)
+        result["cache_age_seconds"] = 0
+        result["cached"] = False
+
+        return result
+
+    except Exception as exc:
+
+        # Never destroy the dashboard just because a
+        # diagnostic refresh failed.
+        if cached is not None:
+            result = dict(cached)
+
+            result["uptime_seconds"] = int(
+                time.time() - START_TIME
+            )
+
+            result["cache_age_seconds"] = round(
+                age, 2
+            )
+
+            result["cached"] = True
+            result["stale"] = True
+            result["snapshot_error"] = str(exc)
+
+            return result
+
+        return {
+            "service": "reticulum",
+            "online": False,
+            "uptime_seconds": int(
+                time.time() - START_TIME
+            ),
+            "version": "",
+            "shared_instance": {},
+            "interfaces": [],
+            "rnstatus": "",
+            "error": str(exc),
+            "timestamp": int(time.time()),
+            "snapshot": True,
+            "cached": False,
+            "stale": True,
+        }
 
 
 def get_lxmf_outbox():

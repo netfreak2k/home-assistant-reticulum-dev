@@ -5837,60 +5837,101 @@ if (document.readyState === "loading") {
 .msg-net-state.offline::before { background:#c85b5b; }
 </style>
 
-<script id="status-engine-066">
+<script id="status-engine-067">
 (() => {
   "use strict";
 
-  let running = false;
-  let timer = null;
+  let requestRunning = false;
 
-  const el = id => document.getElementById(id);
+  const $ = id =>
+    document.getElementById(id);
 
-  function status(label, online=false) {
-    const n = el("node-status");
-    if (n) {
-      n.textContent = label;
-      n.className =
-        online ? "status online" : "status offline";
-    }
-  }
-
-  function setPath(id, label, state) {
-    const n = el(id);
+  function topStatus(text, state) {
+    const n = $("node-status");
     if (!n) return;
 
-    n.textContent = label;
+    n.textContent = text;
+
+    n.className =
+      state === "up"
+        ? "status online"
+        : "status offline";
+  }
+
+  function path(id, text, state) {
+    const n = $(id);
+    if (!n) return;
+
+    n.textContent = text;
+
     n.className =
       "node-path-state " +
-      (state === "up"
-        ? "path-up"
-        : state === "wait"
-          ? "path-wait"
-          : "path-off");
+      (
+        state === "up"
+          ? "path-up"
+          : state === "wait"
+            ? "path-wait"
+            : "path-off"
+      );
   }
 
-  function isUp(i) {
-    const s = String(
-      i && i.status || ""
+  function setText(id, value) {
+    const n = $(id);
+    if (!n) return;
+
+    n.textContent =
+      value !== undefined &&
+      value !== null &&
+      value !== ""
+        ? value
+        : "—";
+  }
+
+  function interfaceUp(i) {
+    const s =
+      String(i?.status || "")
+        .toLowerCase();
+
+    return (
+      s === "up" ||
+      s === "online" ||
+      s === "connected"
+    );
+  }
+
+  function isInternet(i) {
+    const value = (
+      String(i?.name || "") +
+      " " +
+      String(i?.type || "")
     ).toLowerCase();
 
-    return s === "up" ||
-           s === "online" ||
-           s === "connected";
+    return (
+      value.includes("tcp") ||
+      value.includes("internet") ||
+      value.includes("backbone") ||
+      value.includes("bootstrap")
+    );
   }
 
-  function render(d) {
-    const online = d && d.online === true;
-    const interfaces =
-      d && Array.isArray(d.interfaces)
-        ? d.interfaces : [];
+  function render067(d) {
+    const online =
+      d?.online === true;
 
-    status(
-      online ? "● ONLINE" : "● OFFLINE",
+    const interfaces =
+      Array.isArray(d?.interfaces)
+        ? d.interfaces
+        : [];
+
+    topStatus(
       online
+        ? "● ONLINE"
+        : "● OFFLINE",
+      online ? "up" : "off"
     );
 
-    const hero = el("hero-node-state");
+    const hero = $("hero-node-state");
+
     if (hero) {
       hero.textContent =
         online
@@ -5903,208 +5944,191 @@ if (document.readyState === "loading") {
           : "node-offline";
     }
 
-    setPath(
+    path(
       "hero-rns",
-      online ? "● ONLINE" : "● OFFLINE",
+      online
+        ? "● ONLINE"
+        : "● OFFLINE",
       online ? "up" : "off"
     );
 
-    const lan = interfaces.find(i =>
-      String(i && i.name || "")
-        .toLowerCase()
-        .includes("auto")
-    );
+    const lan =
+      interfaces.find(i =>
+        String(i?.name || "")
+          .toLowerCase()
+          .includes("auto")
+      );
 
-    setPath(
+    path(
       "hero-lan",
-      lan && isUp(lan)
+      lan && interfaceUp(lan)
         ? "● AKTIV"
         : "○ NICHT AKTIV",
-      lan && isUp(lan) ? "up" : "off"
+      lan && interfaceUp(lan)
+        ? "up"
+        : "off"
     );
 
-    const internet = interfaces.filter(i => {
-      const name =
-        String(i && i.name || "").toLowerCase();
-      const type =
-        String(i && i.type || "").toLowerCase();
+    const internet =
+      interfaces.filter(isInternet);
 
-      return (
-        name.includes("internet") ||
-        name.includes("backbone") ||
-        name.includes("bootstrap") ||
-        name.includes("tcp") ||
-        type.includes("tcp") ||
-        type.includes("backbone")
-      );
-    });
+    const internetUp =
+      internet.filter(interfaceUp).length;
 
-    const up = internet.filter(isUp).length;
-
-    if (up >= 2) {
-      setPath(
+    if (internetUp >= 2) {
+      path(
         "hero-internet",
         "● ONLINE",
         "up"
       );
-    } else if (up === 1) {
-      setPath(
+    } else if (internetUp === 1) {
+      path(
         "hero-internet",
         "● DEGRADED",
         "wait"
       );
     } else {
-      setPath(
+      path(
         "hero-internet",
         "● OFFLINE",
         "off"
       );
     }
 
-    const detail = el("hero-internet-detail");
-    if (detail) {
-      detail.textContent =
-        internet.length
-          ? up + "/" +
-            internet.length +
-            " Uplinks aktiv"
-          : "Keine Internet-Uplinks";
-    }
-
-    const rnode = interfaces.find(i =>
-      String(i && i.name || "")
-        .toLowerCase()
-        .includes("rnode")
+    setText(
+      "hero-internet-detail",
+      internet.length
+        ? `${internetUp}/${internet.length} Uplinks aktiv`
+        : "Keine Internet-Uplinks"
     );
 
-    setPath(
+    const rnode =
+      interfaces.find(i =>
+        String(i?.name || "")
+          .toLowerCase()
+          .includes("rnode")
+      );
+
+    path(
       "hero-lora",
-      rnode && isUp(rnode)
+      rnode && interfaceUp(rnode)
         ? "● AKTIV"
         : "○ AUS",
-      rnode && isUp(rnode)
+      rnode && interfaceUp(rnode)
         ? "up"
         : "off"
     );
 
     const s =
-      d && d.shared_instance
-        ? d.shared_instance : {};
+      d?.shared_instance || {};
 
-    const fields = {
-      "shared-name": s.name,
-      "shared-status": s.status,
-      "shared-serving": s.serving,
-      "shared-rate": s.rate,
-      "shared-mtu": s.mtu,
-      "shared-tx": s.tx,
-      "shared-tx-rate": s.tx_rate,
-      "shared-rx": s.rx,
-      "shared-rx-rate": s.rx_rate,
-      "version": d && d.version
-    };
+    setText("shared-name", s.name);
+    setText("shared-status", s.status);
+    setText("shared-serving", s.serving);
+    setText("shared-rate", s.rate);
+    setText("shared-mtu", s.mtu);
+    setText("shared-tx", s.tx);
+    setText("shared-tx-rate", s.tx_rate);
+    setText("shared-rx", s.rx);
+    setText("shared-rx-rate", s.rx_rate);
 
-    for (const [id, value] of
-         Object.entries(fields)) {
+    setText("version", d?.version);
 
-      const n = el(id);
+    const uptimeNode = $("uptime");
 
-      if (n) {
-        n.textContent =
-          value !== undefined &&
-          value !== null &&
-          value !== ""
-            ? value
-            : "—";
-      }
-    }
+    if (uptimeNode) {
+      const sec =
+        Number(d?.uptime_seconds || 0);
 
-    const uptimeEl = el("uptime");
-
-    if (uptimeEl) {
-      const seconds =
-        Number(d && d.uptime_seconds || 0);
-
-      uptimeEl.textContent =
-        Math.floor(seconds / 3600) +
+      uptimeNode.textContent =
+        Math.floor(sec / 3600) +
         "h " +
-        Math.floor((seconds % 3600) / 60) +
+        Math.floor(
+          (sec % 3600) / 60
+        ) +
         "m";
     }
   }
 
-  async function refresh066() {
-    if (running) return;
+  async function refresh067() {
+    if (requestRunning) return;
 
-    running = true;
-
-    /*
-     * Dieser Text muss sofort sichtbar werden.
-     * Damit beweist die UI den Start der Engine.
-     */
-    status("STATUS…");
+    requestRunning = true;
 
     const controller =
       new AbortController();
 
-    const abortTimer =
+    const timer =
       setTimeout(
         () => controller.abort(),
-        7000
+        9000
       );
 
     try {
       const response =
-        await fetch("api/status", {
-          cache: "no-store",
-          signal: controller.signal
-        });
+        await fetch(
+          "api/status?ts=" + Date.now(),
+          {
+            cache: "no-store",
+            signal: controller.signal
+          }
+        );
 
       if (!response.ok) {
-        status(
-          "HTTP " + response.status
+        topStatus(
+          "HTTP " + response.status,
+          "off"
         );
         return;
       }
 
-      const data =
-        await response.json();
+      const raw =
+        await response.text();
 
-      render(data);
+      const data =
+        JSON.parse(raw);
+
+      render067(data);
 
     } catch (e) {
-      status(
-        e && e.name === "AbortError"
+      topStatus(
+        e?.name === "AbortError"
           ? "API TIMEOUT"
-          : "API FEHLER"
+          : "API FEHLER",
+        "off"
       );
 
     } finally {
-      clearTimeout(abortTimer);
-      running = false;
+      clearTimeout(timer);
+      requestRunning = false;
     }
   }
 
-  function boot066() {
-    status("JS 0.66 ✓");
+  function boot067() {
+    /*
+     * Visible proof that THIS exact build is running.
+     */
+    topStatus(
+      "0.67 START",
+      "off"
+    );
 
-    refresh066();
+    /*
+     * Give Home Assistant Ingress one event-loop turn
+     * before the first API request.
+     */
+    setTimeout(
+      refresh067,
+      250
+    );
 
-    if (!timer) {
-      timer =
-        setInterval(
-          refresh066,
-          10000
-        );
-    }
+    setInterval(
+      refresh067,
+      10000
+    );
   }
 
-  /*
-   * Script liegt direkt vor </body>.
-   * DOM ist daher bereits aufgebaut.
-   * Kein DOMContentLoaded als Abhängigkeit.
-   */
-  boot066();
+  boot067();
 
 })();
 </script>
