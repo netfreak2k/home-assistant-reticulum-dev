@@ -3161,3 +3161,551 @@ setInterval(
 initLXMFChat();
 refreshLXMFInbox();
 </script>
+
+<style>
+
+/* ==================================================
+   0.34.0 · MESSENGER UX
+   ================================================== */
+
+/* alter Karten-/Inbox-Zwang darf den Chat nicht mehr
+   zusammenschieben */
+#lxmf-inbox.lxmf-chat-messages {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  height: clamp(420px, 58vh, 650px) !important;
+  min-height: 420px !important;
+
+  padding: 18px 18px !important;
+  margin: 0 !important;
+
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  box-sizing: border-box !important;
+  scroll-behavior: smooth;
+
+  background:
+    linear-gradient(
+      rgba(12,19,25,.94),
+      rgba(12,19,25,.94)
+    );
+}
+
+/* Hauptfenster */
+
+.lxmf-chat {
+  display: flex !important;
+  flex-direction: column !important;
+
+  width: 100% !important;
+  max-width: 920px !important;
+  min-width: 0 !important;
+
+  margin: 18px auto 0 !important;
+
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+
+  border: 1px solid rgba(140,160,180,.20) !important;
+  border-radius: 16px !important;
+
+  background: rgba(13,20,27,.96) !important;
+
+  box-shadow:
+    0 10px 35px rgba(0,0,0,.18);
+}
+
+
+/* Kopf */
+
+.lxmf-chat-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+
+  width: 100% !important;
+  min-height: 68px !important;
+
+  padding: 10px 16px !important;
+  box-sizing: border-box !important;
+
+  border-bottom:
+    1px solid rgba(140,160,180,.16) !important;
+
+  background: rgba(23,33,42,.98) !important;
+}
+
+.lxmf-chat-avatar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  flex: 0 0 44px !important;
+
+  width: 44px !important;
+  height: 44px !important;
+
+  border-radius: 50% !important;
+
+  font-size: 18px !important;
+  font-weight: 800 !important;
+
+  background: rgba(80,145,115,.38) !important;
+}
+
+.lxmf-chat-headtext {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.lxmf-chat-name {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+}
+
+.lxmf-chat-peer {
+  display: block !important;
+
+  margin-top: 3px !important;
+
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+
+  font-family: monospace !important;
+  font-size: 11px !important;
+
+  opacity: .65 !important;
+}
+
+.lxmf-chat-counter {
+  flex: 0 0 auto !important;
+
+  min-width: 28px !important;
+
+  padding: 5px 8px !important;
+
+  border-radius: 14px !important;
+
+  text-align: center !important;
+  font-size: 11px !important;
+
+  background: rgba(80,145,115,.25) !important;
+}
+
+
+/* ==================================================
+   MESSAGE ROWS
+   ================================================== */
+
+#lxmf-inbox .lxmf-message-row {
+  display: flex !important;
+
+  flex: 0 0 auto !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  margin: 3px 0 !important;
+  padding: 0 !important;
+
+  box-sizing: border-box !important;
+
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+}
+
+#lxmf-inbox .lxmf-message-row.theirs {
+  justify-content: flex-start !important;
+}
+
+#lxmf-inbox .lxmf-message-row.mine {
+  justify-content: flex-end !important;
+}
+
+
+/* ==================================================
+   BUBBLES
+   ================================================== */
+
+#lxmf-inbox .lxmf-message-row .lxmf-bubble {
+  display: block !important;
+
+  flex: 0 1 auto !important;
+
+  width: auto !important;
+  min-width: 90px !important;
+  max-width: 72% !important;
+
+  height: auto !important;
+  min-height: 0 !important;
+
+  margin: 0 !important;
+  padding: 8px 10px 6px !important;
+
+  box-sizing: border-box !important;
+
+  border: 0 !important;
+  border-radius: 9px !important;
+
+  white-space: normal !important;
+
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+
+  overflow: visible !important;
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+
+  box-shadow:
+    0 1px 2px rgba(0,0,0,.16) !important;
+}
+
+
+/* eingehend */
+
+#lxmf-inbox .lxmf-message-row.theirs .lxmf-bubble {
+  border-bottom-left-radius: 2px !important;
+
+  background: rgba(45,57,66,.98) !important;
+}
+
+
+/* eigene Nachricht */
+
+#lxmf-inbox .lxmf-message-row.mine .lxmf-bubble {
+  border-bottom-right-radius: 2px !important;
+
+  background: rgba(35,92,69,.98) !important;
+}
+
+
+/* Nachrichtentext */
+
+#lxmf-inbox .lxmf-bubble-content {
+  display: block !important;
+
+  width: auto !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  white-space: pre-wrap !important;
+
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+
+  font-size: 15px !important;
+  line-height: 1.42 !important;
+
+  text-align: left !important;
+}
+
+
+/* Uhrzeit */
+
+#lxmf-inbox .lxmf-bubble-meta {
+  display: block !important;
+
+  width: auto !important;
+
+  margin: 3px 0 0 12px !important;
+  padding: 0 !important;
+
+  white-space: nowrap !important;
+
+  writing-mode: horizontal-tb !important;
+
+  text-align: right !important;
+
+  font-size: 10px !important;
+  line-height: 12px !important;
+
+  opacity: .58 !important;
+}
+
+
+/* Leerzustand */
+
+#lxmf-inbox .lxmf-chat-empty {
+  width: 100% !important;
+
+  margin: auto 0 !important;
+  padding: 40px 20px !important;
+
+  box-sizing: border-box !important;
+
+  text-align: center !important;
+
+  opacity: .55 !important;
+}
+
+
+/* ==================================================
+   COMPOSER
+   ================================================== */
+
+.lxmf-chat-compose {
+  display: flex !important;
+  align-items: flex-end !important;
+
+  width: 100% !important;
+
+  gap: 8px !important;
+
+  padding: 9px 10px !important;
+
+  box-sizing: border-box !important;
+
+  border-top:
+    1px solid rgba(140,160,180,.14) !important;
+
+  background: rgba(23,33,42,.98) !important;
+}
+
+#lxmf-chat-content {
+  display: block !important;
+
+  flex: 1 1 auto !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 120px !important;
+
+  margin: 0 !important;
+  padding: 10px 14px !important;
+
+  box-sizing: border-box !important;
+
+  resize: none !important;
+
+  border: 1px solid rgba(140,160,180,.22) !important;
+  border-radius: 22px !important;
+
+  background: rgba(39,50,59,.98) !important;
+
+  font: inherit !important;
+  font-size: 15px !important;
+  line-height: 22px !important;
+
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+
+  overflow-y: auto !important;
+}
+
+#lxmf-chat-send {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  flex: 0 0 48px !important;
+
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border: 0 !important;
+  border-radius: 50% !important;
+
+  background: rgba(45,135,91,.98) !important;
+
+  font-size: 0 !important;
+  cursor: pointer !important;
+}
+
+#lxmf-chat-send::after {
+  content: "➤";
+
+  display: block;
+
+  margin-left: 2px;
+
+  font-size: 21px;
+  line-height: 1;
+}
+
+#lxmf-chat-send:disabled {
+  opacity: .45 !important;
+}
+
+.lxmf-chat-status {
+  display: block !important;
+
+  min-height: 0 !important;
+
+  padding: 0 12px 6px !important;
+
+  background: rgba(23,33,42,.98) !important;
+
+  font-size: 11px !important;
+
+  opacity: .65 !important;
+}
+
+
+/* ==================================================
+   SMARTPHONE
+   ================================================== */
+
+@media (max-width: 600px) {
+
+  .lxmf-chat {
+    width: 100% !important;
+    max-width: none !important;
+
+    margin: 10px 0 0 !important;
+
+    border-radius: 10px !important;
+  }
+
+  .lxmf-chat-header {
+    min-height: 62px !important;
+    padding: 8px 10px !important;
+  }
+
+  .lxmf-chat-avatar {
+    flex-basis: 40px !important;
+
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  #lxmf-inbox.lxmf-chat-messages {
+    width: 100% !important;
+
+    height: 58vh !important;
+    min-height: 390px !important;
+
+    padding: 12px 8px !important;
+  }
+
+  #lxmf-inbox .lxmf-message-row .lxmf-bubble {
+    min-width: 76px !important;
+    max-width: 84% !important;
+  }
+
+  #lxmf-inbox .lxmf-bubble-content {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+  }
+
+  .lxmf-chat-compose {
+    gap: 7px !important;
+    padding: 7px !important;
+  }
+
+  #lxmf-chat-content {
+    height: 46px !important;
+    min-height: 46px !important;
+
+    padding: 11px 14px !important;
+
+    font-size: 16px !important;
+  }
+
+  #lxmf-chat-send {
+    flex-basis: 46px !important;
+
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+  }
+}
+
+</style>
+
+<script>
+
+/* 0.34.0 · Messenger Composer UX */
+
+(function () {
+
+  function setupMessengerUX() {
+
+    const input =
+      document.getElementById("lxmf-chat-content");
+
+    const box =
+      document.getElementById("lxmf-inbox");
+
+    if (!input) return;
+
+    function resizeComposer() {
+
+      input.style.height = "44px";
+
+      const next =
+        Math.min(
+          Math.max(input.scrollHeight, 44),
+          120
+        );
+
+      input.style.height = next + "px";
+    }
+
+    input.addEventListener(
+      "input",
+      resizeComposer
+    );
+
+    /*
+     * Enter = senden
+     * Shift+Enter = neue Zeile
+     *
+     * Der vorhandene 0.33-Handler übernimmt
+     * weiterhin den eigentlichen Versand.
+     */
+    input.addEventListener(
+      "keydown",
+      function (event) {
+
+        if (
+          event.key === "Enter" &&
+          !event.shiftKey
+        ) {
+          setTimeout(() => {
+            input.style.height = "44px";
+          }, 50);
+        }
+      }
+    );
+
+    if (box) {
+      setTimeout(() => {
+        box.scrollTop = box.scrollHeight;
+      }, 500);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      setupMessengerUX
+    );
+  } else {
+    setupMessengerUX();
+  }
+
+})();
+
+</script>
