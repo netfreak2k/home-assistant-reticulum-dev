@@ -2612,10 +2612,10 @@ function initMessengerCore() {
 
   refreshMessengerChats();
 
-  setInterval(
-    refreshMessengerChats,
-    5000
-  );
+  /* 0.83:
+   Legacy messenger polling disabled.
+   messenger-core-080 owns list polling.
+*/
 }
 
 
@@ -5480,7 +5480,7 @@ if (document.readyState === "loading") {
 </style>
 
 
-<script id="messenger-ux-060-js">
+<script id="messenger-ux-060-js" type="application/x-reticulum-disabled">
 
 let messengerCurrentTab = "chats";
 
