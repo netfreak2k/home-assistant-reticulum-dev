@@ -17,7 +17,18 @@ STATE_FILE = STATE_DIR / "state.json"
 ANNOUNCE_REQUEST = STATE_DIR / "announce.request"
 LXMF_ANNOUNCE_REQUEST = STATE_DIR / "lxmf-announce.request"
 ANNOUNCE_COOLDOWN = 60
-LXMF_DISPLAY_NAME = "Home Assistant"
+
+# Automatic LXMF presence announcement.
+AUTO_ANNOUNCE_INITIAL_DELAY = 20
+AUTO_ANNOUNCE_INTERVAL = 6 * 60 * 60
+
+LXMF_DISPLAY_NAME = (
+    os.environ.get(
+        "RETICULUM_MESSENGER_NAME",
+        "Home Assistant",
+    ).strip()
+    or "Home Assistant"
+)
 
 APP_NAME = "homeassistant"
 ASPECT = "node"
@@ -99,7 +110,7 @@ lxmf_storage.mkdir(parents=True, exist_ok=True)
 lxmf_router = LXMF.LXMRouter(
     identity=identity,
     storagepath=str(lxmf_storage),
-    name="Home Assistant",
+    name=LXMF_DISPLAY_NAME,
 )
 
 OUTBOUND_REQUEST = STATE_DIR / "lxmf_outbound.json"
@@ -449,7 +460,9 @@ state = {
     "destination_hash": destination_hex(destination),
     "identity_created": created,
     "identity_file": str(IDENTITY_FILE),
-    "announce_mode": "manual",
+    "announce_mode": "automatic",
+    "lxmf_auto_announce": True,
+    "lxmf_auto_announce_interval": AUTO_ANNOUNCE_INTERVAL,
     "announced": False,
     "last_announce": None,
     "lxmf_display_name": LXMF_DISPLAY_NAME,
@@ -463,8 +476,54 @@ state = {
 
 write_state(state)
 
+# Give Reticulum and the Internet interfaces time to settle.
+next_auto_announce = (
+    int(time.time()) + AUTO_ANNOUNCE_INITIAL_DELAY
+)
+
 while running:
     now = int(time.time())
+
+    # --------------------------------------------------
+    # Automatic LXMF announce
+    # --------------------------------------------------
+    if now >= next_auto_announce:
+        try:
+            lxmf_router.announce(
+                lxmf_destination.hash
+            )
+
+            state["lxmf_announced"] = True
+            state["lxmf_last_announce"] = now
+            state["lxmf_announce_result"] = "AUTO_SENT"
+            state["lxmf_announce_error"] = None
+            state["lxmf_announce_source"] = "automatic"
+
+            next_auto_announce = (
+                now + AUTO_ANNOUNCE_INTERVAL
+            )
+
+            state["lxmf_next_auto_announce"] = (
+                next_auto_announce
+            )
+
+            state["updated"] = now
+            write_state(state)
+
+            print(
+                "LXMF AUTO ANNOUNCE:",
+                LXMF_DISPLAY_NAME,
+                lxmf_destination.hash.hex(),
+            )
+
+        except Exception as exc:
+            state["lxmf_announce_result"] = "AUTO_ERROR"
+            state["lxmf_announce_error"] = str(exc)
+            state["updated"] = now
+            write_state(state)
+
+            # Retry later instead of looping aggressively.
+            next_auto_announce = now + 300
 
     if LXMF_ANNOUNCE_REQUEST.exists():
         try:
@@ -498,6 +557,7 @@ while running:
                 state["lxmf_last_announce"] = now
                 state["lxmf_announce_result"] = "SENT"
                 state["lxmf_announce_error"] = None
+                state["lxmf_announce_source"] = "manual"
                 state["lxmf_announce_requested_at"] = requested_at
             except Exception as exc:
                 state["lxmf_announce_result"] = "ERROR"

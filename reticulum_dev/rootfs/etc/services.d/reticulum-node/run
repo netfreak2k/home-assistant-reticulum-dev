@@ -7,4 +7,14 @@ bashio::log.info "Starting Home Assistant Reticulum Node"
 # rnsd must own the shared instance first.
 sleep 5
 
+MESSENGER_NAME="$(bashio::config 'messenger_name')"
+
+if [ -z "${MESSENGER_NAME}" ]; then
+    MESSENGER_NAME="Home Assistant"
+fi
+
+export RETICULUM_MESSENGER_NAME="${MESSENGER_NAME}"
+
+bashio::log.info "Messenger name: ${MESSENGER_NAME}"
+
 exec python3 /opt/reticulum-node/node.py

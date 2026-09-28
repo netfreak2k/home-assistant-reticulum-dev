@@ -26,6 +26,7 @@ hassio_api: true
 hassio_role: default
 
 options:
+  messenger_name: "Home Assistant"
   auto_interface: false
   internet_bootstrap: true
   tcp_interface: false
@@ -42,6 +43,7 @@ options:
   loglevel: "info"
 
 schema:
+  messenger_name: "str"
   auto_interface: "bool"
   internet_bootstrap: "bool"
   tcp_interface: "bool"
