@@ -673,6 +673,14 @@ async function refreshNodeOverview() {
     const dnsState = internet && internet.dns ? "DNS ✓" : "DNS ✗";
     const tcpState = internet && internet.tcp ? "TCP ✓" : "TCP ✗";
 
+    const reachablePeers =
+      internet && Number.isFinite(Number(internet.reachable_peers))
+        ? Number(internet.reachable_peers) : 0;
+
+    const peerCount =
+      internet && Number.isFinite(Number(internet.peer_count))
+        ? Number(internet.peer_count) : 0;
+
     let rnsState = "Reticulum ?";
     if (tcp) {
       const st = String(tcp.status || "").trim().toLowerCase();
@@ -685,7 +693,11 @@ async function refreshNodeOverview() {
       }
     }
 
-    detail.textContent = dnsState + " · " + tcpState + " · " + rnsState;
+    detail.textContent =
+      dnsState + " · " +
+      tcpState + " · " +
+      rnsState + " · Peers " +
+      reachablePeers + "/" + peerCount;
 
     if (cfg && cfg.rnode_interface && rnode) {
       setPath("hero-lora", "● AKTIV", "up");

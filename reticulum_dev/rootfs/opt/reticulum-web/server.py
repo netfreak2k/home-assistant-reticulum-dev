@@ -443,45 +443,97 @@ def parse_rnstatus(text):
 
 
 def get_internet_diagnostic():
-    host = "sideband.connect.reticulum.network"
-    port = 7822
+    """
+    Passive connectivity diagnostics only.
+    No Reticulum configuration, serial device or RF state is changed.
+    """
 
-    result = {
-        "host": host,
-        "port": port,
-        "dns": False,
-        "addresses": [],
-        "tcp": False,
-        "error": None,
-    }
+    peers = [
+        {
+            "name": "Sideband Bootstrap",
+            "host": "sideband.connect.reticulum.network",
+            "port": 7822,
+        },
+    ]
 
-    try:
-        infos = socket.getaddrinfo(
-            host,
-            port,
-            type=socket.SOCK_STREAM,
-        )
+    results = []
 
-        addresses = []
-        for info in infos:
-            address = info[4][0]
-            if address not in addresses:
-                addresses.append(address)
+    for peer in peers:
+        host = peer["host"]
+        port = peer["port"]
 
-        result["addresses"] = addresses
-        result["dns"] = bool(addresses)
+        result = {
+            "name": peer["name"],
+            "host": host,
+            "port": port,
+            "dns": False,
+            "addresses": [],
+            "tcp": False,
+            "latency_ms": None,
+            "error": None,
+        }
 
-    except Exception as exc:
-        result["error"] = "DNS: " + str(exc)
-        return result
+        try:
+            infos = socket.getaddrinfo(
+                host,
+                port,
+                type=socket.SOCK_STREAM,
+            )
 
-    try:
-        with socket.create_connection((host, port), timeout=5):
+            addresses = []
+            for info in infos:
+                address = info[4][0]
+                if address not in addresses:
+                    addresses.append(address)
+
+            result["addresses"] = addresses
+            result["dns"] = bool(addresses)
+
+        except Exception as exc:
+            result["error"] = "DNS: " + str(exc)
+            results.append(result)
+            continue
+
+        try:
+            started = time.monotonic()
+
+            with socket.create_connection(
+                (host, port),
+                timeout=5,
+            ):
+                pass
+
+            result["latency_ms"] = round(
+                (time.monotonic() - started) * 1000,
+                1,
+            )
             result["tcp"] = True
-    except Exception as exc:
-        result["error"] = "TCP: " + str(exc)
 
-    return result
+        except Exception as exc:
+            result["error"] = "TCP: " + str(exc)
+
+        results.append(result)
+
+    dns_ok = any(peer["dns"] for peer in results)
+    tcp_ok = any(peer["tcp"] for peer in results)
+
+    if tcp_ok:
+        path_state = "TCP_REACHABLE"
+    elif dns_ok:
+        path_state = "DNS_ONLY"
+    else:
+        path_state = "OFFLINE"
+
+    return {
+        "dns": dns_ok,
+        "tcp": tcp_ok,
+        "path_state": path_state,
+        "peer_count": len(results),
+        "reachable_peers": sum(
+            1 for peer in results if peer["tcp"]
+        ),
+        "peers": results,
+    }
 
 
 def get_status():
