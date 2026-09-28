@@ -1125,6 +1125,148 @@ def get_lxmf_outbox():
         }
 
 
+
+def get_messenger_data():
+    base = Path(
+        "/config/reticulum/homeassistant-node"
+    )
+
+    inbox_file = base / "lxmf-inbox.json"
+    outbox_file = base / "lxmf-outbox.json"
+
+    def load_list(path):
+        try:
+            if not path.exists():
+                return []
+
+            data = json.loads(
+                path.read_text(encoding="utf-8")
+            )
+
+            return data if isinstance(data, list) else []
+
+        except Exception:
+            return []
+
+    inbox = load_list(inbox_file)
+    outbox = load_list(outbox_file)
+
+    conversations = {}
+
+    def conversation(peer):
+        if peer not in conversations:
+            conversations[peer] = {
+                "peer_hash": peer,
+                "display_name": (
+                    "Kontakt " +
+                    peer[:6].upper()
+                    if peer
+                    else "Unbekannt"
+                ),
+                "messages": [],
+                "last_timestamp": 0,
+                "unread": 0,
+            }
+
+        return conversations[peer]
+
+    for item in inbox:
+
+        peer = str(
+            item.get("source_hash") or ""
+        ).strip()
+
+        if not peer:
+            continue
+
+        timestamp = int(
+            item.get("timestamp")
+            or item.get("received_at")
+            or 0
+        )
+
+        chat = conversation(peer)
+
+        chat["messages"].append({
+            "direction": "in",
+            "timestamp": timestamp,
+            "content": str(
+                item.get("content") or ""
+            ),
+            "title": str(
+                item.get("title") or ""
+            ),
+            "message_id": str(
+                item.get("message_id") or ""
+            ),
+        })
+
+        chat["last_timestamp"] = max(
+            chat["last_timestamp"],
+            timestamp,
+        )
+
+    for item in outbox:
+
+        peer = str(
+            item.get("destination_hash") or ""
+        ).strip()
+
+        if not peer:
+            continue
+
+        timestamp = int(
+            item.get("timestamp") or 0
+        )
+
+        chat = conversation(peer)
+
+        chat["messages"].append({
+            "direction": "out",
+            "timestamp": timestamp,
+            "content": str(
+                item.get("content") or ""
+            ),
+            "title": str(
+                item.get("title") or ""
+            ),
+            "message_id": str(
+                item.get("message_id") or ""
+            ),
+        })
+
+        chat["last_timestamp"] = max(
+            chat["last_timestamp"],
+            timestamp,
+        )
+
+    result = list(conversations.values())
+
+    for chat in result:
+        chat["messages"].sort(
+            key=lambda x: x["timestamp"]
+        )
+
+        if chat["messages"]:
+            last = chat["messages"][-1]
+            chat["last_message"] = (
+                last.get("content") or ""
+            )
+        else:
+            chat["last_message"] = ""
+
+    result.sort(
+        key=lambda x: x["last_timestamp"],
+        reverse=True,
+    )
+
+    return {
+        "ok": True,
+        "count": len(result),
+        "conversations": result,
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
 
     def send_json(self, data, status=200):
@@ -1357,6 +1499,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/node/lxmf/outbox"):
             self.send_json(get_lxmf_outbox())
+            return
+
+        if path.endswith("/api/messenger"):
+            self.send_json(get_messenger_data())
             return
 
         if path.endswith("/api/node/lxmf/inbox"):

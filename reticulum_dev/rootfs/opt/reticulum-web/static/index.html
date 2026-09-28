@@ -992,6 +992,141 @@ pre {
 }
 
 
+
+
+/* ==================================================
+   0.40.0 · MESSENGER CORE
+   ================================================== */
+
+.messenger-app {
+  width: 100%;
+  max-width: 920px;
+  margin: 18px auto;
+}
+
+.messenger-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  opacity: .75;
+}
+
+.messenger-status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4caf78;
+}
+
+.messenger-chat-list {
+  overflow: hidden;
+  border: 1px solid rgba(140,160,180,.20);
+  border-radius: 14px;
+  background: rgba(13,20,27,.92);
+}
+
+.messenger-contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  padding: 12px 14px;
+
+  box-sizing: border-box;
+
+  border: 0;
+  border-bottom:
+    1px solid rgba(140,160,180,.12);
+
+  background: transparent;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.messenger-contact:last-child {
+  border-bottom: 0;
+}
+
+.messenger-contact-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+
+  border-radius: 50%;
+
+  background: rgba(45,135,91,.32);
+
+  font-weight: 800;
+}
+
+.messenger-contact-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.messenger-contact-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.messenger-contact-preview {
+  margin-top: 3px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 13px;
+  opacity: .6;
+}
+
+.messenger-contact-time {
+  flex: 0 0 auto;
+  font-size: 11px;
+  opacity: .55;
+}
+
+.messenger-empty {
+  padding: 35px 20px;
+  text-align: center;
+  opacity: .55;
+}
+
+.messenger-back {
+  display: none;
+
+  border: 0;
+  background: transparent;
+
+  font-size: 23px;
+  cursor: pointer;
+}
+
+@media (max-width:600px) {
+
+  .messenger-app {
+    margin: 8px 0;
+  }
+
+  .messenger-contact {
+    min-height: 68px;
+    padding: 10px;
+  }
+
+  .messenger-back {
+    display: block;
+  }
+}
+
+
 </style>
 </head>
 
@@ -1408,9 +1543,36 @@ pre {
 
   <hr>
 
-  <div class="lxmf-chat">
+  <div id="messenger-app"
+     class="messenger-app">
+
+  <div class="messenger-status">
+    <span class="messenger-status-dot"></span>
+    <span id="messenger-status-text">
+      Reticulum Messenger bereit
+    </span>
+  </div>
+
+  <div id="messenger-chat-list"
+       class="messenger-chat-list">
+    <div class="messenger-empty">
+      Chats werden geladen…
+    </div>
+  </div>
+
+</div>
+
+<div class="lxmf-chat">
 
     <div class="lxmf-chat-header">
+
+      <button
+        id="messenger-back"
+        class="messenger-back"
+        type="button"
+        aria-label="Zurück">
+        ‹
+      </button>
       <div class="lxmf-chat-avatar">R</div>
 
       <div class="lxmf-chat-headtext">
@@ -2170,6 +2332,228 @@ function initLXMFChat() {
       }
     );
   }
+}
+
+
+
+async function refreshMessengerChats() {
+
+  const list =
+    document.getElementById(
+      "messenger-chat-list"
+    );
+
+  if (!list) return;
+
+  try {
+
+    const response = await fetch(
+      "api/messenger",
+      {cache:"no-store"}
+    );
+
+    const data = await response.json();
+
+    const chats =
+      data.ok &&
+      Array.isArray(data.conversations)
+        ? data.conversations
+        : [];
+
+    if (!chats.length) {
+      list.innerHTML =
+        '<div class="messenger-empty">' +
+        'Noch keine Chats.<br>' +
+        'Empfangene LXMF-Nachrichten ' +
+        'erscheinen automatisch hier.' +
+        '</div>';
+      return;
+    }
+
+    list.innerHTML =
+      chats.map(chat => {
+
+        const peer =
+          String(chat.peer_hash || "");
+
+        const name =
+          String(
+            chat.display_name ||
+            lxmfShortHash(peer)
+          );
+
+        const preview =
+          String(chat.last_message || "");
+
+        const time =
+          chat.last_timestamp
+            ? lxmfTime(chat.last_timestamp)
+            : "";
+
+        return `
+          <button
+            type="button"
+            class="messenger-contact"
+            data-messenger-peer="${
+              escapeHTML(peer)
+            }">
+
+            <span class="messenger-contact-avatar">
+              ${escapeHTML(
+                name.slice(0,1).toUpperCase()
+              )}
+            </span>
+
+            <span class="messenger-contact-body">
+
+              <span class="messenger-contact-name">
+                ${escapeHTML(name)}
+              </span>
+
+              <span class="messenger-contact-preview">
+                ${escapeHTML(preview)}
+              </span>
+
+            </span>
+
+            <span class="messenger-contact-time">
+              ${escapeHTML(time)}
+            </span>
+
+          </button>
+        `;
+      }).join("");
+
+    list
+      .querySelectorAll(
+        "[data-messenger-peer]"
+      )
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const peer =
+              button.getAttribute(
+                "data-messenger-peer"
+              ) || "";
+
+            openMessengerConversation(peer);
+          }
+        );
+      });
+
+  } catch (_) {
+
+    list.innerHTML =
+      '<div class="messenger-empty">' +
+      'Messenger derzeit nicht erreichbar.' +
+      '</div>';
+  }
+}
+
+
+function openMessengerConversation(peer) {
+
+  openLXMFChat(peer);
+
+  const list =
+    document.getElementById(
+      "messenger-app"
+    );
+
+  const chat =
+    document.querySelector(
+      ".lxmf-chat"
+    );
+
+  if (
+    window.matchMedia(
+      "(max-width: 600px)"
+    ).matches
+  ) {
+
+    if (list) list.style.display = "none";
+    if (chat) chat.style.display = "flex";
+  }
+}
+
+
+function closeMessengerConversation() {
+
+  const list =
+    document.getElementById(
+      "messenger-app"
+    );
+
+  const chat =
+    document.querySelector(
+      ".lxmf-chat"
+    );
+
+  if (list) list.style.display = "";
+
+  if (
+    chat &&
+    window.matchMedia(
+      "(max-width: 600px)"
+    ).matches
+  ) {
+    chat.style.display = "none";
+  }
+}
+
+
+function initMessengerCore() {
+
+  const back =
+    document.getElementById(
+      "messenger-back"
+    );
+
+  if (back) {
+    back.addEventListener(
+      "click",
+      closeMessengerConversation
+    );
+  }
+
+  if (
+    window.matchMedia(
+      "(max-width: 600px)"
+    ).matches
+  ) {
+
+    const chat =
+      document.querySelector(
+        ".lxmf-chat"
+      );
+
+    if (chat) {
+      chat.style.display = "none";
+    }
+  }
+
+  refreshMessengerChats();
+
+  setInterval(
+    refreshMessengerChats,
+    5000
+  );
+}
+
+
+if (document.readyState === "loading") {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initMessengerCore
+  );
+
+} else {
+
+  initMessengerCore();
 }
 
 
