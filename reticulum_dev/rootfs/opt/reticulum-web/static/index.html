@@ -6011,57 +6011,95 @@ if (document.readyState === "loading") {
 })();
 </script>
 
-
-<script id="runtime-watchdog-063">
+<script id="status-engine-064">
 (() => {
-  const setRuntime = (text, ok=false) => {
-    const el = document.getElementById("node-status");
-    if (!el) return;
+  const $ = id => document.getElementById(id);
 
-    el.textContent = text;
-    el.className = ok ? "node-online" : "node-offline";
-  };
+  function show(text, good=false) {
+    const el = $("node-status");
+    if (el) {
+      el.textContent = text;
+      el.className = good ? "node-online" : "node-offline";
+    }
+  }
 
-  async function runtime063() {
-    /* Beweist zuerst, dass dieses Script wirklich läuft. */
-    setRuntime("JS AKTIV");
+  async function refresh064() {
+    show("API TEST…");
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
 
     try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 5000);
-
-      const response = await fetch("api/status", {
+      /*
+       * ./api/status bindet den Request explizit an den
+       * aktuellen Home-Assistant-Ingress-Pfad.
+       */
+      const response = await fetch("./api/status", {
+        method: "GET",
         cache: "no-store",
+        headers: {
+          "Accept": "application/json"
+        },
         signal: controller.signal
       });
 
       clearTimeout(timer);
 
       if (!response.ok) {
-        setRuntime("API HTTP " + response.status);
+        show("HTTP " + response.status);
         return;
       }
 
-      const data = await response.json();
+      let data;
 
-      if (data && data.online) {
-        setRuntime("ONLINE", true);
-      } else {
-        setRuntime("NODE OFFLINE");
+      try {
+        data = await response.json();
+      } catch (_) {
+        show("JSON FEHLER");
+        return;
       }
+
+      if (!data || typeof data !== "object") {
+        show("DATEN FEHLER");
+        return;
+      }
+
+      const online = data.online === true;
+
+      show(online ? "ONLINE" : "NODE OFFLINE", online);
+
+      const heroNode = $("hero-node-state");
+      if (heroNode) {
+        heroNode.textContent =
+          online ? "● NODE ONLINE" : "● NODE OFFLINE";
+      }
+
+      const heroRns = $("hero-rns");
+      if (heroRns) {
+        heroRns.textContent =
+          online ? "● ONLINE" : "OFFLINE";
+      }
+
     } catch (err) {
-      setRuntime(
-        err && err.name === "AbortError"
-          ? "API TIMEOUT"
-          : "API FEHLER"
-      );
+      clearTimeout(timer);
+
+      if (err && err.name === "AbortError") {
+        show("API TIMEOUT");
+      } else {
+        show("FETCH FEHLER");
+      }
     }
   }
 
+  function boot064() {
+    refresh064();
+    setInterval(refresh064, 5000);
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", runtime063);
+    document.addEventListener("DOMContentLoaded", boot064, {once:true});
   } else {
-    runtime063();
+    boot064();
   }
 })();
 </script>
