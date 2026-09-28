@@ -175,6 +175,31 @@ if bashio::var.true "${INTERNET_BOOTSTRAP}"; then
     remote = sideband.connect.reticulum.network
     target_port = 7822
     transport_identity = 521c87a83afb8f29e4455e77930b973b
+
+  [[Internet Backbone · One Big Network]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = rns.one-big.network
+    target_port = 4242
+
+  [[Internet Backbone · NodeRage]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = rns.noderage.org
+    target_port = 4242
+
+  [[Internet Backbone · NEPAMesh]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = reticulum.nepamesh.com
+    target_port = 4242
+
+  [[Internet Backbone · Washmesh]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = reticulum.washmesh.net
+    target_port = 7242
+
   # END HOMEASSISTANT RETICULUM INTERNET BOOTSTRAP
 CONFIG
 fi

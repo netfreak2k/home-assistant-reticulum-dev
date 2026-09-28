@@ -456,6 +456,30 @@ def get_internet_diagnostic():
             "transport_identity": "521c87a83afb8f29e4455e77930b973b",
             "source": "official_rns_1_5_4",
         },
+        {
+            "name": "One Big Network",
+            "host": "rns.one-big.network",
+            "port": 4242,
+            "source": "directory",
+        },
+        {
+            "name": "NodeRage",
+            "host": "rns.noderage.org",
+            "port": 4242,
+            "source": "directory",
+        },
+        {
+            "name": "NEPAMesh",
+            "host": "reticulum.nepamesh.com",
+            "port": 4242,
+            "source": "directory",
+        },
+        {
+            "name": "Washmesh",
+            "host": "reticulum.washmesh.net",
+            "port": 7242,
+            "source": "directory",
+        },
     ]
 
     results = []
