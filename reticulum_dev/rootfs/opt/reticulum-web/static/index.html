@@ -5837,269 +5837,281 @@ if (document.readyState === "loading") {
 .msg-net-state.offline::before { background:#c85b5b; }
 </style>
 
-<script id="resilience-061-js">
-(() => {
-  const TIMEOUT = 6000;
-
-  async function fetchJSON061(url) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT);
-
-    try {
-      const response = await fetch(url, {
-        cache: "no-store",
-        signal: controller.signal
-      });
-
-      if (!response.ok) {
-        throw new Error("HTTP " + response.status);
-      }
-
-      return await response.json();
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  function isInternetInterface061(item) {
-    const type = String(item?.type || "").toLowerCase();
-    const name = String(item?.name || "").toLowerCase();
-
-    return (
-      type.includes("tcpclient") ||
-      type.includes("backbone") ||
-      name.includes("internet") ||
-      name.includes("backbone") ||
-      name.includes("sideband") ||
-      name.includes("noderage") ||
-      name.includes("washmesh") ||
-      name.includes("one big") ||
-      name.includes("nepamesh") ||
-      name.includes("reticulum world") ||
-      name.includes("not a number")
-    );
-  }
-
-  function internetHealth061(status) {
-    const all = Array.isArray(status?.interfaces)
-      ? status.interfaces
-      : [];
-
-    const internet = all.filter(isInternetInterface061);
-
-    const up = internet.filter(item =>
-      String(item?.status || "").toLowerCase() === "up"
-    ).length;
-
-    if (up >= 2) {
-      return {
-        state: "ready",
-        label: "BEREIT",
-        detail: `${up}/${internet.length} Internet-Uplinks aktiv`
-      };
-    }
-
-    if (up === 1) {
-      return {
-        state: "degraded",
-        label: "EINGESCHRÄNKT",
-        detail: `1/${internet.length} Internet-Uplinks aktiv`
-      };
-    }
-
-    return {
-      state: "offline",
-      label: "OFFLINE",
-      detail: internet.length
-        ? `0/${internet.length} Internet-Uplinks aktiv`
-        : "Kein Internet-Uplink aktiv"
-    };
-  }
-
-  function apply061(status) {
-    const nodeStatus = document.getElementById("node-status");
-    const heroNode = document.getElementById("hero-node-state");
-    const heroRns = document.getElementById("hero-rns");
-    const heroInternet = document.getElementById("hero-internet");
-    const detail = document.getElementById("hero-internet-detail");
-    const messengerStatus =
-      document.getElementById("messenger-status-text");
-
-    const nodeOnline = Boolean(status && status.online);
-    const health = internetHealth061(status);
-
-    if (nodeStatus) {
-      nodeStatus.textContent =
-        nodeOnline ? "● ONLINE" : "● OFFLINE";
-      nodeStatus.className =
-        nodeOnline ? "status online" : "status offline";
-    }
-
-    if (heroNode) {
-      heroNode.textContent =
-        nodeOnline ? "● NODE ONLINE" : "● NODE OFFLINE";
-      heroNode.className =
-        nodeOnline ? "node-online" : "node-offline";
-    }
-
-    if (heroRns) {
-      heroRns.textContent =
-        nodeOnline ? "● ONLINE" : "OFFLINE";
-      heroRns.className =
-        "node-path-state " +
-        (nodeOnline ? "path-up" : "path-off");
-    }
-
-    if (heroInternet) {
-      heroInternet.textContent = health.label;
-      heroInternet.className =
-        "node-path-state " +
-        (health.state === "ready"
-          ? "path-up"
-          : health.state === "degraded"
-            ? "path-wait"
-            : "path-off");
-    }
-
-    if (detail) {
-      detail.textContent = health.detail;
-    }
-
-    if (messengerStatus) {
-      messengerStatus.textContent =
-        !nodeOnline
-          ? "Reticulum offline"
-          : health.state === "ready"
-            ? "Messenger bereit"
-            : health.state === "degraded"
-              ? "Messenger eingeschränkt"
-              : "Messenger lokal bereit · Internet offline";
-
-      messengerStatus.className =
-        "msg-net-state " +
-        (nodeOnline ? health.state : "offline");
-    }
-  }
-
-  async function refreshResilience061() {
-    try {
-      /*
-       * api/status ist die einzige kritische Abfrage.
-       * Diagnose-/Discovery-Endpunkte dürfen den
-       * normalen Messenger nicht auf LOADING halten.
-       */
-      const status = await fetchJSON061("api/status");
-      apply061(status);
-    } catch (_) {
-      apply061({
-        online: false,
-        interfaces: []
-      });
-    }
-  }
-
-  function init061() {
-    refreshResilience061();
-    setInterval(refreshResilience061, 5000);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init061);
-  } else {
-    init061();
-  }
-})();
-</script>
-
-<script id="status-engine-064">
+<script id="status-engine-065">
 (() => {
   const $ = id => document.getElementById(id);
 
-  function show(text, good=false) {
-    const el = $("node-status");
-    if (el) {
-      el.textContent = text;
-      el.className = good ? "node-online" : "node-offline";
+  function text(id, value) {
+    const el = $(id);
+    if (el) el.textContent =
+      value !== undefined && value !== null && value !== ""
+        ? value : "—";
+  }
+
+  function path(id, label, state) {
+    const el = $(id);
+    if (!el) return;
+
+    el.textContent = label;
+    el.className =
+      "node-path-state " +
+      (state === "up"
+        ? "path-up"
+        : state === "wait"
+          ? "path-wait"
+          : "path-off");
+  }
+
+  function interfaceUp(i) {
+    const s = String(i?.status || "").trim().toLowerCase();
+    return s === "up" ||
+           s === "online" ||
+           s === "connected";
+  }
+
+  function internetInterface(i) {
+    const name = String(i?.name || "").toLowerCase();
+    const type = String(i?.type || "").toLowerCase();
+
+    return type.includes("backbone") ||
+           type.includes("tcpclient") ||
+           type.includes("tcp") ||
+           name.includes("backbone") ||
+           name.includes("bootstrap") ||
+           name.includes("internet") ||
+           name.includes("tcp");
+  }
+
+  function renderInterfaces(items) {
+    const root = $("interfaces");
+    if (!root) return;
+
+    root.replaceChildren();
+
+    for (const i of items) {
+      const card = document.createElement("section");
+      card.className = "card";
+
+      const title = document.createElement("h2");
+      title.textContent = i.type || "Interface";
+      card.appendChild(title);
+
+      const name = document.createElement("div");
+      name.className = "value";
+      name.textContent = i.name || "—";
+      card.appendChild(name);
+
+      const rows = [
+        ["Status", i.status],
+        ["Mode", i.mode],
+        ["Peers", i.peers],
+        ["Rate", i.rate],
+        ["MTU", i.mtu],
+        ["↑ TX", i.tx],
+        ["TX Rate", i.tx_rate],
+        ["↓ RX", i.rx],
+        ["RX Rate", i.rx_rate]
+      ];
+
+      for (const [label, value] of rows) {
+        const row = document.createElement("div");
+        const b = document.createElement("b");
+
+        row.append(document.createTextNode(label + " "));
+        b.textContent =
+          value !== undefined && value !== null ? value : "—";
+
+        if (label === "Status" && interfaceUp(i)) {
+          b.className = "up";
+        }
+
+        row.appendChild(b);
+        card.appendChild(row);
+      }
+
+      root.appendChild(card);
     }
   }
 
-  async function refresh064() {
-    show("API TEST…");
+  function render065(d) {
+    const online = d?.online === true;
+    const interfaces = Array.isArray(d?.interfaces)
+      ? d.interfaces : [];
 
+    const ns = $("node-status");
+    if (ns) {
+      ns.textContent = online ? "● ONLINE" : "● OFFLINE";
+      ns.className = online
+        ? "status online"
+        : "status offline";
+    }
+
+    const heroNode = $("hero-node-state");
+    if (heroNode) {
+      heroNode.textContent =
+        online ? "● NODE ONLINE" : "● NODE OFFLINE";
+      heroNode.className =
+        online ? "node-online" : "node-offline";
+    }
+
+    path(
+      "hero-rns",
+      online ? "● ONLINE" : "● OFFLINE",
+      online ? "up" : "off"
+    );
+
+    const auto = interfaces.find(i =>
+      String(i?.name || "").toLowerCase().includes("auto")
+    );
+
+    path(
+      "hero-lan",
+      auto && interfaceUp(auto) ? "● AKTIV" : "○ NICHT AKTIV",
+      auto && interfaceUp(auto) ? "up" : "off"
+    );
+
+    const internet = interfaces.filter(internetInterface);
+    const internetUp = internet.filter(interfaceUp).length;
+
+    if (internetUp >= 2) {
+      path("hero-internet", "● ONLINE", "up");
+    } else if (internetUp === 1) {
+      path("hero-internet", "● DEGRADED", "wait");
+    } else {
+      path("hero-internet", "● OFFLINE", "off");
+    }
+
+    text(
+      "hero-internet-detail",
+      internet.length
+        ? `${internetUp}/${internet.length} Uplinks aktiv`
+        : "Keine Internet-Uplinks"
+    );
+
+    const rnode = interfaces.find(i =>
+      String(i?.name || "").toLowerCase().includes("rnode")
+    );
+
+    path(
+      "hero-lora",
+      rnode && interfaceUp(rnode) ? "● AKTIV" : "○ AUS",
+      rnode && interfaceUp(rnode) ? "up" : "off"
+    );
+
+    const s = d?.shared_instance || {};
+
+    text("shared-name", s.name);
+    text("shared-status", s.status);
+    text(
+      "shared-serving",
+      s.serving !== undefined ? s.serving : "—"
+    );
+    text("shared-rate", s.rate);
+    text("shared-mtu", s.mtu);
+    text("shared-tx", s.tx);
+    text("shared-tx-rate", s.tx_rate);
+    text("shared-rx", s.rx);
+    text("shared-rx-rate", s.rx_rate);
+
+    const sharedStatus = $("shared-status");
+    if (sharedStatus) {
+      sharedStatus.className =
+        String(s.status || "").toLowerCase() === "up"
+          ? "up" : "";
+    }
+
+    text("version", d?.version);
+
+    if ($("uptime")) {
+      try {
+        $("uptime").textContent =
+          typeof uptime === "function"
+            ? uptime(d?.uptime_seconds)
+            : String(d?.uptime_seconds ?? "—");
+      } catch (_) {
+        $("uptime").textContent =
+          String(d?.uptime_seconds ?? "—");
+      }
+    }
+
+    renderInterfaces(interfaces);
+  }
+
+  function fail065(label) {
+    const ns = $("node-status");
+    if (ns) {
+      ns.textContent = label;
+      ns.className = "status offline";
+    }
+
+    const heroNode = $("hero-node-state");
+    if (heroNode) {
+      heroNode.textContent = "● STATUS FEHLER";
+      heroNode.className = "node-offline";
+    }
+  }
+
+  async function refreshStatus065() {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
 
     try {
-      /*
-       * ./api/status bindet den Request explizit an den
-       * aktuellen Home-Assistant-Ingress-Pfad.
-       */
-      const response = await fetch("./api/status", {
-        method: "GET",
+      const response = await fetch("api/status", {
         cache: "no-store",
-        headers: {
-          "Accept": "application/json"
-        },
         signal: controller.signal
       });
 
-      clearTimeout(timer);
-
       if (!response.ok) {
-        show("HTTP " + response.status);
+        fail065("HTTP " + response.status);
+        return;
+      }
+
+      /*
+       * Erst Text lesen. Damit hängt die UI nicht
+       * unsichtbar in response.json().
+       */
+      const raw = await response.text();
+
+      if (!raw.trim()) {
+        fail065("LEERE API");
         return;
       }
 
       let data;
 
       try {
-        data = await response.json();
+        data = JSON.parse(raw);
       } catch (_) {
-        show("JSON FEHLER");
+        fail065("JSON FEHLER");
         return;
       }
 
-      if (!data || typeof data !== "object") {
-        show("DATEN FEHLER");
-        return;
-      }
-
-      const online = data.online === true;
-
-      show(online ? "ONLINE" : "NODE OFFLINE", online);
-
-      const heroNode = $("hero-node-state");
-      if (heroNode) {
-        heroNode.textContent =
-          online ? "● NODE ONLINE" : "● NODE OFFLINE";
-      }
-
-      const heroRns = $("hero-rns");
-      if (heroRns) {
-        heroRns.textContent =
-          online ? "● ONLINE" : "OFFLINE";
-      }
+      render065(data);
 
     } catch (err) {
+      fail065(
+        err?.name === "AbortError"
+          ? "API TIMEOUT"
+          : "API FEHLER"
+      );
+    } finally {
       clearTimeout(timer);
-
-      if (err && err.name === "AbortError") {
-        show("API TIMEOUT");
-      } else {
-        show("FETCH FEHLER");
-      }
     }
   }
 
-  function boot064() {
-    refresh064();
-    setInterval(refresh064, 5000);
+  function boot065() {
+    refreshStatus065();
+    setInterval(refreshStatus065, 5000);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot064, {once:true});
+    document.addEventListener(
+      "DOMContentLoaded",
+      boot065,
+      {once:true}
+    );
   } else {
-    boot064();
+    boot065();
   }
 })();
 </script>
