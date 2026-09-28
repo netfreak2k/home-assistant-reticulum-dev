@@ -83,7 +83,6 @@ if [ ! -f "${CONFIG_FILE}" ]; then
 [reticulum]
 
   enable_transport = ${RNS_TRANSPORT}
-  discover_interfaces = ${RNS_DISCOVERY}
   share_instance = Yes
   instance_name = reticulum_dev
 
@@ -244,6 +243,10 @@ if ! command -v rnsd >/dev/null 2>&1; then
     bashio::log.fatal "rnsd executable not found"
     exit 1
 fi
+
+# RNS 1.5.4 compatibility:
+# discover_interfaces caused rnsd to terminate with exit code 255.
+sed -i '/^[[:space:]]*discover_interfaces[[:space:]]*=/d' "${CONFIG_FILE}"
 
 bashio::log.info "=== GENERATED RETICULUM CONFIG ==="
 sed 's/^/[RNS-CONFIG] /' "${CONFIG_FILE}" >&2
