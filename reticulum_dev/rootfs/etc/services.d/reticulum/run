@@ -118,6 +118,35 @@ CONFIG
 else
     bashio::log.info "Using existing Reticulum configuration"
 
+    # Keep managed AutoInterface state in sync with HA add-on options
+    python3 - "${CONFIG_FILE}" "${RNS_AUTO}" <<'PYCFG'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+state = sys.argv[2]
+text = path.read_text()
+
+pattern = (
+    r'(\[\[Home Assistant AutoInterface\]\]'
+    r'.*?^[ \t]*enabled[ \t]*=[ \t]*)(Yes|No)'
+)
+
+new_text, count = re.subn(
+    pattern,
+    lambda m: m.group(1) + state,
+    text,
+    count=1,
+    flags=re.MULTILINE | re.DOTALL,
+)
+
+if count != 1:
+    raise SystemExit("Managed AutoInterface block not found")
+
+path.write_text(new_text)
+PYCFG
+
     # Remove only the TCP block managed by this add-on.
     sed -i '/# BEGIN HOMEASSISTANT RETICULUM MANAGED TCP/,/# END HOMEASSISTANT RETICULUM MANAGED TCP/d' "${CONFIG_FILE}"
 
