@@ -11,7 +11,8 @@ RUN apk add --no-cache \
 RUN python3 -m pip install \
     --no-cache-dir \
     --break-system-packages \
-    rns
+    rns==1.5.4 \
+    lxmf==1.1.1
 
 COPY rootfs /
 

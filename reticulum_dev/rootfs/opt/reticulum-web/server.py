@@ -880,6 +880,53 @@ def get_network_snapshot():
 
 
 
+
+def request_lxmf_announce():
+    state_dir = Path(
+        "/config/reticulum/homeassistant-node"
+    )
+    state_file = state_dir / "state.json"
+    request_file = state_dir / "lxmf-announce.request"
+
+    if not state_file.exists():
+        return {"ok": False, "error": "Node not ready"}
+
+    try:
+        state = json.loads(state_file.read_text())
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+    if not state.get("lxmf_destination_hash"):
+        return {
+            "ok": False,
+            "error": "LXMF destination not ready",
+        }
+
+    now = int(time.time())
+    last = int(state.get("lxmf_last_announce") or 0)
+
+    if last and now-last < 60:
+        return {
+            "ok": False,
+            "error": "LXMF announce cooldown active",
+            "retry_after": 60-(now-last),
+        }
+
+    tmp=request_file.with_suffix(".tmp")
+    tmp.write_text(json.dumps({
+        "requested_at": now,
+        "source": "homeassistant-web",
+    }))
+    tmp.replace(request_file)
+
+    return {
+        "ok": True,
+        "queued": True,
+        "destination_hash":
+            state.get("lxmf_destination_hash"),
+    }
+
+
 def request_node_announce():
     state_dir = Path(
         "/config/reticulum/homeassistant-node"
@@ -1038,6 +1085,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/node/announce"):
             self.send_json(request_node_announce())
+            return
+
+        if path.endswith("/api/node/lxmf/announce"):
+            self.send_json(request_lxmf_announce())
             return
 
         path = self.path.split("?", 1)[0]

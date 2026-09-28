@@ -593,6 +593,23 @@ pre {
   </button>
 
   <div id="identity-announce-result"></div>
+
+  <hr>
+
+  <h3>MeshChatX / LXMF</h3>
+  <div>Name <b id="lxmf-name">Home Assistant</b></div>
+  <div>LXMF Destination <b id="lxmf-hash">—</b></div>
+  <div>Status <b id="lxmf-status">BEREIT</b></div>
+  <div>Letzter LXMF Announce <b id="lxmf-last">—</b></div>
+
+  <button
+    id="lxmf-announce-button"
+    type="button"
+    onclick="announceLXMF()">
+    In MeshChatX announcen
+  </button>
+
+  <div id="lxmf-result"></div>
 </section>
 
 <script>
@@ -877,6 +894,44 @@ function compactIdentityHash(value) {
 
 
 
+
+async function announceLXMF() {
+  const button =
+    document.getElementById("lxmf-announce-button");
+  const result =
+    document.getElementById("lxmf-result");
+
+  button.disabled = true;
+  result.textContent = "LXMF Announce wird gesendet…";
+
+  try {
+    const response = await fetch(
+      "api/node/lxmf/announce",
+      {method:"POST", cache:"no-store"}
+    );
+
+    const data = await response.json();
+
+    if (data.ok) {
+      result.textContent = "LXMF Announce angefordert.";
+      setTimeout(refreshNodeIdentity,2500);
+    } else if (data.retry_after) {
+      result.textContent =
+        "Cooldown: "+data.retry_after+" Sekunden.";
+    } else {
+      result.textContent =
+        data.error || "LXMF Announce fehlgeschlagen.";
+    }
+  } catch (error) {
+    result.textContent = "LXMF API nicht erreichbar.";
+  }
+
+  setTimeout(() => {
+    button.disabled=false;
+  },2500);
+}
+
+
 async function announceReticulumNode() {
   const button =
     document.getElementById("identity-announce-button");
@@ -940,6 +995,32 @@ async function refreshNodeIdentity() {
       status.textContent =
         data.state || "NICHT BEREIT";
     }
+
+
+    const lxmfHash =
+      document.getElementById("lxmf-hash");
+
+    lxmfHash.textContent =
+      compactIdentityHash(data.lxmf_destination_hash);
+    lxmfHash.title =
+      String(data.lxmf_destination_hash || "");
+
+    document.getElementById("lxmf-name").textContent =
+      data.lxmf_display_name || "Home Assistant";
+
+    document.getElementById("lxmf-status").textContent =
+      data.lxmf_announce_result === "SENT"
+        ? "ANNOUNCED"
+        : data.lxmf_destination_hash
+        ? "BEREIT"
+        : "NICHT BEREIT";
+
+    document.getElementById("lxmf-last").textContent =
+      data.lxmf_last_announce
+        ? new Date(
+            data.lxmf_last_announce*1000
+          ).toLocaleString()
+        : "—";
 
     const identity =
       document.getElementById("identity-hash");

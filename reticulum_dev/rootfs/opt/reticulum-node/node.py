@@ -8,13 +8,16 @@ import time
 from pathlib import Path
 
 import RNS
+import LXMF
 
 CONFIG_DIR = "/config/reticulum"
 STATE_DIR = Path(CONFIG_DIR) / "homeassistant-node"
 IDENTITY_FILE = STATE_DIR / "identity"
 STATE_FILE = STATE_DIR / "state.json"
 ANNOUNCE_REQUEST = STATE_DIR / "announce.request"
+LXMF_ANNOUNCE_REQUEST = STATE_DIR / "lxmf-announce.request"
 ANNOUNCE_COOLDOWN = 60
+LXMF_DISPLAY_NAME = "Home Assistant"
 
 APP_NAME = "homeassistant"
 ASPECT = "node"
@@ -89,6 +92,21 @@ destination = RNS.Destination(
     ASPECT,
 )
 
+
+lxmf_storage = STATE_DIR / "lxmf"
+lxmf_storage.mkdir(parents=True, exist_ok=True)
+
+lxmf_router = LXMF.LXMRouter(
+    identity=identity,
+    storagepath=str(lxmf_storage),
+    name="Home Assistant",
+)
+
+lxmf_destination = lxmf_router.register_delivery_identity(
+    identity=identity,
+    display_name=LXMF_DISPLAY_NAME,
+)
+
 state = {
     "ok": True,
     "service": "homeassistant-reticulum-node",
@@ -101,6 +119,11 @@ state = {
     "announce_mode": "manual",
     "announced": False,
     "last_announce": None,
+    "lxmf_display_name": LXMF_DISPLAY_NAME,
+    "lxmf_destination_hash": lxmf_destination.hash.hex(),
+    "lxmf_announced": False,
+    "lxmf_last_announce": None,
+    "lxmf_announce_result": None,
     "started": int(time.time()),
     "updated": int(time.time()),
 }
@@ -109,6 +132,43 @@ write_state(state)
 
 while running:
     now = int(time.time())
+
+    if LXMF_ANNOUNCE_REQUEST.exists():
+        try:
+            request = json.loads(
+                LXMF_ANNOUNCE_REQUEST.read_text() or "{}"
+            )
+        except Exception:
+            request = {}
+
+        try:
+            LXMF_ANNOUNCE_REQUEST.unlink()
+        except FileNotFoundError:
+            pass
+
+        requested_at = int(
+            request.get("requested_at", now) or now
+        )
+
+        last = int(
+            state.get("lxmf_last_announce") or 0
+        )
+
+        if last and now-last < ANNOUNCE_COOLDOWN:
+            state["lxmf_announce_result"] = "COOLDOWN"
+        else:
+            try:
+                lxmf_router.announce(
+                    lxmf_destination.hash
+                )
+                state["lxmf_announced"] = True
+                state["lxmf_last_announce"] = now
+                state["lxmf_announce_result"] = "SENT"
+                state["lxmf_announce_error"] = None
+                state["lxmf_announce_requested_at"] = requested_at
+            except Exception as exc:
+                state["lxmf_announce_result"] = "ERROR"
+                state["lxmf_announce_error"] = str(exc)
 
     if ANNOUNCE_REQUEST.exists():
         try:
