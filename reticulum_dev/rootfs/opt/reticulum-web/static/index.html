@@ -661,6 +661,126 @@ pre {
   }
 }
 
+
+/* ==================================================
+   0.31.2 · MOBILE-FIRST LXMF INBOX
+   ================================================== */
+
+#lxmf-inbox {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  gap: 12px !important;
+  box-sizing: border-box !important;
+}
+
+#lxmf-inbox > .card {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 14px !important;
+
+  border-radius: 10px !important;
+
+  white-space: normal !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+
+  overflow: hidden !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+
+#lxmf-inbox > .card > div {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  box-sizing: border-box !important;
+
+  white-space: normal !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+#lxmf-inbox > .card > div:first-child {
+  margin-bottom: 7px !important;
+  font-size: 15px !important;
+  line-height: 1.35 !important;
+}
+
+#lxmf-inbox > .card > div:nth-child(2) {
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+}
+
+#lxmf-inbox > .card .muted {
+  margin-top: 10px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  opacity: .7 !important;
+}
+
+#lxmf-inbox .lxmf-reply-button {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+
+  box-sizing: border-box !important;
+  margin: 12px 0 0 0 !important;
+  padding: 10px 14px !important;
+
+  writing-mode: horizontal-tb !important;
+  white-space: normal !important;
+
+  font-size: 15px !important;
+  line-height: 22px !important;
+  font-weight: 700 !important;
+}
+
+/* Smartphone */
+@media (max-width: 600px) {
+
+  #lxmf-inbox {
+    gap: 10px !important;
+  }
+
+  #lxmf-inbox > .card {
+    padding: 12px !important;
+    border-radius: 9px !important;
+  }
+
+  #lxmf-inbox > .card > div:first-child {
+    font-size: 16px !important;
+  }
+
+  #lxmf-inbox > .card > div:nth-child(2) {
+    font-size: 16px !important;
+    line-height: 1.45 !important;
+  }
+
+  #lxmf-inbox > .card .muted {
+    font-size: 12px !important;
+  }
+
+  #lxmf-inbox .lxmf-reply-button {
+    min-height: 48px !important;
+    font-size: 16px !important;
+  }
+}
+
 </style>
 </head>
 
