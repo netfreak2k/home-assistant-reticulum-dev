@@ -450,9 +450,11 @@ def get_internet_diagnostic():
 
     peers = [
         {
-            "name": "Sideband Bootstrap",
+            "name": "Sideband Hub",
             "host": "sideband.connect.reticulum.network",
             "port": 7822,
+            "transport_identity": "521c87a83afb8f29e4455e77930b973b",
+            "source": "official_rns_1_5_4",
         },
     ]
 
@@ -466,6 +468,8 @@ def get_internet_diagnostic():
             "name": peer["name"],
             "host": host,
             "port": port,
+            "transport_identity": peer.get("transport_identity"),
+            "source": peer.get("source"),
             "dns": False,
             "addresses": [],
             "tcp": False,
