@@ -51,6 +51,89 @@ h1 {
 .up { color: #55d98b !important; }
 .offline { color: #ff6b6b; }
 
+.node-hero {
+    margin-bottom: 20px;
+    padding: 22px;
+    background: #18212b;
+    border: 1px solid #263442;
+    border-radius: 16px;
+}
+
+.node-hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.node-title {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.node-subtitle {
+    margin-top: 4px;
+    color: #8d9baa;
+    font-size: 14px;
+}
+
+.node-online {
+    color: #55d98b;
+    font-weight: 800;
+}
+
+.node-paths {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.node-path {
+    min-width: 0;
+    padding: 14px;
+    background: #10151c;
+    border: 1px solid #263442;
+    border-radius: 12px;
+}
+
+.node-path-label {
+    color: #8d9baa;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+}
+
+.node-path-state {
+    margin-top: 7px;
+    font-size: 15px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.node-path-detail {
+    margin-top: 5px;
+    color: #8d9baa;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.path-up { color: #55d98b; }
+.path-wait { color: #f0bd5b; }
+.path-off { color: #8d9baa; }
+
+@media (max-width: 750px) {
+    .node-paths {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 430px) {
+    .node-paths {
+        grid-template-columns: 1fr;
+    }
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -135,6 +218,66 @@ pre {
     </div>
     <div id="node-status" class="status">LOADING</div>
   </header>
+
+  <section class="node-hero">
+    <div class="node-hero-top">
+      <div>
+        <div class="node-title">HOME ASSISTANT RETICULUM NODE</div>
+        <div class="node-subtitle">
+          Dieser Home-Assistant-Pi ist die Reticulum-Instanz.
+          RNode-Hardware ist optional.
+        </div>
+      </div>
+
+      <div id="hero-node-state" class="node-online">
+        ● STARTET
+      </div>
+    </div>
+
+    <div class="node-paths">
+
+      <div class="node-path">
+        <div class="node-path-label">NODE</div>
+        <div id="hero-rns" class="node-path-state path-wait">
+          Prüfe…
+        </div>
+        <div class="node-path-detail">
+          Reticulum Network Stack
+        </div>
+      </div>
+
+      <div class="node-path">
+        <div class="node-path-label">LOCAL / LAN</div>
+        <div id="hero-lan" class="node-path-state path-wait">
+          Prüfe…
+        </div>
+        <div class="node-path-detail">
+          AutoInterface
+        </div>
+      </div>
+
+      <div class="node-path">
+        <div class="node-path-label">INTERNET</div>
+        <div id="hero-internet" class="node-path-state path-wait">
+          Prüfe…
+        </div>
+        <div id="hero-internet-detail" class="node-path-detail">
+          TCP / Backbone
+        </div>
+      </div>
+
+      <div class="node-path">
+        <div class="node-path-label">LORA</div>
+        <div id="hero-lora" class="node-path-state path-wait">
+          Prüfe…
+        </div>
+        <div class="node-path-detail">
+          RNode optional
+        </div>
+      </div>
+
+    </div>
+  </section>
 
   <div class="grid">
     <section class="card">
@@ -425,6 +568,103 @@ async function inspectNode() {
     setupActivation.textContent = "AUS";
   } finally {
     button.disabled = false;
+  }
+}
+
+
+function setPath(id, text, state) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.textContent = text;
+  el.classList.remove("path-up", "path-wait", "path-off");
+  el.classList.add(
+    state === "up" ? "path-up" :
+    state === "wait" ? "path-wait" :
+    "path-off"
+  );
+}
+
+
+async function refreshNodeOverview() {
+  const node = document.getElementById("hero-node-state");
+  const detail = document.getElementById("hero-internet-detail");
+
+  try {
+    const [statusResponse, configResponse] = await Promise.all([
+      fetch("api/status", {cache:"no-store"}),
+      fetch("api/rnode/config", {cache:"no-store"})
+    ]);
+
+    const status = await statusResponse.json();
+    const cfg = await configResponse.json();
+
+    if (status && !status.error) {
+      node.textContent = "● NODE ONLINE";
+      node.className = "node-online";
+      setPath("hero-rns", "● ONLINE", "up");
+    } else {
+      node.textContent = "● NODE FEHLER";
+      setPath("hero-rns", "FEHLER", "off");
+    }
+
+    /*
+     * Interface-Liste aus rnstatus verwenden.
+     * Namen werden nur zur Darstellung klassifiziert.
+     */
+    const interfaces = Array.isArray(status.interfaces)
+      ? status.interfaces : [];
+
+    const auto = interfaces.find(i =>
+      String(i.name || "").toLowerCase().includes("auto")
+    );
+
+    const tcp = interfaces.find(i => {
+      const name = String(i.name || "").toLowerCase();
+      return name.includes("tcp") ||
+             name.includes("backbone") ||
+             name.includes("internet");
+    });
+
+    const rnode = interfaces.find(i =>
+      String(i.name || "").toLowerCase().includes("rnode")
+    );
+
+    if (auto) {
+      setPath("hero-lan", "● AKTIV", "up");
+    } else {
+      setPath("hero-lan", "○ NICHT AKTIV", "off");
+    }
+
+    if (tcp) {
+      const st = String(tcp.status || "").toLowerCase();
+
+      if (st === "up" || st === "online" || st === "connected") {
+        setPath("hero-internet", "● VERBUNDEN", "up");
+      } else {
+        setPath("hero-internet", "○ KONFIGURIERT", "wait");
+      }
+
+      detail.textContent = tcp.name || "TCP / Backbone";
+    } else {
+      setPath("hero-internet", "○ NICHT KONFIGURIERT", "off");
+      detail.textContent = "Bootstrap-Peer erforderlich";
+    }
+
+    if (cfg && cfg.rnode_interface && rnode) {
+      setPath("hero-lora", "● AKTIV", "up");
+    } else if (cfg && cfg.rnode_interface) {
+      setPath("hero-lora", "○ KONFIGURIERT", "wait");
+    } else {
+      setPath("hero-lora", "○ OPTIONAL", "off");
+    }
+
+  } catch (e) {
+    node.textContent = "● STATUSFEHLER";
+    setPath("hero-rns", "NICHT ERREICHBAR", "off");
+    setPath("hero-lan", "UNBEKANNT", "off");
+    setPath("hero-internet", "UNBEKANNT", "off");
+    setPath("hero-lora", "UNBEKANNT", "off");
   }
 }
 
@@ -935,11 +1175,13 @@ async function refresh() {
 }
 
 refresh();
+refreshNodeOverview();
 detectRNode();
 refreshRNodeConfig();
 refreshHardware();
 setInterval(refresh, 5000);
 setInterval(refreshHardware, 10000);
+setInterval(refreshNodeOverview, 5000);
 </script>
 </body>
 </html>
