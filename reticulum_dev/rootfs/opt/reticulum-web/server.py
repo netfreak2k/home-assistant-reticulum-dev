@@ -480,6 +480,18 @@ def get_internet_diagnostic():
             "port": 7242,
             "source": "directory",
         },
+        {
+            "name": "Reticulum World",
+            "host": "rns.reticulum.world",
+            "port": 6666,
+            "source": "directory",
+        },
+        {
+            "name": "Not A Number",
+            "host": "rns.not-a-number.io",
+            "port": 4242,
+            "source": "directory",
+        },
     ]
 
     results = []

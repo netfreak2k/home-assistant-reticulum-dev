@@ -181,24 +181,42 @@ if bashio::var.true "${INTERNET_BOOTSTRAP}"; then
     enabled = Yes
     target_host = rns.one-big.network
     target_port = 4242
+    connect_timeout = 5
 
   [[Internet Backbone · NodeRage]]
     type = TCPClientInterface
     enabled = Yes
     target_host = rns.noderage.org
     target_port = 4242
+    connect_timeout = 5
 
   [[Internet Backbone · NEPAMesh]]
     type = TCPClientInterface
     enabled = Yes
     target_host = reticulum.nepamesh.com
     target_port = 4242
+    connect_timeout = 5
 
   [[Internet Backbone · Washmesh]]
     type = TCPClientInterface
     enabled = Yes
     target_host = reticulum.washmesh.net
     target_port = 7242
+    connect_timeout = 5
+
+  [[Internet Backbone · Reticulum World]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = rns.reticulum.world
+    target_port = 6666
+    connect_timeout = 5
+
+  [[Internet Backbone · Not A Number]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = rns.not-a-number.io
+    target_port = 4242
+    connect_timeout = 5
 
   # END HOMEASSISTANT RETICULUM INTERNET BOOTSTRAP
 CONFIG
