@@ -1553,7 +1553,82 @@ pre {
     </span>
   </div>
 
-  <div id="messenger-chat-list"
+
+  <nav class="msg-tabs" aria-label="Messenger">
+    <button type="button"
+            class="msg-tab active"
+            data-msg-tab="chats">
+      <span class="msg-tab-icon">●</span>
+      <span>Chats</span>
+    </button>
+
+    <button type="button"
+            class="msg-tab"
+            data-msg-tab="contacts">
+      <span class="msg-tab-icon">◎</span>
+      <span>Kontakte</span>
+    </button>
+
+    <button type="button"
+            class="msg-tab"
+            data-msg-tab="settings">
+      <span class="msg-tab-icon">⚙</span>
+      <span>Einstellungen</span>
+    </button>
+  </nav>
+
+  <div id="msg-contacts-view"
+       class="msg-secondary-view"
+       hidden>
+    <div class="msg-view-title">Kontakte</div>
+    <div id="msg-contact-list"></div>
+  </div>
+
+  <div id="msg-settings-view"
+       class="msg-secondary-view"
+       hidden>
+
+    <div class="msg-view-title">Mein Messenger</div>
+
+    <div class="msg-profile-card">
+      <div class="msg-profile-avatar">R</div>
+
+      <div class="msg-profile-body">
+        <div class="msg-profile-name"
+             id="msg-profile-name">
+          Home Assistant
+        </div>
+
+        <div class="msg-profile-state">
+          Reticulum · LXMF
+        </div>
+      </div>
+    </div>
+
+    <div class="msg-info-card">
+      <strong>Privat & dezentral</strong>
+      <span>
+        Nachrichten laufen über Reticulum/LXMF.
+        Technische Netzwerkdetails bleiben außerhalb
+        der normalen Messenger-Ansicht.
+      </span>
+    </div>
+
+    <div class="msg-info-card">
+      <strong>Messenger-Name</strong>
+      <span>
+        Der Name wird aktuell in der
+        Add-on-Konfiguration festgelegt.
+      </span>
+    </div>
+
+    <div class="msg-version">
+      Reticulum Messenger · 0.60 RC
+    </div>
+
+  </div>
+
+<div id="messenger-chat-list"
        class="messenger-chat-list">
     <div class="messenger-empty">
       Chats werden geladen…
@@ -5101,6 +5176,647 @@ if (document.readyState === "loading") {
 } else {
 
   initMessengerUX050();
+}
+
+</script>
+
+<style id="messenger-ux-060">
+
+/* ================================================
+   0.60 RC · PORTRAIT FIRST
+   Reference viewport: 360–430px
+   ================================================ */
+
+.msg-tabs {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+
+  width: 100%;
+  min-height: 58px;
+
+  background: #111a22;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.msg-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #81929d;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 2px;
+  padding: 7px 3px;
+
+  font: inherit;
+  font-size: 11px;
+
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.msg-tab-icon {
+  font-size: 17px;
+  line-height: 20px;
+}
+
+.msg-tab.active {
+  color: #35b978;
+  font-weight: 700;
+}
+
+.msg-secondary-view {
+  min-height: 380px;
+  background: #0b1117;
+  color: #edf3f6;
+}
+
+.msg-view-title {
+  padding: 18px 16px 10px;
+
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.msg-profile-card,
+.msg-info-card {
+  margin: 10px 12px;
+  padding: 14px;
+
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 15px;
+
+  background: #111a22;
+}
+
+.msg-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.msg-profile-avatar {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(145deg,#263b48,#1a6950);
+
+  color: white;
+
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.msg-profile-body {
+  min-width: 0;
+}
+
+.msg-profile-name {
+  color: #edf3f6;
+  font-size: 16px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.msg-profile-state {
+  margin-top: 3px;
+
+  color: #35b978;
+  font-size: 12px;
+}
+
+.msg-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.msg-info-card strong {
+  font-size: 14px;
+}
+
+.msg-info-card span {
+  color: #8fa1ad;
+
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.msg-version {
+  padding: 20px;
+
+  color: #647681;
+
+  font-size: 11px;
+  text-align: center;
+}
+
+
+/* Contact view uses messenger cards */
+
+#msg-contact-list .messenger-contact {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  width: 100%;
+  min-height: 72px;
+
+  padding: 10px 14px;
+
+  border: 0;
+  border-bottom:
+    1px solid rgba(255,255,255,.07);
+
+  background: transparent;
+  color: #edf3f6;
+
+  text-align: left;
+}
+
+#msg-contact-list .messenger-contact-avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(145deg,#263b48,#1a6950);
+
+  font-weight: 750;
+}
+
+#msg-contact-list .messenger-contact-body {
+  min-width: 0;
+  flex: 1;
+}
+
+#msg-contact-list .messenger-contact-name {
+  display: block;
+
+  font-size: 15px;
+  font-weight: 650;
+}
+
+#msg-contact-list .messenger-contact-preview {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #8fa1ad;
+  font-size: 12px;
+}
+
+
+/* No raw peer hash in normal chat header */
+
+.lxmf-chat .lxmf-chat-peer {
+  color: #35b978 !important;
+  font-size: 11px !important;
+}
+
+
+/* Portrait is the primary layout */
+
+@media (max-width: 700px) {
+
+  #messenger-app.messenger-app {
+    width: calc(100vw - 8px) !important;
+    max-width: 430px !important;
+
+    margin: 4px auto !important;
+
+    min-height:
+      calc(100dvh - 16px) !important;
+
+    border-radius: 14px !important;
+  }
+
+  .lxmf-chat.messenger-conversation {
+    width: calc(100vw - 8px) !important;
+    max-width: 430px !important;
+
+    height:
+      calc(100dvh - 8px) !important;
+
+    min-height: 500px !important;
+
+    margin: 4px auto !important;
+
+    border-radius: 14px !important;
+  }
+
+  #messenger-app .messenger-status {
+    min-height: 54px !important;
+  }
+
+  #messenger-app .messenger-status::before {
+    font-size: 20px !important;
+  }
+
+  #messenger-chat-list .messenger-contact {
+    min-height: 72px !important;
+  }
+
+  #lxmf-inbox.lxmf-chat-messages {
+    padding:
+      12px 8px 16px !important;
+  }
+
+  #lxmf-inbox
+  .lxmf-message-row
+  .lxmf-bubble {
+    max-width: 86% !important;
+  }
+
+  #lxmf-chat-content {
+    font-size: 16px !important;
+  }
+
+}
+
+
+/* 360px class phones */
+
+@media (max-width: 380px) {
+
+  .msg-tab {
+    font-size: 10px;
+  }
+
+  #messenger-chat-list
+  .messenger-contact-avatar {
+    width: 46px !important;
+    height: 46px !important;
+    flex-basis: 46px !important;
+  }
+
+  #lxmf-inbox
+  .lxmf-message-row
+  .lxmf-bubble {
+    max-width: 89% !important;
+  }
+
+}
+
+</style>
+
+
+<script id="messenger-ux-060-js">
+
+let messengerCurrentTab = "chats";
+
+
+function messengerContactMarkup(chat) {
+
+  const peer =
+    String(chat.peer_hash || "");
+
+  const name =
+    String(
+      chat.display_name ||
+      ("Kontakt " +
+       peer.slice(0,6).toUpperCase())
+    );
+
+  return `
+    <button
+      type="button"
+      class="messenger-contact"
+      data-contact-peer="${escapeHTML(peer)}">
+
+      <span class="messenger-contact-avatar">
+        ${escapeHTML(
+          name.slice(0,1).toUpperCase()
+        )}
+      </span>
+
+      <span class="messenger-contact-body">
+
+        <span class="messenger-contact-name">
+          ${escapeHTML(name)}
+        </span>
+
+        <span class="messenger-contact-preview">
+          LXMF Kontakt
+        </span>
+
+      </span>
+
+    </button>
+  `;
+}
+
+
+async function refreshMessengerContacts() {
+
+  const target =
+    document.getElementById(
+      "msg-contact-list"
+    );
+
+  if (!target) return;
+
+  try {
+
+    const response =
+      await fetch(
+        "api/messenger",
+        {cache:"no-store"}
+      );
+
+    const data = await response.json();
+
+    const chats =
+      data.ok &&
+      Array.isArray(data.conversations)
+        ? data.conversations
+        : [];
+
+    if (!chats.length) {
+
+      target.innerHTML =
+        '<div class="messenger-empty">' +
+        'Noch keine Kontakte.<br>' +
+        'Kontakte entstehen automatisch ' +
+        'durch LXMF-Unterhaltungen.' +
+        '</div>';
+
+      return;
+    }
+
+    target.innerHTML =
+      chats.map(
+        messengerContactMarkup
+      ).join("");
+
+    target
+      .querySelectorAll(
+        "[data-contact-peer]"
+      )
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const peer =
+              button.getAttribute(
+                "data-contact-peer"
+              ) || "";
+
+            openMessengerConversation(peer);
+
+          }
+        );
+
+      });
+
+  } catch (_) {
+
+    target.innerHTML =
+      '<div class="messenger-empty">' +
+      'Kontakte derzeit nicht erreichbar.' +
+      '</div>';
+  }
+}
+
+
+function messengerSelectTab(tab) {
+
+  messengerCurrentTab = tab;
+
+  const chats =
+    document.getElementById(
+      "messenger-chat-list"
+    );
+
+  const contacts =
+    document.getElementById(
+      "msg-contacts-view"
+    );
+
+  const settings =
+    document.getElementById(
+      "msg-settings-view"
+    );
+
+  document
+    .querySelectorAll(".msg-tab")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.msgTab === tab
+      );
+
+    });
+
+  if (chats) {
+    chats.hidden = tab !== "chats";
+    chats.style.display =
+      tab === "chats" ? "" : "none";
+  }
+
+  if (contacts) {
+    contacts.hidden =
+      tab !== "contacts";
+  }
+
+  if (settings) {
+    settings.hidden =
+      tab !== "settings";
+  }
+
+  if (tab === "contacts") {
+    refreshMessengerContacts();
+  }
+
+}
+
+
+function messengerFriendlyHeader(peer) {
+
+  peer = String(peer || "");
+
+  const name =
+    document.getElementById(
+      "lxmf-chat-name"
+    );
+
+  const detail =
+    document.getElementById(
+      "lxmf-chat-peer"
+    );
+
+  const avatar =
+    document.getElementById(
+      "lxmf-chat-avatar"
+    );
+
+  const friendly =
+    "Kontakt " +
+    peer.slice(0,6).toUpperCase();
+
+  if (name) {
+    name.textContent = friendly;
+  }
+
+  if (detail) {
+    detail.textContent =
+      "Reticulum · LXMF";
+  }
+
+  if (avatar) {
+    avatar.textContent =
+      friendly.slice(0,1);
+  }
+
+}
+
+
+function initMessengerRC060() {
+
+  document
+    .querySelectorAll(".msg-tab")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+          messengerSelectTab(
+            button.dataset.msgTab
+          );
+        }
+      );
+
+    });
+
+
+  /*
+   * Preserve existing working chat engine.
+   * Only replace presentation of peer identity.
+   */
+  const previousOpen =
+    openMessengerConversation;
+
+  openMessengerConversation =
+    function(peer) {
+
+      previousOpen(peer);
+
+      messengerFriendlyHeader(peer);
+
+    };
+
+
+  /*
+   * Correct wording:
+   * accepted/queued is NOT proof of delivery.
+   */
+  const normalizeMessageState = () => {
+
+    document
+      .querySelectorAll(
+        ".lxmf-bubble-meta"
+      )
+      .forEach(meta => {
+
+        meta.innerHTML =
+          meta.innerHTML.replace(
+            " · gesendet",
+            " · übertragen"
+          );
+
+      });
+
+  };
+
+  const messageBox =
+    document.getElementById(
+      "lxmf-inbox"
+    );
+
+  if (messageBox) {
+
+    new MutationObserver(
+      normalizeMessageState
+    ).observe(
+      messageBox,
+      {
+        childList: true,
+        subtree: true
+      }
+    );
+
+  }
+
+
+  /*
+   * Load own configured messenger name from
+   * already existing node identity API.
+   */
+  fetch(
+    "api/node/identity",
+    {cache:"no-store"}
+  )
+    .then(r => r.json())
+    .then(data => {
+
+      const profile =
+        document.getElementById(
+          "msg-profile-name"
+        );
+
+      if (
+        profile &&
+        data &&
+        data.lxmf_display_name
+      ) {
+        profile.textContent =
+          data.lxmf_display_name;
+      }
+
+    })
+    .catch(() => {});
+
+
+  messengerSelectTab("chats");
+
+}
+
+
+if (document.readyState === "loading") {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initMessengerRC060
+  );
+
+} else {
+
+  initMessengerRC060();
+
 }
 
 </script>
