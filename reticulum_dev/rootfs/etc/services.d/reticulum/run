@@ -219,14 +219,26 @@ fi
 bashio::log.info "=== GENERATED RETICULUM CONFIG ==="
 sed 's/^/[RNS-CONFIG] /' "${CONFIG_FILE}" >&2
 
-bashio::log.info "Starting rnsd with exit diagnostics"
+bashio::log.info "Starting rnsd with verbose diagnostics"
+bashio::log.info "rnsd version: $(rnsd --version 2>&1 || true)"
+
+RNS_DEBUG_LOG="/tmp/rnsd-debug.log"
+rm -f "${RNS_DEBUG_LOG}"
 
 set +e
-rnsd --config "${CONFIG_DIR}"
+rnsd -v --config "${CONFIG_DIR}" >"${RNS_DEBUG_LOG}" 2>&1
 RNS_RC=$?
 set -e
 
-bashio::log.error "rnsd exited with code ${RNS_RC}"
-bashio::log.error "Reticulum service will stop for Supervisor restart"
+bashio::log.error "=== RNSD OUTPUT BEGIN ==="
+if [ -s "${RNS_DEBUG_LOG}" ]; then
+    while IFS= read -r line; do
+        printf '[RNSD] %s\n' "${line}" >&2
+    done < "${RNS_DEBUG_LOG}"
+else
+    bashio::log.error "rnsd produced no stdout/stderr output"
+fi
+bashio::log.error "=== RNSD OUTPUT END ==="
 
+bashio::log.error "rnsd exited with code ${RNS_RC}"
 exit "${RNS_RC}"
