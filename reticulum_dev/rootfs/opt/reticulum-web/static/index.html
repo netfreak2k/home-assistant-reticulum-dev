@@ -621,7 +621,12 @@ async function refreshNodeOverview() {
 
     const tcp = interfaces.find(i => {
       const name = String(i.name || "").toLowerCase();
-      return name.includes("tcp") ||
+      const type = String(i.type || "").toLowerCase();
+
+      return type.includes("backbone") ||
+             type.includes("tcpclient") ||
+             type.includes("tcp") ||
+             name.includes("tcp") ||
              name.includes("backbone") ||
              name.includes("bootstrap") ||
              name.includes("internet");
@@ -638,18 +643,25 @@ async function refreshNodeOverview() {
     }
 
     if (tcp) {
-      const st = String(tcp.status || "").toLowerCase();
+      const st = String(tcp.status || "").trim().toLowerCase();
+      const label = tcp.name || tcp.type || "TCP / Backbone";
 
       if (st === "up" || st === "online" || st === "connected") {
         setPath("hero-internet", "● VERBUNDEN", "up");
+        detail.textContent = label + " · Up";
+      } else if (st === "down" || st === "offline" || st === "disconnected") {
+        setPath("hero-internet", "● DOWN", "off");
+        detail.textContent = label + " · keine Verbindung";
+      } else if (st) {
+        setPath("hero-internet", "○ " + st.toUpperCase(), "wait");
+        detail.textContent = label + " · Status " + st;
       } else {
-        setPath("hero-internet", "○ KONFIGURIERT", "wait");
+        setPath("hero-internet", "○ STATUS UNBEKANNT", "wait");
+        detail.textContent = label + " · Interface erkannt";
       }
-
-      detail.textContent = tcp.name || "TCP / Backbone";
     } else {
-      setPath("hero-internet", "○ NICHT KONFIGURIERT", "off");
-      detail.textContent = "Internet-Bootstrap wird geprüft";
+      setPath("hero-internet", "○ NICHT AKTIV", "off");
+      detail.textContent = "Kein Internet-/Backbone-Interface in rnstatus";
     }
 
     if (cfg && cfg.rnode_interface && rnode) {
