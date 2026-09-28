@@ -6199,3 +6199,368 @@ if (document.readyState === "loading") {
 
 </body>
 </html>
+
+<style id="messenger-ux-080">
+/* ======================================================
+   0.80 · MOBILE MESSENGER CORE
+   Portrait 360–430 px is the primary layout.
+   ====================================================== */
+
+#messenger-app {
+  --m80-gap: 12px;
+}
+
+#messenger-app .msg-tabs {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  order: 99;
+  margin-top: auto;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  backdrop-filter: blur(16px);
+}
+
+#messenger-chat-list .messenger-contact {
+  min-height: 72px !important;
+  padding: 10px 12px !important;
+  gap: 11px !important;
+}
+
+#messenger-chat-list .messenger-contact-name {
+  font-size: 15px !important;
+  font-weight: 650 !important;
+}
+
+#messenger-chat-list .messenger-contact-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.m80-peer-subtitle {
+  font-size: 11px;
+  opacity: .62;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m80-unread {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--msg-accent);
+  color: #fff;
+}
+
+.m80-empty {
+  padding: 42px 22px;
+  text-align: center;
+  opacity: .72;
+  line-height: 1.5;
+}
+
+.m80-empty strong {
+  display: block;
+  opacity: 1;
+  margin-bottom: 7px;
+  font-size: 16px;
+}
+
+.m80-tech-hint {
+  font-size: 11px;
+  opacity: .58;
+  margin-top: 3px;
+}
+
+.lxmf-chat .message.out .message-meta,
+.lxmf-chat .message.out .messenger-message-meta {
+  font-size: 10px !important;
+}
+
+/* Technical dashboard becomes secondary on phones. */
+@media (max-width: 700px) {
+  #messenger-app.messenger-app,
+  .lxmf-chat.messenger-conversation {
+    width: 100% !important;
+    max-width: 430px !important;
+    margin: 0 auto !important;
+  }
+
+  #messenger-app.messenger-app {
+    min-height: calc(100dvh - 16px);
+  }
+
+  .lxmf-chat.messenger-conversation {
+    min-height: 100dvh;
+  }
+
+  #messenger-chat-list .messenger-contact {
+    border-radius: 0 !important;
+  }
+
+  .lxmf-chat textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #messenger-chat-list .messenger-contact {
+    min-height: 68px !important;
+    padding-left: 9px !important;
+    padding-right: 9px !important;
+  }
+
+  #messenger-chat-list .messenger-contact-avatar {
+    width: 42px !important;
+    height: 42px !important;
+  }
+}
+</style>
+
+<script id="messenger-core-080">
+(() => {
+  "use strict";
+
+  const state = {
+    conversations: [],
+    currentPeer: null,
+    timer: null,
+    busy: false
+  };
+
+  const $ = id => document.getElementById(id);
+
+  function esc(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function peerName(chat) {
+    const configured =
+      String(chat?.display_name || "").trim();
+
+    if (
+      configured &&
+      !/^Kontakt\s+[0-9A-F]+$/i.test(configured)
+    ) {
+      return configured;
+    }
+
+    const peer =
+      String(chat?.peer_hash || "");
+
+    return peer
+      ? "Kontakt " + peer.slice(0, 6).toUpperCase()
+      : "Unbekannt";
+  }
+
+  function initial(chat) {
+    const name = peerName(chat).trim();
+    return (name[0] || "?").toUpperCase();
+  }
+
+  function shortTime(timestamp) {
+    const ts = Number(timestamp || 0);
+    if (!ts) return "";
+
+    const d = new Date(ts * 1000);
+    const now = new Date();
+
+    if (d.toDateString() === now.toDateString()) {
+      return d.toLocaleTimeString(
+        "de-DE",
+        {hour:"2-digit", minute:"2-digit"}
+      );
+    }
+
+    return d.toLocaleDateString(
+      "de-DE",
+      {day:"2-digit", month:"2-digit"}
+    );
+  }
+
+  function preview(chat) {
+    const text =
+      String(chat?.last_message || "").trim();
+
+    if (text) return text;
+
+    const messages =
+      Array.isArray(chat?.messages)
+        ? chat.messages : [];
+
+    if (!messages.length) return "Noch keine Nachrichten";
+
+    return String(
+      messages[messages.length - 1]?.content || ""
+    ) || "Nachricht";
+  }
+
+  function renderList() {
+    const root = $("messenger-chat-list");
+    if (!root) return;
+
+    if (!state.conversations.length) {
+      root.innerHTML = `
+        <div class="m80-empty">
+          <strong>Noch keine Gespräche</strong>
+          Sobald eine LXMF-Nachricht eintrifft oder du
+          einen Kontakt anschreibst, erscheint der Chat hier.
+        </div>
+      `;
+      return;
+    }
+
+    root.innerHTML =
+      state.conversations.map(chat => {
+        const peer = String(chat.peer_hash || "");
+        const unread = Number(chat.unread || 0);
+
+        return `
+          <button
+            type="button"
+            class="messenger-contact"
+            data-m80-peer="${esc(peer)}"
+          >
+            <span class="messenger-contact-avatar">
+              ${esc(initial(chat))}
+            </span>
+
+            <span class="messenger-contact-body">
+              <span class="messenger-contact-name">
+                ${esc(peerName(chat))}
+              </span>
+
+              <span class="messenger-contact-preview">
+                ${esc(preview(chat))}
+              </span>
+
+              <span class="m80-peer-subtitle">
+                Reticulum · LXMF
+              </span>
+            </span>
+
+            <span class="messenger-contact-time">
+              ${esc(shortTime(chat.last_timestamp))}
+              ${
+                unread > 0
+                  ? `<span class="m80-unread">${unread}</span>`
+                  : ""
+              }
+            </span>
+          </button>
+        `;
+      }).join("");
+
+    root.querySelectorAll("[data-m80-peer]")
+      .forEach(button => {
+        button.addEventListener("click", () => {
+          const peer =
+            button.getAttribute("data-m80-peer");
+
+          state.currentPeer = peer;
+
+          if (typeof window.openLXMFChat === "function") {
+            window.openLXMFChat(peer);
+          }
+
+          if (
+            typeof window.messengerShowConversation
+            === "function"
+          ) {
+            window.messengerShowConversation();
+          }
+        });
+      });
+  }
+
+  function normalizeOutgoingLabels() {
+    document
+      .querySelectorAll(
+        ".lxmf-chat .message.out, " +
+        ".lxmf-chat [data-direction='out']"
+      )
+      .forEach(message => {
+        const nodes =
+          message.querySelectorAll(
+            ".message-meta, " +
+            ".messenger-message-meta, small"
+          );
+
+        nodes.forEach(node => {
+          node.textContent =
+            node.textContent
+              .replace(/zugestellt/gi, "ausgehend")
+              .replace(/gesendet/gi, "ausgehend")
+              .replace(/übertragen/gi, "ausgehend");
+        });
+      });
+  }
+
+  async function refresh() {
+    if (state.busy) return;
+    state.busy = true;
+
+    try {
+      const response =
+        await fetch(
+          "api/messenger?ts=" + Date.now(),
+          {cache:"no-store"}
+        );
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      state.conversations =
+        Array.isArray(data?.conversations)
+          ? data.conversations
+          : [];
+
+      renderList();
+      normalizeOutgoingLabels();
+
+    } catch (_) {
+      /* Keep last rendered state. */
+    } finally {
+      state.busy = false;
+    }
+  }
+
+  /*
+   * Existing backend returns QUEUED.
+   * UI must never upgrade that to "delivered".
+   */
+  const observer =
+    new MutationObserver(() => {
+      normalizeOutgoingLabels();
+    });
+
+  observer.observe(
+    document.body,
+    {childList:true, subtree:true}
+  );
+
+  refresh();
+
+  state.timer =
+    setInterval(refresh, 7000);
+
+  window.reticulumMessenger080 = {
+    refresh,
+    state
+  };
+})();
+</script>
