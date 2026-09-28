@@ -208,10 +208,21 @@ def remember_lxmf_contact(
         if peer == lxmf_destination.hash.hex():
             return
 
+        # Messenger discovery requires application data.
+        # Generic RNS announces without app data are ignored.
+        if app_data is None:
+            return
+
         display_name = _announce_text(app_data)
 
         if not display_name:
-            display_name = "Kontakt " + peer[:6].upper()
+            return
+
+        # Reject obviously unusable binary-decoder output.
+        display_name = display_name.strip()
+
+        if not display_name:
+            return
 
         now = int(time.time())
         contacts = _read_contacts()
@@ -264,8 +275,14 @@ def remember_lxmf_contact(
 
 
 class LXMFAnnounceHandler:
-    aspect_filter = "lxmf.delivery"
-
+    # Intentionally no aspect_filter here.
+    #
+    # RNS 1.5.4 will therefore pass announces to this
+    # handler regardless of aspect. We only persist
+    # announces that contain usable application data.
+    #
+    # This avoids depending on an assumed LXMF aspect
+    # while keeping discovery passive.
     def received_announce(
         self,
         destination_hash,
