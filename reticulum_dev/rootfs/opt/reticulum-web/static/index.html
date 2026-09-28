@@ -591,13 +591,15 @@ async function refreshNodeOverview() {
   const detail = document.getElementById("hero-internet-detail");
 
   try {
-    const [statusResponse, configResponse] = await Promise.all([
+    const [statusResponse, configResponse, internetResponse] = await Promise.all([
       fetch("api/status", {cache:"no-store"}),
-      fetch("api/rnode/config", {cache:"no-store"})
+      fetch("api/rnode/config", {cache:"no-store"}),
+      fetch("api/internet/diagnostic", {cache:"no-store"})
     ]);
 
     const status = await statusResponse.json();
     const cfg = await configResponse.json();
+    const internet = await internetResponse.json();
 
     if (status && !status.error) {
       node.textContent = "● NODE ONLINE";
@@ -663,6 +665,27 @@ async function refreshNodeOverview() {
       setPath("hero-internet", "○ NICHT AKTIV", "off");
       detail.textContent = "Kein Internet-/Backbone-Interface in rnstatus";
     }
+
+    /*
+     * Passive Internet path diagnostic from inside the add-on:
+     * DNS -> TCP -> Reticulum interface state.
+     */
+    const dnsState = internet && internet.dns ? "DNS ✓" : "DNS ✗";
+    const tcpState = internet && internet.tcp ? "TCP ✓" : "TCP ✗";
+
+    let rnsState = "Reticulum ?";
+    if (tcp) {
+      const st = String(tcp.status || "").trim().toLowerCase();
+      if (st === "up" || st === "online" || st === "connected") {
+        rnsState = "Reticulum ✓";
+      } else if (st === "down" || st === "offline" || st === "disconnected") {
+        rnsState = "Reticulum DOWN";
+      } else if (st) {
+        rnsState = "Reticulum " + st.toUpperCase();
+      }
+    }
+
+    detail.textContent = dnsState + " · " + tcpState + " · " + rnsState;
 
     if (cfg && cfg.rnode_interface && rnode) {
       setPath("hero-lora", "● AKTIV", "up");
