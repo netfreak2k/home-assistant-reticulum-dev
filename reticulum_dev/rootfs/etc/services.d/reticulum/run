@@ -13,7 +13,6 @@ mkdir -p "${CONFIG_DIR}"
 
 AUTO_INTERFACE="$(bashio::config 'auto_interface' 2>/dev/null || true)"
 INTERNET_BOOTSTRAP="$(bashio::config 'internet_bootstrap' 2>/dev/null || true)"
-INTERFACE_DISCOVERY="$(bashio::config 'interface_discovery' 2>/dev/null || true)"
 TCP_INTERFACE="$(bashio::config 'tcp_interface' 2>/dev/null || true)"
 TCP_HOST="$(bashio::config 'tcp_host' 2>/dev/null || true)"
 TCP_PORT="$(bashio::config 'tcp_port' 2>/dev/null || true)"
@@ -29,7 +28,6 @@ LOGLEVEL="$(bashio::config 'loglevel' 2>/dev/null || true)"
 
 [ -n "${AUTO_INTERFACE}" ] || AUTO_INTERFACE="true"
 [ -n "${INTERNET_BOOTSTRAP}" ] || INTERNET_BOOTSTRAP="true"
-[ -n "${INTERFACE_DISCOVERY}" ] || INTERFACE_DISCOVERY="true"
 [ -n "${TCP_INTERFACE}" ] || TCP_INTERFACE="false"
 [ -n "${TCP_PORT}" ] || TCP_PORT="4242"
 [ -n "${RNODE_INTERFACE}" ] || RNODE_INTERFACE="false"
@@ -60,16 +58,10 @@ else
     RNS_AUTO="No"
 fi
 
-if bashio::var.true "${INTERFACE_DISCOVERY}"; then
-    RNS_DISCOVERY="Yes"
-else
-    RNS_DISCOVERY="No"
-fi
 
 bashio::log.info "Reticulum Network Stack"
 bashio::log.info "AutoInterface: ${AUTO_INTERFACE}"
 bashio::log.info "Internet bootstrap: ${INTERNET_BOOTSTRAP}"
-bashio::log.info "Interface discovery: ${INTERFACE_DISCOVERY}"
 bashio::log.info "Transport: ${TRANSPORT}"
 bashio::log.info "Log level: ${LOGLEVEL} (${RNS_LOGLEVEL})"
 
@@ -167,13 +159,6 @@ CONFIG
 fi
 
 
-# Manage Reticulum interface discovery.
-if grep -q '^[[:space:]]*discover_interfaces[[:space:]]*=' "${CONFIG_FILE}"; then
-    sed -i "s/^[[:space:]]*discover_interfaces[[:space:]]*=.*/  discover_interfaces = ${RNS_DISCOVERY}/" "${CONFIG_FILE}"
-else
-    sed -i "/^\[reticulum\]/a\\
-  discover_interfaces = ${RNS_DISCOVERY}" "${CONFIG_FILE}"
-fi
 
 # Manage the public Internet bootstrap independently.
 sed -i '/# BEGIN HOMEASSISTANT RETICULUM INTERNET BOOTSTRAP/,/# END HOMEASSISTANT RETICULUM INTERNET BOOTSTRAP/d' "${CONFIG_FILE}"
@@ -245,32 +230,8 @@ if ! command -v rnsd >/dev/null 2>&1; then
 fi
 
 # RNS 1.5.4 compatibility:
-# discover_interfaces caused rnsd to terminate with exit code 255.
+# Never emit discover_interfaces. It caused rnsd to exit with code 255.
 sed -i '/^[[:space:]]*discover_interfaces[[:space:]]*=/d' "${CONFIG_FILE}"
 
-bashio::log.info "=== GENERATED RETICULUM CONFIG ==="
-sed 's/^/[RNS-CONFIG] /' "${CONFIG_FILE}" >&2
-
-bashio::log.info "Starting rnsd with verbose diagnostics"
-bashio::log.info "rnsd version: $(rnsd --version 2>&1 || true)"
-
-RNS_DEBUG_LOG="/tmp/rnsd-debug.log"
-rm -f "${RNS_DEBUG_LOG}"
-
-set +e
-rnsd -v --config "${CONFIG_DIR}" >"${RNS_DEBUG_LOG}" 2>&1
-RNS_RC=$?
-set -e
-
-bashio::log.error "=== RNSD OUTPUT BEGIN ==="
-if [ -s "${RNS_DEBUG_LOG}" ]; then
-    while IFS= read -r line; do
-        printf '[RNSD] %s\n' "${line}" >&2
-    done < "${RNS_DEBUG_LOG}"
-else
-    bashio::log.error "rnsd produced no stdout/stderr output"
-fi
-bashio::log.error "=== RNSD OUTPUT END ==="
-
-bashio::log.error "rnsd exited with code ${RNS_RC}"
-exit "${RNS_RC}"
+bashio::log.info "Starting rnsd"
+exec rnsd --config "${CONFIG_DIR}"
