@@ -536,6 +536,57 @@ def get_internet_diagnostic():
     }
 
 
+def get_reticulum_discovery():
+    """
+    Passive Reticulum interface discovery.
+    Uses rnstatus only; does not change configuration.
+    """
+
+    result = {
+        "ok": False,
+        "interfaces": [],
+        "raw": "",
+        "error": None,
+    }
+
+    command = run_command([
+        "rnstatus",
+        "-d",
+        "--json",
+        "--config",
+        CONFIG_DIR,
+    ])
+
+    result["raw"] = command["stdout"]
+
+    if not command["ok"]:
+        result["error"] = command["stderr"] or "rnstatus discovery failed"
+        return result
+
+    try:
+        parsed = json.loads(command["stdout"] or "{}")
+        result["ok"] = True
+
+        if isinstance(parsed, list):
+            result["interfaces"] = parsed
+
+        elif isinstance(parsed, dict):
+            for key in ("interfaces", "discovered", "results"):
+                value = parsed.get(key)
+                if isinstance(value, list):
+                    result["interfaces"] = value
+                    break
+
+            if not result["interfaces"]:
+                result["data"] = parsed
+
+    except Exception as exc:
+        result["error"] = "JSON: " + str(exc)
+
+    return result
+
+
+
 def get_status():
     rnstatus = run_command([
         "rnstatus",
@@ -722,6 +773,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/internet/diagnostic"):
             self.send_json(get_internet_diagnostic())
+            return
+
+        if path.endswith("/api/internet/discovery"):
+            self.send_json(get_reticulum_discovery())
             return
 
         if path.endswith("/api/hardware"):

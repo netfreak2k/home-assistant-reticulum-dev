@@ -591,15 +591,17 @@ async function refreshNodeOverview() {
   const detail = document.getElementById("hero-internet-detail");
 
   try {
-    const [statusResponse, configResponse, internetResponse] = await Promise.all([
+    const [statusResponse, configResponse, internetResponse, discoveryResponse] = await Promise.all([
       fetch("api/status", {cache:"no-store"}),
       fetch("api/rnode/config", {cache:"no-store"}),
-      fetch("api/internet/diagnostic", {cache:"no-store"})
+      fetch("api/internet/diagnostic", {cache:"no-store"}),
+      fetch("api/internet/discovery", {cache:"no-store"})
     ]);
 
     const status = await statusResponse.json();
     const cfg = await configResponse.json();
     const internet = await internetResponse.json();
+    const discovery = await discoveryResponse.json();
 
     if (status && !status.error) {
       node.textContent = "● NODE ONLINE";
@@ -693,11 +695,16 @@ async function refreshNodeOverview() {
       }
     }
 
+    const discoveredCount =
+      discovery && Array.isArray(discovery.interfaces)
+        ? discovery.interfaces.length : 0;
+
     detail.textContent =
       dnsState + " · " +
       tcpState + " · " +
       rnsState + " · Peers " +
-      reachablePeers + "/" + peerCount;
+      reachablePeers + "/" + peerCount +
+      " · Discovery " + discoveredCount;
 
     if (cfg && cfg.rnode_interface && rnode) {
       setPath("hero-lora", "● AKTIV", "up");
