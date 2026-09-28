@@ -127,6 +127,109 @@ LXMF_OUTBOX_LIMIT = 100
 CONTACTS_FILE = STATE_DIR / "contacts.json"
 CONTACTS_LIMIT = 500
 
+ANNOUNCE_DEBUG_FILE = STATE_DIR / "announce-debug.json"
+ANNOUNCE_DEBUG_LIMIT = 100
+
+
+def record_announce_debug(
+    destination_hash,
+    announced_identity,
+    app_data,
+):
+    try:
+        if isinstance(destination_hash, bytes):
+            destination = destination_hash.hex()
+        else:
+            destination = str(destination_hash or "")
+
+        identity_hash = ""
+
+        if announced_identity is not None:
+            value = getattr(
+                announced_identity,
+                "hash",
+                None,
+            )
+
+            if isinstance(value, bytes):
+                identity_hash = value.hex()
+            elif value is not None:
+                identity_hash = str(value)
+
+        if isinstance(app_data, bytes):
+            app_hex = app_data.hex()
+            app_text = app_data.decode(
+                "utf-8",
+                errors="replace",
+            )
+        elif app_data is None:
+            app_hex = ""
+            app_text = ""
+        else:
+            app_hex = ""
+            app_text = str(app_data)
+
+        entry = {
+            "timestamp": int(time.time()),
+            "destination_hash": destination,
+            "identity_hash": identity_hash,
+            "app_data_type": type(app_data).__name__,
+            "app_data_hex": app_hex[:1024],
+            "app_data_text": app_text[:512],
+        }
+
+        try:
+            if ANNOUNCE_DEBUG_FILE.exists():
+                data = json.loads(
+                    ANNOUNCE_DEBUG_FILE.read_text(
+                        encoding="utf-8"
+                    )
+                )
+            else:
+                data = []
+        except Exception:
+            data = []
+
+        if not isinstance(data, list):
+            data = []
+
+        data.append(entry)
+        data = data[-ANNOUNCE_DEBUG_LIMIT:]
+
+        tmp = Path(
+            str(ANNOUNCE_DEBUG_FILE) + ".tmp"
+        )
+
+        tmp.write_text(
+            json.dumps(
+                data,
+                indent=2,
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+        tmp.replace(ANNOUNCE_DEBUG_FILE)
+
+        print(
+            "RNS ANNOUNCE RX:",
+            destination[:16],
+            "app_data=",
+            type(app_data).__name__,
+            "bytes=",
+            len(app_data)
+            if isinstance(app_data, bytes)
+            else 0,
+        )
+
+    except Exception as exc:
+        print(
+            "RNS ANNOUNCE DEBUG ERROR:",
+            str(exc),
+        )
+
+
+
 
 def _read_contacts():
     try:
@@ -289,6 +392,12 @@ class LXMFAnnounceHandler:
         announced_identity,
         app_data,
     ):
+        record_announce_debug(
+            destination_hash,
+            announced_identity,
+            app_data,
+        )
+
         remember_lxmf_contact(
             destination_hash,
             announced_identity,
