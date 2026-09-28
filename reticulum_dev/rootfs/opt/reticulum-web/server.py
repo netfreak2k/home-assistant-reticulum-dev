@@ -985,6 +985,44 @@ def request_node_announce():
     }
 
 
+def get_lxmf_inbox():
+    inbox_file = Path(
+        "/config/reticulum/homeassistant-node/lxmf-inbox.json"
+    )
+
+    if not inbox_file.exists():
+        return {
+            "ok": True,
+            "count": 0,
+            "messages": [],
+        }
+
+    try:
+        data = json.loads(
+            inbox_file.read_text()
+        )
+
+        if not isinstance(data, list):
+            data = []
+
+        # Neueste Nachricht zuerst.
+        data = list(reversed(data))
+
+        return {
+            "ok": True,
+            "count": len(data),
+            "messages": data[:50],
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "count": 0,
+            "messages": [],
+            "error": str(exc),
+        }
+
+
 def get_node_identity_status():
     state_file = Path(
         "/config/reticulum/homeassistant-node/state.json"
@@ -1223,6 +1261,11 @@ class Handler(BaseHTTPRequestHandler):
         if path.endswith("/api/node/identity"):
             self.send_json(get_node_identity_status())
             return
+
+        if path.endswith("/api/node/lxmf/inbox"):
+            self.send_json(get_lxmf_inbox())
+            return
+
 
         if path.endswith("/api/network"):
             self.send_json(get_network_snapshot())

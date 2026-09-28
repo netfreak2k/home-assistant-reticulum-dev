@@ -107,6 +107,177 @@ lxmf_destination = lxmf_router.register_delivery_identity(
     display_name=LXMF_DISPLAY_NAME,
 )
 
+
+# --------------------------------------------------
+# LXMF INBOX
+# --------------------------------------------------
+
+LXMF_INBOX_FILE = STATE_DIR / "lxmf-inbox.json"
+LXMF_INBOX_LIMIT = 50
+
+
+def _read_lxmf_inbox():
+    if not LXMF_INBOX_FILE.exists():
+        return []
+
+    try:
+        data = json.loads(
+            LXMF_INBOX_FILE.read_text()
+        )
+
+        if isinstance(data, list):
+            return data
+
+    except Exception:
+        pass
+
+    return []
+
+
+def _write_lxmf_inbox(messages):
+    tmp = LXMF_INBOX_FILE.with_suffix(".tmp")
+
+    tmp.write_text(
+        json.dumps(
+            messages[-LXMF_INBOX_LIMIT:],
+            indent=2,
+            ensure_ascii=False
+        )
+    )
+
+    tmp.replace(LXMF_INBOX_FILE)
+
+
+def _lxmf_text(value):
+    if value is None:
+        return ""
+
+    if isinstance(value, bytes):
+        return value.decode(
+            "utf-8",
+            errors="replace"
+        )
+
+    return str(value)
+
+
+def lxmf_delivery_callback(message):
+    """
+    Empfangspunkt für echte eingehende LXMF-Nachrichten.
+
+    Keine automatische Antwort.
+    Keine Weiterleitung.
+    Nur lokale Persistenz.
+    """
+
+    try:
+        source_hash = getattr(
+            message,
+            "source_hash",
+            None
+        )
+
+        if isinstance(source_hash, bytes):
+            source_hash = source_hash.hex()
+        else:
+            source_hash = str(
+                source_hash or ""
+            )
+
+        timestamp = getattr(
+            message,
+            "timestamp",
+            time.time()
+        )
+
+        try:
+            timestamp = float(timestamp)
+        except Exception:
+            timestamp = time.time()
+
+        content = ""
+
+        if hasattr(message, "content_as_string"):
+            try:
+                content = message.content_as_string()
+            except Exception:
+                content = ""
+
+        if not content:
+            content = _lxmf_text(
+                getattr(message, "content", "")
+            )
+
+        title = ""
+
+        if hasattr(message, "title_as_string"):
+            try:
+                title = message.title_as_string()
+            except Exception:
+                title = ""
+
+        if not title:
+            title = _lxmf_text(
+                getattr(message, "title", "")
+            )
+
+        message_id = getattr(
+            message,
+            "message_id",
+            None
+        )
+
+        if isinstance(message_id, bytes):
+            message_id = message_id.hex()
+        else:
+            message_id = str(
+                message_id or ""
+            )
+
+        entry = {
+            "timestamp": timestamp,
+            "received_at": time.time(),
+            "source_hash": source_hash,
+            "title": title,
+            "content": content,
+            "message_id": message_id,
+        }
+
+        messages = _read_lxmf_inbox()
+
+        # Doppelte Zustellung vermeiden.
+        if message_id:
+            for old in messages:
+                if old.get("message_id") == message_id:
+                    return
+
+        messages.append(entry)
+
+        _write_lxmf_inbox(messages)
+
+        state["lxmf_received_count"] = len(messages)
+        state["lxmf_last_received"] = timestamp
+        state["lxmf_last_received_source"] = source_hash
+
+        print(
+            "LXMF RX:",
+            source_hash[:16],
+            title or "(ohne Titel)"
+        )
+
+    except Exception as exc:
+        print(
+            "LXMF RX ERROR:",
+            str(exc)
+        )
+
+
+# Eingehende LXMF-Nachrichten an den lokalen
+# Inbox-Callback übergeben.
+lxmf_router.register_delivery_callback(
+    lxmf_delivery_callback
+)
+
 state = {
     "ok": True,
     "service": "homeassistant-reticulum-node",

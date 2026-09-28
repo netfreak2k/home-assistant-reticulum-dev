@@ -610,6 +610,20 @@ pre {
   </button>
 
   <div id="lxmf-result"></div>
+
+  <hr>
+
+  <h3>LXMF Inbox</h3>
+
+  <div>
+    Empfangene Nachrichten:
+    <b id="lxmf-inbox-count">0</b>
+  </div>
+
+  <div id="lxmf-inbox"
+       style="margin-top:12px">
+    Noch keine Nachrichten.
+  </div>
 </section>
 
 <script>
@@ -894,6 +908,120 @@ function compactIdentityHash(value) {
 
 
 
+
+
+async function refreshLXMFInbox() {
+
+  const box =
+    document.getElementById("lxmf-inbox");
+
+  const count =
+    document.getElementById("lxmf-inbox-count");
+
+  if (!box || !count) return;
+
+  try {
+
+    const response = await fetch(
+      "api/node/lxmf/inbox",
+      {cache:"no-store"}
+    );
+
+    const data =
+      await response.json();
+
+    if (!data.ok) {
+      box.textContent =
+        "LXMF Inbox nicht verfügbar.";
+      return;
+    }
+
+    count.textContent =
+      String(data.count || 0);
+
+    const messages =
+      Array.isArray(data.messages)
+        ? data.messages
+        : [];
+
+    if (!messages.length) {
+      box.textContent =
+        "Noch keine LXMF-Nachrichten.";
+      return;
+    }
+
+    box.innerHTML = messages.map(
+      (message) => {
+
+        const date =
+          message.timestamp
+            ? new Date(
+                Number(message.timestamp) * 1000
+              ).toLocaleString()
+            : "—";
+
+        const source =
+          String(
+            message.source_hash || ""
+          );
+
+        const shortSource =
+          source
+            ? source.slice(0, 12) + "…"
+            : "unbekannt";
+
+        const title =
+          message.title
+            ? String(message.title)
+            : "LXMF Nachricht";
+
+        const content =
+          message.content
+            ? String(message.content)
+            : "";
+
+        return `
+          <div class="card"
+               style="margin-top:10px">
+
+            <div>
+              <b>${escapeHTML(title)}</b>
+            </div>
+
+            <div>
+              ${escapeHTML(content)}
+            </div>
+
+            <div class="muted"
+                 style="margin-top:6px">
+
+              ${escapeHTML(date)}
+              · ${escapeHTML(shortSource)}
+
+            </div>
+
+          </div>
+        `;
+      }
+    ).join("");
+
+  } catch (error) {
+
+    box.textContent =
+      "LXMF Inbox API nicht erreichbar.";
+  }
+}
+
+
+function escapeHTML(value) {
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
 async function announceLXMF() {
   const button =
@@ -1751,3 +1879,13 @@ setInterval(refreshNodeIdentity, 10000);
 </script>
 </body>
 </html>
+
+
+<script>
+setInterval(
+  refreshLXMFInbox,
+  5000
+);
+
+refreshLXMFInbox();
+</script>
