@@ -18,7 +18,9 @@ COPY rootfs /
 RUN chmod +x \
     /etc/services.d/reticulum/run \
     /etc/services.d/reticulum-web/run \
-    /opt/reticulum-web/server.py
+    /etc/services.d/reticulum-node/run \
+    /opt/reticulum-web/server.py \
+    /opt/reticulum-node/node.py
 
 LABEL \
     io.hass.name="Reticulum" \

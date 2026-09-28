@@ -878,6 +878,48 @@ def get_network_snapshot():
     return result
 
 
+
+def get_node_identity_status():
+    state_file = Path(
+        "/config/reticulum/homeassistant-node/state.json"
+    )
+
+    if not state_file.exists():
+        return {
+            "ok": False,
+            "state": "STARTING",
+            "error": "Node state not available yet",
+        }
+
+    try:
+        data = json.loads(state_file.read_text())
+
+        if not isinstance(data, dict):
+            raise ValueError("invalid state format")
+
+        now = int(time.time())
+        updated = int(data.get("updated", 0) or 0)
+
+        data["state_age_seconds"] = (
+            max(0, now - updated)
+            if updated else None
+        )
+
+        data["persistent"] = bool(
+            data.get("identity_hash")
+            and data.get("destination_hash")
+        )
+
+        return data
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "state": "ERROR",
+            "error": str(exc),
+        }
+
+
 def get_status():
     rnstatus = run_command([
         "rnstatus",
@@ -1060,6 +1102,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/status"):
             self.send_json(get_status())
+            return
+
+        if path.endswith("/api/node/identity"):
+            self.send_json(get_node_identity_status())
             return
 
         if path.endswith("/api/network"):

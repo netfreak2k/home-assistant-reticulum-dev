@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+
+import json
+import os
+import signal
+import sys
+import time
+from pathlib import Path
+
+import RNS
+
+CONFIG_DIR = "/config/reticulum"
+STATE_DIR = Path(CONFIG_DIR) / "homeassistant-node"
+IDENTITY_FILE = STATE_DIR / "identity"
+STATE_FILE = STATE_DIR / "state.json"
+
+APP_NAME = "homeassistant"
+ASPECT = "node"
+
+running = True
+
+
+def stop_handler(signum, frame):
+    global running
+    running = False
+
+
+signal.signal(signal.SIGTERM, stop_handler)
+signal.signal(signal.SIGINT, stop_handler)
+
+
+def write_state(data):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+
+    tmp = STATE_FILE.with_suffix(".tmp")
+    tmp.write_text(
+        json.dumps(data, indent=2, sort_keys=True)
+    )
+    os.replace(tmp, STATE_FILE)
+
+
+def identity_hex(identity):
+    value = getattr(identity, "hash", b"")
+
+    if isinstance(value, bytes):
+        return value.hex()
+
+    return str(value)
+
+
+def destination_hex(destination):
+    value = getattr(destination, "hash", b"")
+
+    if isinstance(value, bytes):
+        return value.hex()
+
+    return str(value)
+
+
+STATE_DIR.mkdir(parents=True, exist_ok=True)
+
+# Connect to the already-running shared RNS instance.
+reticulum = RNS.Reticulum(
+    configdir=CONFIG_DIR,
+    loglevel=RNS.LOG_NOTICE,
+)
+
+created = False
+
+if IDENTITY_FILE.exists():
+    identity = RNS.Identity.from_file(str(IDENTITY_FILE))
+
+    if identity is None:
+        raise RuntimeError(
+            "Persisted Reticulum identity could not be loaded"
+        )
+else:
+    identity = RNS.Identity()
+    identity.to_file(str(IDENTITY_FILE))
+    created = True
+
+destination = RNS.Destination(
+    identity,
+    RNS.Destination.IN,
+    RNS.Destination.SINGLE,
+    APP_NAME,
+    ASPECT,
+)
+
+state = {
+    "ok": True,
+    "service": "homeassistant-reticulum-node",
+    "app_name": APP_NAME,
+    "aspect": ASPECT,
+    "identity_hash": identity_hex(identity),
+    "destination_hash": destination_hex(destination),
+    "identity_created": created,
+    "identity_file": str(IDENTITY_FILE),
+    "announce_mode": "manual",
+    "announced": False,
+    "last_announce": None,
+    "started": int(time.time()),
+    "updated": int(time.time()),
+}
+
+write_state(state)
+
+while running:
+    state["updated"] = int(time.time())
+    write_state(state)
+    time.sleep(10)
+
+state["ok"] = False
+state["updated"] = int(time.time())
+write_state(state)
