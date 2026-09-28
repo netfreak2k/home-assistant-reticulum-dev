@@ -6011,5 +6011,60 @@ if (document.readyState === "loading") {
 })();
 </script>
 
+
+<script id="runtime-watchdog-063">
+(() => {
+  const setRuntime = (text, ok=false) => {
+    const el = document.getElementById("node-status");
+    if (!el) return;
+
+    el.textContent = text;
+    el.className = ok ? "node-online" : "node-offline";
+  };
+
+  async function runtime063() {
+    /* Beweist zuerst, dass dieses Script wirklich läuft. */
+    setRuntime("JS AKTIV");
+
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch("api/status", {
+        cache: "no-store",
+        signal: controller.signal
+      });
+
+      clearTimeout(timer);
+
+      if (!response.ok) {
+        setRuntime("API HTTP " + response.status);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data && data.online) {
+        setRuntime("ONLINE", true);
+      } else {
+        setRuntime("NODE OFFLINE");
+      }
+    } catch (err) {
+      setRuntime(
+        err && err.name === "AbortError"
+          ? "API TIMEOUT"
+          : "API FEHLER"
+      );
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", runtime063);
+  } else {
+    runtime063();
+  }
+})();
+</script>
+
 </body>
 </html>
