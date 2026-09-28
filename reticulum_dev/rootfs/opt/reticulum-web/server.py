@@ -1092,6 +1092,39 @@ def get_status():
     }
 
 
+
+def get_lxmf_outbox():
+    path = Path(
+        "/config/reticulum/homeassistant-node/"
+        "lxmf-outbox.json"
+    )
+
+    try:
+        if not path.exists():
+            messages = []
+        else:
+            messages = json.loads(
+                path.read_text(encoding="utf-8")
+            )
+
+        if not isinstance(messages, list):
+            messages = []
+
+        return {
+            "ok": True,
+            "count": len(messages),
+            "messages": messages,
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "count": 0,
+            "messages": [],
+            "error": str(exc),
+        }
+
+
 class Handler(BaseHTTPRequestHandler):
 
     def send_json(self, data, status=200):
@@ -1320,6 +1353,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/node/identity"):
             self.send_json(get_node_identity_status())
+            return
+
+        if path.endswith("/api/node/lxmf/outbox"):
+            self.send_json(get_lxmf_outbox())
             return
 
         if path.endswith("/api/node/lxmf/inbox"):

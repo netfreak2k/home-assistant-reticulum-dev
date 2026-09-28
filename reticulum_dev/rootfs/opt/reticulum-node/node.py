@@ -104,6 +104,45 @@ lxmf_router = LXMF.LXMRouter(
 
 OUTBOUND_REQUEST = STATE_DIR / "lxmf_outbound.json"
 
+
+LXMF_OUTBOX_FILE = STATE_DIR / "lxmf-outbox.json"
+LXMF_OUTBOX_LIMIT = 100
+
+
+def append_lxmf_outbox(message):
+    try:
+        if LXMF_OUTBOX_FILE.exists():
+            data = json.loads(
+                LXMF_OUTBOX_FILE.read_text()
+            )
+        else:
+            data = []
+
+        if not isinstance(data, list):
+            data = []
+
+        data.append(message)
+        data = data[-LXMF_OUTBOX_LIMIT:]
+
+        tmp = Path(str(LXMF_OUTBOX_FILE) + ".tmp")
+
+        tmp.write_text(
+            json.dumps(
+                data,
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+
+        tmp.replace(LXMF_OUTBOX_FILE)
+
+    except Exception as exc:
+        RNS.log(
+            "LXMF outbox history error: " + str(exc),
+            RNS.LOG_ERROR,
+        )
+
+
 def send_lxmf_message(destination_hash, content, title="", state=None):
     recipient_hash = bytes.fromhex(destination_hash)
 
@@ -202,6 +241,19 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
     )
 
     lxmf_router.handle_outbound(message)
+
+    append_lxmf_outbox({
+        "timestamp": int(time.time()),
+        "destination_hash": destination_hash,
+        "title": title,
+        "content": content,
+        "message_id": (
+            message.hash.hex()
+            if getattr(message, "hash", None)
+            else None
+        ),
+        "direction": "out",
+    })
 
     if state is not None:
         state["lxmf_outbound_stage"] = "QUEUED"
