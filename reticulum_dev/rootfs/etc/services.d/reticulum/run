@@ -234,4 +234,11 @@ fi
 sed -i '/^[[:space:]]*discover_interfaces[[:space:]]*=/d' "${CONFIG_FILE}"
 
 bashio::log.info "Starting rnsd"
-exec rnsd --config "${CONFIG_DIR}"
+
+set +e
+rnsd -v --config "${CONFIG_DIR}"
+RNS_RC=$?
+set -e
+
+bashio::log.error "rnsd exited with code ${RNS_RC}"
+exit "${RNS_RC}"
