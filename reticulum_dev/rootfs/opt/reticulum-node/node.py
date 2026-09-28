@@ -105,16 +105,46 @@ lxmf_router = LXMF.LXMRouter(
 OUTBOUND_REQUEST = STATE_DIR / "lxmf_outbound.json"
 
 def send_lxmf_message(destination_hash, content, title=""):
-    destination_hash = bytes.fromhex(destination_hash)
+    recipient_hash = bytes.fromhex(destination_hash)
+
+    if len(recipient_hash) != RNS.Identity.TRUNCATED_HASHLENGTH // 8:
+        raise ValueError("Ungültiger LXMF Destination Hash")
+
+    # Für verschlüsselte SINGLE-Destinations benötigen wir
+    # die öffentliche Identity des Empfängers.
+    if not RNS.Transport.has_path(recipient_hash):
+        RNS.Transport.request_path(recipient_hash)
+
+        timeout = time.time() + 15
+
+        while (
+            not RNS.Transport.has_path(recipient_hash)
+            and time.time() < timeout
+        ):
+            time.sleep(0.25)
+
+    if not RNS.Transport.has_path(recipient_hash):
+        raise RuntimeError("Kein Reticulum-Pfad zum Empfänger")
+
+    recipient_identity = RNS.Identity.recall(recipient_hash)
+
+    if recipient_identity is None:
+        raise RuntimeError(
+            "Empfänger-Identity nicht aus Announce bekannt"
+        )
 
     destination = RNS.Destination(
+        recipient_identity,
         RNS.Destination.OUT,
         RNS.Destination.SINGLE,
         "lxmf",
         "delivery",
     )
 
-    destination.hash = destination_hash
+    # Sicherheitscheck: Der rekonstruierte LXMF-Zielhash
+    # muss exakt dem angeforderten Ziel entsprechen.
+    if destination.hash != recipient_hash:
+        raise RuntimeError("LXMF Destination Hash stimmt nicht überein")
 
     message = LXMF.LXMessage(
         destination,
