@@ -5837,7 +5837,7 @@ if (document.readyState === "loading") {
 .msg-net-state.offline::before { background:#c85b5b; }
 </style>
 
-<script id="status-engine-067">
+<script id="status-engine-068">
 (() => {
   "use strict";
 
@@ -5914,7 +5914,7 @@ if (document.readyState === "loading") {
     );
   }
 
-  function render067(d) {
+  function render068(d) {
     const online =
       d?.online === true;
 
@@ -6050,7 +6050,7 @@ if (document.readyState === "loading") {
     }
   }
 
-  async function refresh067() {
+  async function refresh068() {
     if (requestRunning) return;
 
     requestRunning = true;
@@ -6088,7 +6088,7 @@ if (document.readyState === "loading") {
       const data =
         JSON.parse(raw);
 
-      render067(data);
+      render068(data);
 
     } catch (e) {
       topStatus(
@@ -6104,31 +6104,62 @@ if (document.readyState === "loading") {
     }
   }
 
-  function boot067() {
+  function readBootstrap068() {
+    const node =
+      document.getElementById(
+        "reticulum-bootstrap-data"
+      );
+
+    if (!node) {
+      return false;
+    }
+
+    try {
+      const data =
+        JSON.parse(
+          node.textContent || "{}"
+        );
+
+      render068(data);
+      return true;
+
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function boot068() {
     /*
-     * Visible proof that THIS exact build is running.
+     * Initialer Status kommt direkt mit index.html.
+     * Kein Fetch für den ersten Bildschirm.
      */
-    topStatus(
-      "0.67 START",
-      "off"
-    );
+    const bootstrapped =
+      readBootstrap068();
+
+    if (!bootstrapped) {
+      topStatus(
+        "BOOTSTRAP FEHLER",
+        "off"
+      );
+    }
 
     /*
-     * Give Home Assistant Ingress one event-loop turn
-     * before the first API request.
+     * Erst später Live-Refresh über API.
+     * Selbst wenn Ingress-Fetch Probleme macht,
+     * bleibt der Bootstrap-Status sichtbar.
      */
     setTimeout(
-      refresh067,
-      250
+      refresh068,
+      5000
     );
 
     setInterval(
-      refresh067,
-      10000
+      refresh068,
+      15000
     );
   }
 
-  boot067();
+  boot068();
 
 })();
 </script>

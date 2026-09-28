@@ -1883,7 +1883,52 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_error(404)
                 return
 
-            payload = index.read_bytes()
+            html = index.read_text(
+                encoding="utf-8"
+            )
+
+            try:
+                bootstrap_status = get_status()
+
+                bootstrap_json = json.dumps(
+                    bootstrap_status,
+                    ensure_ascii=False
+                )
+
+                # Prevent accidental script termination
+                # from data contained in JSON.
+                bootstrap_json = bootstrap_json.replace(
+                    "</",
+                    "<\\/"
+                )
+
+            except Exception as exc:
+                bootstrap_json = json.dumps({
+                    "service": "reticulum",
+                    "online": False,
+                    "interfaces": [],
+                    "shared_instance": {},
+                    "error": str(exc),
+                    "bootstrap_error": True,
+                })
+
+            marker = (
+                '<script id="reticulum-bootstrap-data" '
+                'type="application/json">'
+                + bootstrap_json +
+                '</script>'
+            )
+
+            if "</head>" in html:
+                html = html.replace(
+                    "</head>",
+                    marker + "\n</head>",
+                    1
+                )
+            else:
+                html = marker + "\n" + html
+
+            payload = html.encode("utf-8")
 
             self.send_response(200)
             self.send_header(
