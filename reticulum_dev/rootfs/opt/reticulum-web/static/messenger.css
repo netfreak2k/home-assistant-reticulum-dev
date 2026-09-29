@@ -712,3 +712,92 @@
   color: rgb(112,177,255);
 }
 
+
+/* =====================================================
+   1.03.3-dev · HIDE LEGACY NETWORK PATH LIST
+   ===================================================== */
+
+#reticulum-network .network-table-wrap,
+#reticulum-network .network-paths,
+#network-path-toggle {
+  display: none !important;
+}
+
+
+/* =====================================================
+   1.03.3-dev · HIDE LEGACY MESHCHATX PANEL
+   ===================================================== */
+
+#reticulum-identity .lxmf-send-panel {
+  display: none !important;
+}
+
+
+/* =====================================================
+   1.03.4-dev · COMPACT TECH / DIAGNOSTICS
+   ===================================================== */
+
+.n2k-tech-panel {
+  margin: 14px 0;
+  border: 1px solid
+    rgba(255,255,255,.08);
+  border-radius: 12px;
+  background:
+    rgba(255,255,255,.018);
+  overflow: hidden;
+}
+
+.n2k-tech-panel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 13px 14px;
+
+  cursor: pointer;
+  list-style: none;
+
+  font-weight: 700;
+}
+
+.n2k-tech-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.n2k-tech-panel > summary::after {
+  content: "›";
+  font-size: 22px;
+  opacity: .45;
+  transition:
+    transform .18s ease;
+}
+
+.n2k-tech-panel[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+.n2k-tech-summary {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: .48;
+}
+
+.n2k-tech-content {
+  padding: 0 10px 12px;
+  border-top: 1px solid
+    rgba(255,255,255,.05);
+}
+
+@media (max-width: 700px) {
+
+  .n2k-tech-panel > summary {
+    align-items: flex-start;
+  }
+
+  .n2k-tech-summary {
+    display: none;
+  }
+
+}
