@@ -4,3 +4,35 @@
  *
  * Neue Messenger-CSS-Änderungen ab jetzt nur hier.
  */
+
+/* =====================================================
+   0.97.6 · ALWAYS VISIBLE NAVIGATION
+   ===================================================== */
+
+@media (max-width: 700px) {
+
+  #messenger-app.m97-chat-open
+  #messenger-chat-list,
+
+  #messenger-app.m97-chat-open
+  #msg-contacts-view,
+
+  #messenger-app.m97-chat-open
+  #msg-settings-view {
+
+    display: none !important;
+  }
+
+  #messenger-app .msg-tabs {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+  }
+
+  #messenger-app.m97-chat-open {
+    min-height: 0 !important;
+  }
+}

@@ -140,6 +140,28 @@
   function selectTab(tab) {
     state.activeTab = tab;
 
+    const app =
+      document.getElementById("messenger-app");
+
+    const conversation =
+      document.querySelector(".messenger-conversation");
+
+    if (app) {
+      app.style.setProperty(
+        "display",
+        "block",
+        "important"
+      );
+    }
+
+    if (conversation) {
+      conversation.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+    }
+
     document
       .querySelectorAll("[data-msg-tab]")
       .forEach(button => {
@@ -745,6 +767,10 @@
         "block",
         "important"
       );
+
+      list.classList.remove(
+        "m97-chat-open"
+      );
     }
 
     if (chat) {
@@ -769,8 +795,12 @@
     if (list) {
       list.style.setProperty(
         "display",
-        "none",
+        "block",
         "important"
+      );
+
+      list.classList.add(
+        "m97-chat-open"
       );
     }
 
