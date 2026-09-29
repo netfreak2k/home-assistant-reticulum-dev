@@ -1734,6 +1734,44 @@ def home_assistant_publisher_loop():
         )
 
 
+
+def get_ha_bridge_diagnostic():
+    """Inspect the Reticulum integration copied into Home Assistant config."""
+
+    import hashlib
+
+    path = Path(
+        "/homeassistant/custom_components/"
+        "reticulum/__init__.py"
+    )
+
+    if not path.exists():
+        return {
+            "ok": False,
+            "exists": False,
+            "path": str(path),
+        }
+
+    raw = path.read_bytes()
+    text = raw.decode(
+        "utf-8",
+        errors="replace",
+    )
+
+    return {
+        "ok": True,
+        "exists": True,
+        "path": str(path),
+        "sha256": hashlib.sha256(raw).hexdigest(),
+        "has_get_status": "reticulum__GetStatus" in text,
+        "has_get_identity": "reticulum__GetIdentity" in text,
+        "has_get_contacts": "reticulum__GetContacts" in text,
+        "has_get_messages": "reticulum__GetMessages" in text,
+        "has_send": "reticulum__SendReticulumMessage" in text,
+        "has_095_marker": "Reticulum 0.95.0-dev" in text,
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
 
     def send_json(self, data, status=200):
@@ -1954,6 +1992,12 @@ class Handler(BaseHTTPRequestHandler):
 
         # Home Assistant Ingress can prepend a dynamic
         # path prefix. Match endpoints by suffix.
+
+        if path.endswith("/api/bridge/diagnostic"):
+            self.send_json(
+                get_ha_bridge_diagnostic()
+            )
+            return
 
         if path.endswith("/health"):
             self.send_json({
