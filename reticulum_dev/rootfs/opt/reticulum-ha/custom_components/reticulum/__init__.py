@@ -9,6 +9,7 @@ from pathlib import Path
 
 import voluptuous as vol
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -130,5 +131,65 @@ async def async_setup(
         handle_send_message,
         schema=schema,
     )
+
+    return True
+
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+) -> bool:
+    """Set up Reticulum from a config entry."""
+
+    _LOGGER.warning(
+        "NETFREAK2K RETICULUM CONFIG ENTRY LOADING"
+    )
+
+    async def handle_send_message(
+        call: ServiceCall,
+    ) -> None:
+
+        await hass.async_add_executor_job(
+            queue_message,
+            call.data["destination_hash"],
+            call.data["content"],
+            call.data.get("title", ""),
+        )
+
+    schema = vol.Schema({
+        vol.Required("destination_hash"): str,
+        vol.Required("content"): str,
+        vol.Optional("title", default=""): str,
+    })
+
+    if not hass.services.has_service(
+        DOMAIN,
+        "send_message",
+    ):
+        hass.services.async_register(
+            DOMAIN,
+            "send_message",
+            handle_send_message,
+            schema=schema,
+        )
+
+    return True
+
+
+async def async_unload_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+) -> bool:
+    """Unload Reticulum config entry."""
+
+    if hass.services.has_service(
+        DOMAIN,
+        "send_message",
+    ):
+        hass.services.async_remove(
+            DOMAIN,
+            "send_message",
+        )
 
     return True
