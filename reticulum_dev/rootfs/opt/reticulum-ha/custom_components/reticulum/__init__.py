@@ -307,7 +307,7 @@ class ReticulumAPI(llm.API):
         super().__init__(
             hass=hass,
             id="reticulum",
-            name="Reticulum",
+            name="Reticulum 0.95.0-dev",
         )
 
     @override
