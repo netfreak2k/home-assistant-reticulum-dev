@@ -1791,6 +1791,22 @@ def get_messenger_data():
             "message_id": str(
                 item.get("message_id") or ""
             ),
+            "delivery_status": str(
+                item.get("delivery_status")
+                or "queued"
+            ),
+            "delivery_updated_at": int(
+                item.get("delivery_updated_at")
+                or 0
+            ),
+            "delivered_at": int(
+                item.get("delivered_at")
+                or 0
+            ),
+            "delivery_error": str(
+                item.get("delivery_error")
+                or ""
+            ),
         })
 
         chat["last_timestamp"] = max(

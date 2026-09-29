@@ -878,3 +878,25 @@
     right: 8px;
   }
 }
+
+/* =====================================================
+   1.05.0-dev · DELIVERY STATUS
+   ===================================================== */
+
+.m105-delivery {
+  font-weight: 600;
+  opacity: .7;
+}
+
+.m105-delivered {
+  opacity: .95;
+}
+
+.m105-failed {
+  opacity: 1;
+}
+
+.m105-queued {
+  opacity: .55;
+}
+

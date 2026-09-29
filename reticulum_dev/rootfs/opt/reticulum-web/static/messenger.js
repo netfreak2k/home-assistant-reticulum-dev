@@ -516,7 +516,23 @@
                 </div>
                 <div class="lxmf-bubble-meta">
                   ${esc(shortTime(message.timestamp))}
-                  ${mine ? " · ausgehend" : ""}
+                  ${
+                    mine
+                      ? ` · <span class="m105-delivery ${
+                          message.delivery_status === "delivered"
+                            ? "m105-delivered"
+                            : message.delivery_status === "failed"
+                              ? "m105-failed"
+                              : "m105-queued"
+                        }">${
+                          message.delivery_status === "delivered"
+                            ? "zugestellt ✓✓"
+                            : message.delivery_status === "failed"
+                              ? "fehlgeschlagen ⚠"
+                              : "gesendet"
+                        }</span>`
+                      : ""
+                  }
                 </div>
               </div>
             </div>
