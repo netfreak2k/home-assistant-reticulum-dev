@@ -7,6 +7,9 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import uuid
+import os
+import threading
+import urllib.request
 
 HOST = "0.0.0.0"
 PORT = 8100
@@ -1527,6 +1530,142 @@ def get_messenger_data():
     }
 
 
+
+# ---------------------------------------------------------
+# Home Assistant Core bridge
+# ---------------------------------------------------------
+
+HA_API_BASE = "http://supervisor/core/api"
+HA_PUBLISH_INTERVAL = 15
+
+
+def publish_home_assistant_state(
+    entity_id,
+    state,
+    attributes=None
+):
+    token = os.environ.get("SUPERVISOR_TOKEN")
+
+    if not token:
+        raise RuntimeError(
+            "SUPERVISOR_TOKEN nicht vorhanden"
+        )
+
+    body = json.dumps({
+        "state": str(state),
+        "attributes": attributes or {},
+    }).encode("utf-8")
+
+    request = urllib.request.Request(
+        HA_API_BASE + "/states/" + entity_id,
+        data=body,
+        method="POST",
+        headers={
+            "Authorization":
+                "Bearer " + token,
+            "Content-Type":
+                "application/json",
+        },
+    )
+
+    with urllib.request.urlopen(
+        request,
+        timeout=5
+    ) as response:
+        return response.status in (200, 201)
+
+
+def publish_reticulum_status_to_home_assistant():
+
+    status = get_status()
+
+    interfaces = (
+        status.get("interfaces") or []
+    )
+
+    internet = (
+        status.get("internet_health") or {}
+    )
+
+    state = (
+        "online"
+        if status.get("online")
+        else "offline"
+    )
+
+    attributes = {
+        "friendly_name":
+            "Reticulum Status",
+
+        "icon":
+            "mdi:radio-tower",
+
+        "service":
+            "reticulum",
+
+        "uptime_seconds":
+            status.get(
+                "uptime_seconds",
+                0
+            ),
+
+        "version":
+            status.get(
+                "version",
+                ""
+            ),
+
+        "interface_count":
+            len(interfaces),
+
+        "internet_path_state":
+            internet.get(
+                "path_state",
+                "UNKNOWN"
+            ),
+
+        "internet_peer_count":
+            internet.get(
+                "peer_count",
+                0
+            ),
+
+        "source":
+            "reticulum_dev",
+    }
+
+    return publish_home_assistant_state(
+        "sensor.reticulum_status",
+        state,
+        attributes,
+    )
+
+
+def home_assistant_publisher_loop():
+
+    while True:
+
+        try:
+            publish_reticulum_status_to_home_assistant()
+
+            print(
+                "[HA] sensor.reticulum_status published",
+                flush=True
+            )
+
+        except Exception as exc:
+
+            print(
+                "[HA] publish failed: "
+                + str(exc),
+                flush=True
+            )
+
+        time.sleep(
+            HA_PUBLISH_INTERVAL
+        )
+
+
 class Handler(BaseHTTPRequestHandler):
 
     def send_json(self, data, status=200):
@@ -2132,6 +2271,13 @@ def main():
         f"[WEB] Reticulum status server starting on {HOST}:{PORT}",
         flush=True
     )
+
+    publisher = threading.Thread(
+        target=home_assistant_publisher_loop,
+        name="ha-reticulum-publisher",
+        daemon=True,
+    )
+    publisher.start()
 
     server = ThreadingHTTPServer(
         (HOST, PORT),
