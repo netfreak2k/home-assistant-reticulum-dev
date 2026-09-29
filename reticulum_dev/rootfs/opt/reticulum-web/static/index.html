@@ -2095,15 +2095,154 @@ function openLXMFChat(peer) {
   if (hidden) hidden.value = peer;
 
   if (head) {
-    head.textContent = lxmfShortHash(peer);
+    head.textContent = "Status wird geprüft…";
   }
 
+  refreshLXMFPeerStatus(peer);
   refreshLXMFInbox(true);
 
   const composer =
     document.getElementById("lxmf-chat-content");
 
   if (composer) composer.focus();
+}
+
+
+
+async function refreshLXMFPeerStatus(peer) {
+
+  peer = String(peer || "").trim();
+
+  const head =
+    document.getElementById(
+      "lxmf-chat-peer"
+    );
+
+  const name =
+    document.getElementById(
+      "lxmf-chat-name"
+    );
+
+  const avatar =
+    document.getElementById(
+      "lxmf-chat-avatar"
+    );
+
+  if (!head || !peer) return;
+
+  try {
+
+    const response = await fetch(
+      "api/messenger/contacts",
+      {cache:"no-store"}
+    );
+
+    const data = await response.json();
+
+    const contacts =
+      data.ok &&
+      Array.isArray(data.contacts)
+        ? data.contacts
+        : [];
+
+    const contact =
+      contacts.find(item =>
+        String(
+          item.destination_hash || ""
+        ).trim() === peer
+      );
+
+    if (!contact) {
+
+      head.innerHTML =
+        '<span class="lxmf-peer-state unknown">' +
+        '● Unbekannter Pfad' +
+        '</span>';
+
+      return;
+    }
+
+    const displayName =
+      String(
+        contact.display_name ||
+        ("Kontakt " + peer.slice(0,6).toUpperCase())
+      );
+
+    const lastSeen =
+      Number(
+        contact.last_seen || 0
+      );
+
+    const age =
+      lastSeen
+        ? Math.max(
+            0,
+            Math.floor(
+              Date.now() / 1000 - lastSeen
+            )
+          )
+        : null;
+
+    let label =
+      "Noch nicht gesehen";
+
+    let stateClass =
+      "unknown";
+
+    if (age !== null) {
+
+      if (age < 120) {
+        label = "Erreichbar · gerade gesehen";
+        stateClass = "online";
+
+      } else if (age < 3600) {
+        label =
+          "Zuletzt gesehen · " +
+          Math.floor(age / 60) +
+          " min";
+        stateClass = "recent";
+
+      } else if (age < 86400) {
+        label =
+          "Zuletzt gesehen · " +
+          Math.floor(age / 3600) +
+          " h";
+        stateClass = "recent";
+
+      } else {
+        label =
+          "Zuletzt gesehen · " +
+          Math.floor(age / 86400) +
+          " d";
+        stateClass = "offline";
+      }
+    }
+
+    if (name) {
+      name.textContent = displayName;
+    }
+
+    if (avatar) {
+      avatar.textContent =
+        displayName
+          .slice(0,1)
+          .toUpperCase();
+    }
+
+    head.innerHTML =
+      '<span class="lxmf-peer-state ' +
+      stateClass +
+      '">' +
+      escapeHTML(label) +
+      '</span>';
+
+  } catch (error) {
+
+    head.innerHTML =
+      '<span class="lxmf-peer-state unknown">' +
+      '● Status unbekannt' +
+      '</span>';
+  }
 }
 
 
@@ -2279,7 +2418,13 @@ async function refreshLXMFInbox(scrollBottom=false) {
       if (mine) {
         switch (message.deliveryStatus) {
           case "delivered":
-            deliveryLabel = "Zugestellt";
+            deliveryLabel =
+              "Zugestellt" +
+              (
+                message.deliveredAt
+                  ? " · " + lxmfTime(message.deliveredAt)
+                  : ""
+              );
             deliveryClass = "delivered";
             break;
           case "failed":
@@ -3694,6 +3839,14 @@ setInterval(
   refreshLXMFInbox,
   5000
 );
+
+setInterval(() => {
+  if (lxmfActivePeer) {
+    refreshLXMFPeerStatus(
+      lxmfActivePeer
+    );
+  }
+}, 15000);
 
 initLXMFChat();
 refreshLXMFInbox();
@@ -5861,6 +6014,61 @@ refreshLXMFInbox();
   color: #ff7b7b;
   background: rgba(255, 123, 123, .10);
   border: 1px solid rgba(255, 123, 123, .22);
+}
+
+
+.lxmf-peer-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 650;
+
+  opacity: .92;
+}
+
+.lxmf-peer-state::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 7px;
+}
+
+.lxmf-peer-state.online {
+  color: #66e3b4;
+}
+
+.lxmf-peer-state.online::before {
+  background: #66e3b4;
+  box-shadow:
+    0 0 0 3px rgba(102,227,180,.10);
+}
+
+.lxmf-peer-state.recent {
+  color: #ffd166;
+}
+
+.lxmf-peer-state.recent::before {
+  background: #ffd166;
+}
+
+.lxmf-peer-state.offline {
+  color: #93a4b3;
+}
+
+.lxmf-peer-state.offline::before {
+  background: #687986;
+}
+
+.lxmf-peer-state.unknown {
+  color: #93a4b3;
+}
+
+.lxmf-peer-state.unknown::before {
+  background: #687986;
 }
 
 /* Technical dashboard becomes secondary on phones. */
