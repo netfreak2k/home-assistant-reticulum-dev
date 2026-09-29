@@ -1737,6 +1737,14 @@ html, body {
       </div>
 
       <button
+        id="messenger-network-button"
+        class="messenger-network-button"
+        type="button"
+        title="Reticulum Netzwerkdetails">
+        ⓘ
+      </button>
+
+      <button
         id="messenger-alias-button"
         class="messenger-alias-button"
         type="button"
@@ -2156,9 +2164,161 @@ function openLXMFChat(peer) {
 
 
 
+
+function lxmfTransportLabel(interfaceName) {
+
+  const value =
+    String(interfaceName || "")
+      .toLowerCase();
+
+  if (
+    value.includes("rnode") ||
+    value.includes("lora") ||
+    value.includes("serial")
+  ) {
+    return "RF";
+  }
+
+  if (value.includes("tcp")) {
+    return "TCP";
+  }
+
+  if (value.includes("auto")) {
+    return "AutoInterface";
+  }
+
+  if (value.includes("i2p")) {
+    return "I2P";
+  }
+
+  if (value.includes("udp")) {
+    return "UDP";
+  }
+
+  if (value.includes("internet")) {
+    return "Internet";
+  }
+
+  return interfaceName
+    ? String(interfaceName)
+    : "Reticulum";
+}
+
+
+async function getMessengerPeerNetworkSnapshot(peer) {
+
+  peer =
+    String(peer || "")
+      .trim()
+      .toLowerCase();
+
+  const [
+    contactsResponse,
+    networkResponse,
+    outboxResponse
+  ] = await Promise.all([
+
+    fetch(
+      "api/messenger/contacts",
+      {cache:"no-store"}
+    ),
+
+    fetch(
+      "api/network",
+      {cache:"no-store"}
+    ),
+
+    fetch(
+      "api/node/lxmf/outbox",
+      {cache:"no-store"}
+    )
+  ]);
+
+  const contactsData =
+    await contactsResponse.json();
+
+  const networkData =
+    await networkResponse.json();
+
+  const outboxData =
+    await outboxResponse.json();
+
+  const contacts =
+    contactsData.ok &&
+    Array.isArray(contactsData.contacts)
+      ? contactsData.contacts
+      : [];
+
+  const paths =
+    networkData.ok &&
+    Array.isArray(networkData.paths)
+      ? networkData.paths
+      : [];
+
+  const outgoing =
+    outboxData.ok &&
+    Array.isArray(outboxData.messages)
+      ? outboxData.messages
+      : [];
+
+  const contact =
+    contacts.find(item =>
+      String(
+        item.destination_hash || ""
+      )
+      .trim()
+      .toLowerCase() === peer
+    ) || null;
+
+  const path =
+    paths.find(item =>
+      String(
+        item.destination || ""
+      )
+      .trim()
+      .toLowerCase() === peer
+    ) || null;
+
+  const queue =
+    outgoing.filter(item => {
+
+      const destination =
+        String(
+          item.destination_hash || ""
+        )
+        .trim()
+        .toLowerCase();
+
+      const state =
+        String(
+          item.delivery_status || ""
+        )
+        .trim()
+        .toLowerCase();
+
+      return (
+        destination === peer &&
+        (
+          state === "queued" ||
+          state === "pending" ||
+          state === "sending"
+        )
+      );
+    });
+
+  return {
+    contact,
+    path,
+    queueCount: queue.length,
+    network: networkData
+  };
+}
+
+
 async function refreshLXMFPeerStatus(peer) {
 
-  peer = String(peer || "").trim();
+  peer =
+    String(peer || "").trim();
 
   const head =
     document.getElementById(
@@ -2179,45 +2339,32 @@ async function refreshLXMFPeerStatus(peer) {
 
   try {
 
-    const response = await fetch(
-      "api/messenger/contacts",
-      {cache:"no-store"}
-    );
-
-    const data = await response.json();
-
-    const contacts =
-      data.ok &&
-      Array.isArray(data.contacts)
-        ? data.contacts
-        : [];
-
-    const contact =
-      contacts.find(item =>
-        String(
-          item.destination_hash || ""
-        ).trim() === peer
+    const snapshot =
+      await getMessengerPeerNetworkSnapshot(
+        peer
       );
 
-    if (!contact) {
+    const contact =
+      snapshot.contact;
 
-      head.innerHTML =
-        '<span class="lxmf-peer-state unknown">' +
-        '● Unbekannter Pfad' +
-        '</span>';
+    const path =
+      snapshot.path;
 
-      return;
-    }
+    const queueCount =
+      snapshot.queueCount;
 
     const displayName =
       String(
-        contact.display_name ||
-        ("Kontakt " + peer.slice(0,6).toUpperCase())
+        contact?.display_name ||
+        (
+          "Kontakt " +
+          peer.slice(0,6).toUpperCase()
+        )
       );
 
     const lastSeen =
       Number(
-        contact.last_seen || 0
+        contact?.last_seen || 0
       );
 
     const age =
@@ -2225,13 +2372,14 @@ async function refreshLXMFPeerStatus(peer) {
         ? Math.max(
             0,
             Math.floor(
-              Date.now() / 1000 - lastSeen
+              Date.now() / 1000 -
+              lastSeen
             )
           )
         : null;
 
     let label =
-      "Noch nicht gesehen";
+      "Status unbekannt";
 
     let stateClass =
       "unknown";
@@ -2239,34 +2387,48 @@ async function refreshLXMFPeerStatus(peer) {
     if (age !== null) {
 
       if (age < 120) {
-        label = "Erreichbar · gerade gesehen";
-        stateClass = "online";
+
+        label =
+          "Erreichbar · gerade gesehen";
+
+        stateClass =
+          "online";
 
       } else if (age < 3600) {
+
         label =
           "Zuletzt gesehen · " +
           Math.floor(age / 60) +
           " min";
-        stateClass = "recent";
+
+        stateClass =
+          "recent";
 
       } else if (age < 86400) {
+
         label =
           "Zuletzt gesehen · " +
           Math.floor(age / 3600) +
           " h";
-        stateClass = "recent";
+
+        stateClass =
+          "recent";
 
       } else {
+
         label =
           "Zuletzt gesehen · " +
           Math.floor(age / 86400) +
           " d";
-        stateClass = "offline";
+
+        stateClass =
+          "offline";
       }
     }
 
     if (name) {
-      name.textContent = displayName;
+      name.textContent =
+        displayName;
     }
 
     if (avatar) {
@@ -2276,18 +2438,81 @@ async function refreshLXMFPeerStatus(peer) {
           .toUpperCase();
     }
 
+    const chips = [];
+
+    if (path) {
+
+      const hops =
+        path.hops !== undefined &&
+        path.hops !== null
+          ? Number(path.hops)
+          : null;
+
+      if (
+        hops !== null &&
+        Number.isFinite(hops)
+      ) {
+
+        chips.push(
+          `<span class="lxmf-net-chip">
+             ${hops} ${
+               hops === 1
+                 ? "Hop"
+                 : "Hops"
+             }
+           </span>`
+        );
+      }
+
+      const transport =
+        lxmfTransportLabel(
+          path.interface
+        );
+
+      chips.push(
+        `<span class="lxmf-net-chip transport">
+           ${escapeHTML(transport)}
+         </span>`
+      );
+
+    } else {
+
+      chips.push(
+        `<span class="lxmf-net-chip no-path">
+           Kein Pfad
+         </span>`
+      );
+    }
+
+    if (queueCount > 0) {
+
+      chips.push(
+        `<span class="lxmf-net-chip queued">
+           Queue ${queueCount}
+         </span>`
+      );
+    }
+
     head.innerHTML =
-      '<span class="lxmf-peer-state ' +
-      stateClass +
-      '">' +
-      escapeHTML(label) +
-      '</span>';
+      '<div class="lxmf-peer-line">' +
+
+        '<span class="lxmf-peer-state ' +
+        stateClass +
+        '">' +
+        escapeHTML(label) +
+        '</span>' +
+
+        '<span class="lxmf-peer-network">' +
+        chips.join("") +
+        '</span>' +
+
+      '</div>';
 
   } catch (error) {
 
     head.innerHTML =
       '<span class="lxmf-peer-state unknown">' +
-      '● Status unbekannt' +
+      'Status unbekannt' +
       '</span>';
   }
 }
@@ -3095,6 +3320,160 @@ document.addEventListener(
 );
 
 
+
+async function openMessengerNetworkDetail() {
+
+  const peer =
+    String(
+      lxmfActivePeer || ""
+    ).trim();
+
+  if (!peer) return;
+
+  try {
+
+    const snapshot =
+      await getMessengerPeerNetworkSnapshot(
+        peer
+      );
+
+    const contact =
+      snapshot.contact;
+
+    const path =
+      snapshot.path;
+
+    const modal =
+      document.getElementById(
+        "messenger-detail-modal"
+      );
+
+    const content =
+      document.getElementById(
+        "messenger-detail-content"
+      );
+
+    const title =
+      document.getElementById(
+        "messenger-detail-title"
+      );
+
+    if (!modal || !content) return;
+
+    if (title) {
+      title.textContent =
+        "Reticulum Verbindung";
+    }
+
+    const displayName =
+      String(
+        contact?.display_name ||
+        (
+          "Kontakt " +
+          peer.slice(0,6).toUpperCase()
+        )
+      );
+
+    const lastSeen =
+      Number(
+        contact?.last_seen || 0
+      );
+
+    const hops =
+      path &&
+      path.hops !== undefined &&
+      path.hops !== null
+        ? path.hops
+        : "—";
+
+    const transport =
+      path
+        ? lxmfTransportLabel(
+            path.interface
+          )
+        : "Kein bekannter Pfad";
+
+    const nextHop =
+      path
+        ? String(
+            path.next_hop || "—"
+          )
+        : "—";
+
+    const expires =
+      path
+        ? (
+            path.expires ??
+            "—"
+          )
+        : "—";
+
+    content.innerHTML =
+        messengerDetailRow(
+          "Kontakt",
+          displayName
+        )
+      + messengerDetailRow(
+          "Destination",
+          peer
+        )
+      + messengerDetailRow(
+          "Letzter Announce",
+          lastSeen
+            ? lxmfTime(lastSeen)
+            : "—"
+        )
+      + messengerDetailRow(
+          "Pfad",
+          path
+            ? "bekannt"
+            : "nicht bekannt"
+        )
+      + messengerDetailRow(
+          "Hops",
+          hops
+        )
+      + messengerDetailRow(
+          "Transport",
+          transport
+        )
+      + messengerDetailRow(
+          "Interface",
+          path
+            ? path.interface
+            : "—"
+        )
+      + messengerDetailRow(
+          "Next Hop",
+          nextHop
+        )
+      + messengerDetailRow(
+          "Pfad läuft ab",
+          expires
+        )
+      + messengerDetailRow(
+          "Queue",
+          snapshot.queueCount
+        );
+
+    modal.classList.add(
+      "open"
+    );
+
+    modal.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+  } catch (error) {
+
+    window.alert(
+      "Netzwerkdetails konnten nicht geladen werden."
+    );
+  }
+}
+
+
 async function editMessengerAlias() {
 
   const peer =
@@ -3172,6 +3551,18 @@ function initMessengerCore() {
     search.addEventListener(
       "input",
       refreshMessengerChats
+    );
+  }
+
+  const networkButton =
+    document.getElementById(
+      "messenger-network-button"
+    );
+
+  if (networkButton) {
+    networkButton.addEventListener(
+      "click",
+      openMessengerNetworkDetail
     );
   }
 
@@ -7251,6 +7642,176 @@ refreshLXMFInbox();
 
   cursor: pointer !important;
   pointer-events: auto !important;
+}
+
+
+
+/* ==================================================
+   1.08.0 · NETWORK NATIVE
+   ================================================== */
+
+.lxmf-peer-line {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    7px;
+
+  flex-wrap:
+    wrap;
+
+  min-width:
+    0;
+}
+
+.lxmf-peer-network {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    5px;
+
+  flex-wrap:
+    wrap;
+}
+
+.lxmf-net-chip {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  min-height:
+    17px;
+
+  padding:
+    1px 6px;
+
+  box-sizing:
+    border-box;
+
+  border:
+    1px solid rgba(255,255,255,.07);
+
+  border-radius:
+    5px;
+
+  background:
+    rgba(255,255,255,.025);
+
+  color:
+    rgba(191,207,216,.67);
+
+  font-size:
+    9px;
+
+  line-height:
+    1.3;
+
+  font-weight:
+    600;
+}
+
+.lxmf-net-chip.transport {
+  color:
+    rgba(115,217,255,.80);
+
+  border-color:
+    rgba(115,217,255,.12);
+
+  background:
+    rgba(115,217,255,.035);
+}
+
+.lxmf-net-chip.queued {
+  color:
+    rgba(255,209,102,.88);
+
+  border-color:
+    rgba(255,209,102,.13);
+
+  background:
+    rgba(255,209,102,.035);
+}
+
+.lxmf-net-chip.no-path {
+  color:
+    rgba(170,184,194,.52);
+}
+
+
+.messenger-network-button {
+  width:
+    34px;
+
+  height:
+    34px;
+
+  flex:
+    0 0 34px;
+
+  border:
+    0;
+
+  border-radius:
+    7px;
+
+  background:
+    transparent;
+
+  color:
+    rgba(115,217,255,.65);
+
+  cursor:
+    pointer;
+
+  font-size:
+    16px;
+}
+
+.messenger-network-button:hover {
+  background:
+    rgba(115,217,255,.05);
+
+  color:
+    rgba(145,228,255,.96);
+}
+
+
+@media (max-width: 600px) {
+
+  .lxmf-peer-line {
+    gap:
+      4px;
+  }
+
+  .lxmf-net-chip {
+    font-size:
+      8px;
+
+    padding:
+      1px 5px;
+  }
+
+  .messenger-network-button,
+  .messenger-alias-button {
+
+    width:
+      30px;
+
+    height:
+      30px;
+
+    flex-basis:
+      30px;
+  }
 }
 
 </style>
