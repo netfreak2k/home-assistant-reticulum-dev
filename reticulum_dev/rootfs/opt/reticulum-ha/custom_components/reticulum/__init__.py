@@ -17,6 +17,11 @@ from homeassistant.exceptions import HomeAssistantError
 
 DOMAIN = "reticulum"
 
+import logging
+
+_LOGGER = logging.getLogger(__name__)
+
+
 QUEUE_DIR = Path("/config/reticulum_bridge")
 QUEUE_FILE = QUEUE_DIR / "lxmf_outbound.json"
 
@@ -97,6 +102,10 @@ async def async_setup(
     config: dict,
 ) -> bool:
     """Set up Reticulum bridge."""
+
+    _LOGGER.warning(
+        "NETFREAK2K RETICULUM INTEGRATION async_setup RUNNING"
+    )
 
     async def handle_send_message(
         call: ServiceCall,
