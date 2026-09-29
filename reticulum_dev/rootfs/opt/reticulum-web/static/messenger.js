@@ -1595,3 +1595,49 @@
     sendAnnounce
   };
 })();
+
+/* =====================================================
+   1.00.0-beta2 · VISIBLE VERSION
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  function showVersion() {
+    const brand =
+      document.getElementById(
+        "n2k-messenger-brand"
+      );
+
+    if (!brand) return;
+
+    if (
+      document.getElementById(
+        "n2k-messenger-version"
+      )
+    ) return;
+
+    const version =
+      document.createElement("div");
+
+    version.id =
+      "n2k-messenger-version";
+
+    version.textContent =
+      "Reticulum Messenger · 1.00 Beta 2";
+
+    brand.appendChild(version);
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      () => setTimeout(showVersion, 50),
+      {once:true}
+    );
+  } else {
+    setTimeout(showVersion, 50);
+  }
+})();

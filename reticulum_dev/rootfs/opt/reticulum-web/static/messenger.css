@@ -305,3 +305,10 @@
     margin-bottom: 3px;
   }
 }
+
+#n2k-messenger-version {
+  margin-top: 6px;
+  font-size: 10px;
+  opacity: .5;
+  letter-spacing: .03em;
+}
