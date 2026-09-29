@@ -6809,28 +6809,6 @@ if (document.readyState === "loading") {
     box.scrollTop =
       box.scrollHeight;
   }
-
-  /*
-   * Observe only the message box, not the
-   * complete document.
-   */
-  function installMessageObserver() {
-    const box =
-      $("lxmf-inbox");
-
-    if (!box) return;
-
-    const observer =
-      new MutationObserver(() => {
-        normalizeMessageState();
-      });
-
-    observer.observe(
-      box,
-      {
-        childList: true,
-        subtree: true
-      }
     );
   }
 
@@ -6889,7 +6867,6 @@ if (document.readyState === "loading") {
   function init() {
     loadContacts();
 
-    installMessageObserver();
     normalizeMessageState();
 
     const input =
