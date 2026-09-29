@@ -113,7 +113,7 @@ lxmf_router = LXMF.LXMRouter(
     name=LXMF_DISPLAY_NAME,
 )
 
-OUTBOUND_REQUEST = STATE_DIR / "lxmf_outbound.json"
+OUTBOUND_REQUEST = Path("/homeassistant/reticulum_bridge/lxmf_outbound.json")
 
 
 LXMF_OUTBOX_FILE = STATE_DIR / "lxmf-outbox.json"

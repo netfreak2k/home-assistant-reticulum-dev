@@ -1731,8 +1731,13 @@ class Handler(BaseHTTPRequestHandler):
                     )
 
                 request_file = Path(
-                    "/config/reticulum/homeassistant-node/"
+                    "/homeassistant/reticulum_bridge/"
                     "lxmf_outbound.json"
+                )
+
+                request_file.parent.mkdir(
+                    parents=True,
+                    exist_ok=True,
                 )
 
                 request_file.write_text(

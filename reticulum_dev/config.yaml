@@ -1,5 +1,5 @@
 name: "Reticulum DEV"
-version: "0.91.0-dev"
+version: "0.92.0-dev"
 slug: "reticulum_dev"
 description: "Run a Reticulum Network Stack node directly on Home Assistant."
 startup: "application"
@@ -17,6 +17,8 @@ arch:
 
 map:
   - type: addon_config
+    read_only: false
+  - type: homeassistant_config
     read_only: false
 
 host_network: true

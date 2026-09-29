@@ -1,0 +1,18 @@
+send_message:
+  fields:
+    destination_hash:
+      required: true
+      example: "0123456789abcdef0123456789abcdef"
+      selector:
+        text:
+    content:
+      required: true
+      example: "Test über Home Assistant"
+      selector:
+        text:
+          multiline: true
+    title:
+      required: false
+      example: "Home Assistant"
+      selector:
+        text:

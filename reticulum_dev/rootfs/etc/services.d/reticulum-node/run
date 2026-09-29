@@ -4,6 +4,8 @@ set -e
 
 bashio::log.info "Starting Home Assistant Reticulum Node"
 
+mkdir -p /homeassistant/reticulum_bridge
+
 # rnsd must own the shared instance first.
 sleep 5
 
