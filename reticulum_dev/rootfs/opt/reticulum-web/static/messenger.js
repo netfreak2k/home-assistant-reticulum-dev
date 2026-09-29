@@ -1692,3 +1692,309 @@
     initGlobalBrand();
   }
 })();
+
+/* =====================================================
+   1.01.0-dev · LIVE STATUS / OFFLINE / UNREAD
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  const state = {
+    online: false,
+    lastOk: 0,
+    unread: 0,
+    timer: null
+  };
+
+  function ensureStatusBar() {
+    if ($("m101-live")) return;
+
+    const brand =
+      $("n2k-global-brand") ||
+      $("messenger-app");
+
+    if (!brand) return;
+
+    const bar =
+      document.createElement("div");
+
+    bar.id = "m101-live";
+
+    bar.innerHTML = `
+      <span
+        id="m101-dot"
+        class="m101-dot"
+      ></span>
+
+      <span id="m101-state">
+        Verbindung wird geprüft…
+      </span>
+
+      <span
+        id="m101-time"
+        class="m101-time"
+      ></span>
+    `;
+
+    brand.appendChild(bar);
+  }
+
+  function formatTime(timestamp) {
+    if (!timestamp) return "";
+
+    return new Date(timestamp)
+      .toLocaleTimeString(
+        "de-DE",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        }
+      );
+  }
+
+  function renderStatus() {
+    ensureStatusBar();
+
+    const dot = $("m101-dot");
+    const label = $("m101-state");
+    const time = $("m101-time");
+
+    if (!dot || !label || !time) return;
+
+    dot.classList.toggle(
+      "online",
+      state.online
+    );
+
+    dot.classList.toggle(
+      "offline",
+      !state.online
+    );
+
+    if (state.online) {
+      label.textContent =
+        "Reticulum online";
+
+      time.textContent =
+        "Aktualisiert " +
+        formatTime(state.lastOk);
+    } else {
+      label.textContent =
+        "Verbindung unterbrochen";
+
+      time.textContent =
+        state.lastOk
+          ? "Letzter Kontakt " +
+            formatTime(state.lastOk)
+          : "";
+    }
+  }
+
+  async function checkStatus() {
+    try {
+      const response =
+        await fetch(
+          "api/status?ts=" + Date.now(),
+          {
+            cache: "no-store"
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "HTTP " + response.status
+        );
+      }
+
+      const data =
+        await response.json();
+
+      state.online =
+        data?.online !== false &&
+        data?.status !== "offline";
+
+      state.lastOk =
+        Date.now();
+
+    } catch (_) {
+      state.online = false;
+    }
+
+    renderStatus();
+  }
+
+  function updateUnreadUI(total) {
+    total =
+      Math.max(
+        0,
+        Number(total || 0)
+      );
+
+    state.unread = total;
+
+    const chatTab =
+      document.querySelector(
+        '[data-msg-tab="chats"]'
+      );
+
+    if (chatTab) {
+      const label =
+        chatTab.querySelector(
+          ".m101-chat-label"
+        );
+
+      if (label) {
+        label.textContent =
+          total > 0
+            ? `Chats (${total})`
+            : "Chats";
+      } else {
+        const spans =
+          chatTab.querySelectorAll("span");
+
+        const text =
+          spans[spans.length - 1];
+
+        if (text) {
+          text.classList.add(
+            "m101-chat-label"
+          );
+
+          text.textContent =
+            total > 0
+              ? `Chats (${total})`
+              : "Chats";
+        }
+      }
+    }
+
+    document.title =
+      total > 0
+        ? `(${total}) Reticulum`
+        : "Reticulum";
+  }
+
+  async function refreshUnread() {
+    try {
+      const response =
+        await fetch(
+          "api/messenger?ts=" +
+          Date.now(),
+          {
+            cache: "no-store"
+          }
+        );
+
+      if (!response.ok) return;
+
+      const data =
+        await response.json();
+
+      const chats =
+        Array.isArray(
+          data?.conversations
+        )
+          ? data.conversations
+          : [];
+
+      const total =
+        chats.reduce(
+          (sum, chat) =>
+            sum +
+            Math.max(
+              0,
+              Number(
+                chat?.unread || 0
+              )
+            ),
+          0
+        );
+
+      updateUnreadUI(total);
+
+    } catch (_) {
+      /* Statusprüfung kümmert sich
+         um Offline-Anzeige. */
+    }
+  }
+
+  function refreshAll() {
+    checkStatus();
+    refreshUnread();
+
+    if (
+      window
+        .reticulumMessengerChats097
+        ?.refresh
+    ) {
+      window
+        .reticulumMessengerChats097
+        .refresh();
+    }
+
+    const peer =
+      window
+        .reticulumConversation097
+        ?.activePeer;
+
+    if (peer) {
+      window
+        .reticulumConversation097
+        ?.render(false);
+    }
+  }
+
+  function init() {
+    ensureStatusBar();
+
+    refreshAll();
+
+    if (state.timer) {
+      clearInterval(state.timer);
+    }
+
+    state.timer =
+      setInterval(
+        refreshAll,
+        10000
+      );
+
+    window.addEventListener(
+      "online",
+      refreshAll
+    );
+
+    window.addEventListener(
+      "offline",
+      () => {
+        state.online = false;
+        renderStatus();
+      }
+    );
+
+    console.info(
+      "[Reticulum Messenger] 1.01 live core ready"
+    );
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      init,
+      {once:true}
+    );
+  } else {
+    init();
+  }
+
+  window.reticulumLive101 = {
+    state,
+    refresh: refreshAll
+  };
+})();

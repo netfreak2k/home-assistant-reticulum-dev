@@ -341,3 +341,53 @@
   font-size: 10px;
   opacity: .48;
 }
+
+/* =====================================================
+   1.01.0-dev · LIVE STATUS
+   ===================================================== */
+
+#m101-live {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  font-size: 11px;
+  opacity: .82;
+}
+
+.m101-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+}
+
+.m101-dot.online {
+  background: #35d07f;
+  box-shadow:
+    0 0 8px rgba(53,208,127,.45);
+}
+
+.m101-dot.offline {
+  background: #df6666;
+  box-shadow:
+    0 0 8px rgba(223,102,102,.35);
+}
+
+.m101-time {
+  margin-left: auto;
+  opacity: .55;
+}
+
+@media (max-width: 700px) {
+
+  #m101-live {
+    flex-wrap: wrap;
+  }
+
+  .m101-time {
+    width: 100%;
+    margin-left: 14px;
+  }
+}
