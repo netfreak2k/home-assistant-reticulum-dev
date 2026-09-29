@@ -391,3 +391,41 @@
     margin-left: 14px;
   }
 }
+
+/* =====================================================
+   1.02.0-dev · UNREAD VISUALS
+   ===================================================== */
+
+.m102-unread-chat {
+  position: relative;
+  background:
+    rgba(255,255,255,.045);
+}
+
+.m102-unread-chat::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 99px;
+  background: currentColor;
+  opacity: .55;
+}
+
+.m102-unread-chat
+.messenger-contact-name {
+  font-weight: 750;
+}
+
+.m102-unread-badge {
+  font-weight: 800 !important;
+}
+
+@media (max-width: 700px) {
+
+  .m102-unread-chat::before {
+    left: 1px;
+  }
+}

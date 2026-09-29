@@ -1998,3 +1998,233 @@
     refresh: refreshAll
   };
 })();
+
+/* =====================================================
+   1.02.0-dev · REAL UNREAD / READ STATE
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  async function markRead(peer) {
+    peer = String(peer || "").trim();
+
+    if (!peer) return;
+
+    try {
+      const response =
+        await fetch(
+          "api/messenger/read",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify({
+              peer_hash: peer
+            }),
+            cache: "no-store"
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data?.error ||
+          "Read-State fehlgeschlagen"
+        );
+      }
+
+      window
+        .reticulumMessengerChats097
+        ?.refresh();
+
+      window
+        .reticulumLive101
+        ?.refresh();
+
+    } catch (error) {
+      console.error(
+        "[Messenger 1.02] mark read",
+        error
+      );
+    }
+  }
+
+  /*
+   * Hook current conversation opener.
+   */
+  const oldOpen =
+    window.openMessengerConversation;
+
+  if (
+    typeof oldOpen === "function"
+  ) {
+    window.openMessengerConversation =
+      function(peer) {
+
+        oldOpen(peer);
+
+        /*
+         * Erst nach Öffnen markieren,
+         * damit die Nachricht sichtbar war.
+         */
+        setTimeout(
+          () => markRead(peer),
+          250
+        );
+      };
+  }
+
+  /*
+   * Enhance existing chat renderer
+   * without replacing the 0.97 core.
+   */
+  function enhanceChatList() {
+    const root =
+      document.getElementById(
+        "messenger-chat-list"
+      );
+
+    if (!root) return;
+
+    root
+      .querySelectorAll(
+        ".messenger-contact"
+      )
+      .forEach(item => {
+
+        const badge =
+          item.querySelector(
+            ".m80-unread"
+          );
+
+        item.classList.toggle(
+          "m102-unread-chat",
+          Boolean(badge)
+        );
+
+        if (badge) {
+          badge.classList.add(
+            "m102-unread-badge"
+          );
+        }
+      });
+  }
+
+  /*
+   * Watch only the chat list.
+   * No text rewriting -> no observer loop.
+   */
+  function installListObserver() {
+    const root =
+      document.getElementById(
+        "messenger-chat-list"
+      );
+
+    if (!root) return;
+
+    enhanceChatList();
+
+    const observer =
+      new MutationObserver(
+        enhanceChatList
+      );
+
+    observer.observe(
+      root,
+      {
+        childList: true,
+        subtree: true
+      }
+    );
+  }
+
+  /*
+   * Force newest activity first.
+   * Backend already sorts this way;
+   * this is a frontend safety net.
+   */
+  async function refreshSorted() {
+    try {
+      const response =
+        await fetch(
+          "api/messenger?ts=" +
+          Date.now(),
+          {
+            cache: "no-store"
+          }
+        );
+
+      if (!response.ok) return;
+
+      const data =
+        await response.json();
+
+      const chats =
+        Array.isArray(
+          data?.conversations
+        )
+          ? data.conversations
+          : [];
+
+      chats.sort(
+        (a, b) =>
+          Number(
+            b?.last_timestamp || 0
+          ) -
+          Number(
+            a?.last_timestamp || 0
+          )
+      );
+
+      /*
+       * Existing renderer still owns HTML.
+       * Trigger normal refresh after backend
+       * state changed.
+       */
+      window
+        .reticulumMessengerChats097
+        ?.refresh();
+
+    } catch (_) {}
+  }
+
+  function init() {
+    installListObserver();
+
+    setInterval(
+      enhanceChatList,
+      5000
+    );
+
+    setInterval(
+      refreshSorted,
+      15000
+    );
+
+    console.info(
+      "[Reticulum Messenger] 1.02 unread core ready"
+    );
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      init,
+      {once:true}
+    );
+  } else {
+    init();
+  }
+
+  window.reticulumUnread102 = {
+    markRead,
+    refreshSorted
+  };
+})();

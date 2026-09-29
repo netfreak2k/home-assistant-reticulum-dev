@@ -1539,6 +1539,121 @@ def get_messenger_contacts():
         }
 
 
+
+MESSENGER_READ_STATE = Path(
+    "/config/reticulum/homeassistant-node/read-state.json"
+)
+
+
+def load_messenger_read_state():
+    try:
+        if not MESSENGER_READ_STATE.exists():
+            return {}
+
+        data = json.loads(
+            MESSENGER_READ_STATE.read_text(
+                encoding="utf-8"
+            )
+        )
+
+        return data if isinstance(data, dict) else {}
+
+    except Exception:
+        return {}
+
+
+def save_messenger_read_state(data):
+    MESSENGER_READ_STATE.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    tmp = MESSENGER_READ_STATE.with_suffix(
+        ".json.tmp"
+    )
+
+    tmp.write_text(
+        json.dumps(
+            data,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    tmp.replace(MESSENGER_READ_STATE)
+
+
+def mark_messenger_read(peer):
+    peer = str(peer or "").strip()
+
+    if len(peer) != 32:
+        return {
+            "ok": False,
+            "error": "Ungültiger Peer Hash",
+        }
+
+    base = Path(
+        "/config/reticulum/homeassistant-node"
+    )
+
+    inbox_file = base / "lxmf-inbox.json"
+
+    newest = 0
+
+    try:
+        if inbox_file.exists():
+            inbox = json.loads(
+                inbox_file.read_text(
+                    encoding="utf-8"
+                )
+            )
+
+            if isinstance(inbox, list):
+                for item in inbox:
+                    if not isinstance(item, dict):
+                        continue
+
+                    if str(
+                        item.get("source_hash") or ""
+                    ).strip() != peer:
+                        continue
+
+                    timestamp = int(
+                        item.get("timestamp")
+                        or item.get("received_at")
+                        or 0
+                    )
+
+                    newest = max(
+                        newest,
+                        timestamp,
+                    )
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": str(exc),
+        }
+
+    state = load_messenger_read_state()
+
+    state[peer] = max(
+        int(state.get(peer) or 0),
+        newest,
+        int(time.time()) if not newest else 0,
+    )
+
+    save_messenger_read_state(state)
+
+    return {
+        "ok": True,
+        "peer_hash": peer,
+        "last_read": state[peer],
+    }
+
+
+
 def get_messenger_data():
     base = Path(
         "/config/reticulum/homeassistant-node"
@@ -1565,6 +1680,7 @@ def get_messenger_data():
     inbox = load_list(inbox_file)
     outbox = load_list(outbox_file)
     contacts = load_list(contacts_file)
+    read_state = load_messenger_read_state()
 
     contact_names = {}
 
@@ -1640,6 +1756,13 @@ def get_messenger_data():
             chat["last_timestamp"],
             timestamp,
         )
+
+        last_read = int(
+            read_state.get(peer) or 0
+        )
+
+        if timestamp > last_read:
+            chat["unread"] += 1
 
     for item in outbox:
 
@@ -1983,6 +2106,38 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/node/lxmf/announce"):
             self.send_json(request_lxmf_announce())
+            return
+
+        if path.endswith("/api/messenger/read"):
+            try:
+                length = int(
+                    self.headers.get(
+                        "Content-Length",
+                        "0",
+                    )
+                )
+
+                raw = self.rfile.read(length)
+
+                payload = json.loads(
+                    raw.decode("utf-8")
+                )
+
+                result = mark_messenger_read(
+                    payload.get("peer_hash")
+                )
+
+                self.send_json(
+                    result,
+                    200 if result.get("ok") else 400,
+                )
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc),
+                }, 400)
+
             return
 
         if path.endswith("/api/messenger/profile"):
