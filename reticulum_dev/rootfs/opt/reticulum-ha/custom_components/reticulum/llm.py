@@ -4,31 +4,34 @@ from __future__ import annotations
 
 import voluptuous as vol
 
-from homeassistant.components import llm
-from homeassistant.core import (
-    HomeAssistant,
-    callback,
-)
+from homeassistant.components import llm as llm_component
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import llm as llm_helper
 from homeassistant.helpers.llm import (
     LLMContext,
     ToolInput,
+    ToolResult,
 )
-from homeassistant.util.json import JsonObjectType
 
 from . import queue_message
 
+DOMAIN = "reticulum"
 
-class SendReticulumMessageTool(llm.Tool):
+
+class SendReticulumMessageTool(llm_helper.Tool):
     """Send an LXMF message over Reticulum."""
 
-    name = "SendReticulumMessage"
+    name = "reticulum__SendReticulumMessage"
+    title = "Send Reticulum message"
 
     description = (
         "Send a text message over the Reticulum network "
         "using LXMF. Requires a 32-character destination "
         "hash and message content."
     )
+
+    integration = DOMAIN
 
     parameters = vol.Schema({
         vol.Required("destination_hash"): str,
@@ -41,7 +44,7 @@ class SendReticulumMessageTool(llm.Tool):
         hass: HomeAssistant,
         tool_input: ToolInput,
         llm_context: LLMContext,
-    ) -> JsonObjectType:
+    ) -> ToolResult:
         """Execute Reticulum LXMF send."""
 
         args = tool_input.tool_args
@@ -62,7 +65,7 @@ class SendReticulumMessageTool(llm.Tool):
                 str(exc)
             ) from exc
 
-        return result
+        return ToolResult(data=result)
 
 
 @callback
@@ -70,16 +73,19 @@ def async_get_tools(
     hass: HomeAssistant,
     llm_context: LLMContext,
     api_id: str,
-) -> llm.LLMTools | None:
-    """Expose Reticulum tools to LLM APIs."""
+) -> llm_component.LLMTools | None:
+    """Expose Reticulum tools to the Assist API."""
 
-    return llm.LLMTools(
+    if api_id != llm_helper.LLM_API_ASSIST:
+        return None
+
+    return llm_component.LLMTools(
         tools=[
             SendReticulumMessageTool(),
         ],
         prompt=(
-            "Use SendReticulumMessage only when the user "
-            "explicitly wants to send an LXMF message "
-            "over Reticulum."
+            "Use reticulum__SendReticulumMessage only when "
+            "the user explicitly wants to send an LXMF "
+            "message over Reticulum."
         ),
     )
