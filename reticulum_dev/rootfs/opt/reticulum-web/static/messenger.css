@@ -224,3 +224,84 @@
     width: 100%;
   }
 }
+
+/* =====================================================
+   1.00.0-beta1 · FINAL BETA LAYOUT
+   ===================================================== */
+
+#messenger-app {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.m100-settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 12px 4px;
+}
+
+.m100-settings-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.m100-settings-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  opacity: .62;
+}
+
+.m100-beta-badge {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  opacity: .8;
+}
+
+#m99-profile-panel,
+.m99-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.m99-meta {
+  align-items: center;
+}
+
+.m99-meta strong {
+  max-width: 65%;
+}
+
+#messenger-app .msg-tabs {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#messenger-app .msg-tab {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .m99-meta {
+    display: block;
+  }
+
+  .m99-meta span,
+  .m99-meta strong {
+    display: block;
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .m99-meta span {
+    margin-bottom: 3px;
+  }
+}
