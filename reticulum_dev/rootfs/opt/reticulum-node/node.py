@@ -447,6 +447,123 @@ def append_lxmf_outbox(message):
         )
 
 
+
+def update_lxmf_outbox_status(
+    message_id,
+    delivery_status,
+    error=None,
+):
+    try:
+        message_id = str(message_id or "").strip()
+
+        if not message_id:
+            return
+
+        if LXMF_OUTBOX_FILE.exists():
+            data = json.loads(
+                LXMF_OUTBOX_FILE.read_text()
+            )
+        else:
+            data = []
+
+        if not isinstance(data, list):
+            return
+
+        changed = False
+        now = int(time.time())
+
+        for item in reversed(data):
+            if not isinstance(item, dict):
+                continue
+
+            if str(
+                item.get("message_id") or ""
+            ) != message_id:
+                continue
+
+            item["delivery_status"] = delivery_status
+            item["delivery_updated_at"] = now
+
+            if delivery_status == "delivered":
+                item["delivered_at"] = now
+                item["delivery_error"] = None
+
+            elif delivery_status == "failed":
+                item["delivery_error"] = str(
+                    error or "LXMF delivery failed"
+                )
+
+            changed = True
+            break
+
+        if not changed:
+            return
+
+        tmp = Path(
+            str(LXMF_OUTBOX_FILE) + ".tmp"
+        )
+
+        tmp.write_text(
+            json.dumps(
+                data,
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+
+        tmp.replace(LXMF_OUTBOX_FILE)
+
+    except Exception as exc:
+        RNS.log(
+            "LXMF delivery status error: "
+            + str(exc),
+            RNS.LOG_ERROR,
+        )
+
+
+def lxmf_message_id(message):
+    value = getattr(
+        message,
+        "hash",
+        None,
+    )
+
+    if isinstance(value, bytes):
+        return value.hex()
+
+    return str(value or "")
+
+
+def lxmf_outbound_delivered(message):
+    message_id = lxmf_message_id(message)
+
+    update_lxmf_outbox_status(
+        message_id,
+        "delivered",
+    )
+
+    RNS.log(
+        "LXMF DELIVERED: " + message_id,
+        RNS.LOG_INFO,
+    )
+
+
+def lxmf_outbound_failed(message):
+    message_id = lxmf_message_id(message)
+
+    update_lxmf_outbox_status(
+        message_id,
+        "failed",
+        "Delivery confirmation failed",
+    )
+
+    RNS.log(
+        "LXMF FAILED: " + message_id,
+        RNS.LOG_WARNING,
+    )
+
+
+
 def send_lxmf_message(destination_hash, content, title="", state=None):
     recipient_hash = bytes.fromhex(destination_hash)
 
@@ -544,6 +661,14 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
         title=title,
     )
 
+    message.register_delivery_callback(
+        lxmf_outbound_delivered
+    )
+
+    message.register_failed_callback(
+        lxmf_outbound_failed
+    )
+
     lxmf_router.handle_outbound(message)
 
     append_lxmf_outbox({
@@ -557,6 +682,10 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
             else None
         ),
         "direction": "out",
+        "delivery_status": "queued",
+        "delivery_updated_at": int(time.time()),
+        "delivered_at": None,
+        "delivery_error": None,
     })
 
     if state is not None:
