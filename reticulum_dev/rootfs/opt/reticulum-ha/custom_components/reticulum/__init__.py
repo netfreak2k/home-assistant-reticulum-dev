@@ -175,7 +175,22 @@ async def async_setup(
     hass: HomeAssistant,
     config: dict,
 ) -> bool:
-    """YAML compatibility."""
+    """Set up Reticulum from YAML and register LLM API."""
+
+    try:
+        llm.async_register_api(
+            hass,
+            ReticulumAPI(hass),
+        )
+
+        _LOGGER.warning(
+            "NETFREAK2K RETICULUM YAML LLM API REGISTERED: reticulum"
+        )
+
+    except HomeAssistantError as exc:
+        # API may already be registered through the config entry.
+        if "already registered" not in str(exc).lower():
+            raise
 
     return True
 
