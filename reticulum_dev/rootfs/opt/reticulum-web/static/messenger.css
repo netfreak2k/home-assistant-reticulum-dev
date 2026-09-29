@@ -801,3 +801,80 @@
   }
 
 }
+
+/* =====================================================
+   1.04.0-dev · CONTACT FAVORITES
+   ===================================================== */
+
+#msg-contact-list
+.messenger-contact {
+  position: relative;
+  padding-right: 46px;
+}
+
+.m104-favorite {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform:
+    translateY(-50%);
+
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  font-size: 19px;
+
+  opacity: .48;
+  cursor: pointer;
+
+  transition:
+    opacity .15s ease,
+    transform .15s ease,
+    background .15s ease;
+}
+
+.m104-favorite:hover,
+.m104-favorite:focus {
+  opacity: 1;
+  background:
+    rgba(255,255,255,.06);
+}
+
+.m104-favorite-contact
+.m104-favorite {
+  opacity: .95;
+}
+
+.m104-favorite-contact {
+  background:
+    rgba(255,255,255,.035);
+}
+
+.m104-favorite-contact::after {
+  content: "Favorit";
+  position: absolute;
+  right: 48px;
+  bottom: 8px;
+
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  opacity: .35;
+}
+
+@media (max-width: 700px) {
+
+  #msg-contact-list
+  .messenger-contact {
+    padding-right: 42px;
+  }
+
+  .m104-favorite {
+    right: 8px;
+  }
+}

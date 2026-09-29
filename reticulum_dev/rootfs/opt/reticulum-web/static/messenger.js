@@ -2817,3 +2817,294 @@
     refresh
   };
 })();
+
+/* =====================================================
+   1.04.0-dev · CONTACT FAVORITES + HASH SEARCH
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  const KEY =
+    "reticulum-messenger-favorites";
+
+  function loadFavorites() {
+    try {
+      const raw =
+        localStorage.getItem(KEY);
+
+      const data =
+        JSON.parse(raw || "[]");
+
+      return new Set(
+        Array.isArray(data)
+          ? data.map(String)
+          : []
+      );
+    } catch (_) {
+      return new Set();
+    }
+  }
+
+  function saveFavorites(set) {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify(
+        [...set]
+      )
+    );
+  }
+
+  function isFavorite(peer) {
+    return loadFavorites()
+      .has(String(peer || ""));
+  }
+
+  function toggleFavorite(peer) {
+    peer =
+      String(peer || "").trim();
+
+    if (!peer) return;
+
+    const favorites =
+      loadFavorites();
+
+    if (favorites.has(peer)) {
+      favorites.delete(peer);
+    } else {
+      favorites.add(peer);
+    }
+
+    saveFavorites(favorites);
+
+    decorateContacts();
+  }
+
+  function decorateContacts() {
+    const root =
+      document.getElementById(
+        "msg-contact-list"
+      );
+
+    if (!root) return;
+
+    const favorites =
+      loadFavorites();
+
+    const contacts =
+      [...root.querySelectorAll(
+        ".messenger-contact[data-m97-peer]"
+      )];
+
+    contacts.forEach(item => {
+      const peer =
+        String(
+          item.dataset.m97Peer || ""
+        );
+
+      item.dataset.m104Search =
+        (
+          item.textContent +
+          " " +
+          peer
+        ).toLowerCase();
+
+      const favorite =
+        favorites.has(peer);
+
+      item.classList.toggle(
+        "m104-favorite-contact",
+        favorite
+      );
+
+      let star =
+        item.querySelector(
+          ".m104-favorite"
+        );
+
+      if (!star) {
+        star =
+          document.createElement(
+            "span"
+          );
+
+        star.className =
+          "m104-favorite";
+
+        star.setAttribute(
+          "role",
+          "button"
+        );
+
+        star.setAttribute(
+          "tabindex",
+          "0"
+        );
+
+        star.addEventListener(
+          "click",
+          event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            toggleFavorite(peer);
+          }
+        );
+
+        star.addEventListener(
+          "keydown",
+          event => {
+            if (
+              event.key === "Enter" ||
+              event.key === " "
+            ) {
+              event.preventDefault();
+              event.stopPropagation();
+
+              toggleFavorite(peer);
+            }
+          }
+        );
+
+        item.appendChild(star);
+      }
+
+      star.textContent =
+        favorite ? "★" : "☆";
+
+      star.title =
+        favorite
+          ? "Favorit entfernen"
+          : "Als Favorit markieren";
+
+      star.setAttribute(
+        "aria-label",
+        star.title
+      );
+    });
+
+    /*
+     * Favoriten zuerst.
+     * Innerhalb der Gruppen bleibt
+     * die bestehende Reihenfolge erhalten.
+     */
+    contacts
+      .sort((a, b) => {
+        const af =
+          favorites.has(
+            String(
+              a.dataset.m97Peer || ""
+            )
+          )
+            ? 1
+            : 0;
+
+        const bf =
+          favorites.has(
+            String(
+              b.dataset.m97Peer || ""
+            )
+          )
+            ? 1
+            : 0;
+
+        return bf - af;
+      })
+      .forEach(item => {
+        root.appendChild(item);
+      });
+  }
+
+  function installEnhancedSearch() {
+    const input =
+      document.getElementById(
+        "m98-search"
+      );
+
+    if (!input) return;
+
+    if (
+      input.dataset.m104Enhanced === "1"
+    ) return;
+
+    input.dataset.m104Enhanced = "1";
+
+    input.placeholder =
+      "Name oder Reticulum-Hash suchen…";
+
+    input.addEventListener(
+      "input",
+      () => {
+        const query =
+          input.value
+            .trim()
+            .toLowerCase();
+
+        document
+          .querySelectorAll(
+            "#msg-contact-list " +
+            ".messenger-contact"
+          )
+          .forEach(item => {
+
+            const peer =
+              String(
+                item.dataset.m97Peer || ""
+              ).toLowerCase();
+
+            const text =
+              String(
+                item.dataset.m104Search ||
+                item.textContent ||
+                ""
+              ).toLowerCase();
+
+            item.style.display =
+              !query ||
+              text.includes(query) ||
+              peer.includes(query)
+                ? ""
+                : "none";
+          });
+      }
+    );
+  }
+
+  function init() {
+    decorateContacts();
+    installEnhancedSearch();
+
+    /*
+     * Kein MutationObserver:
+     * vermeidet frühere Observer-Loops.
+     */
+    setInterval(
+      () => {
+        decorateContacts();
+        installEnhancedSearch();
+      },
+      2000
+    );
+
+    console.info(
+      "[Messenger] 1.04 contact UX ready"
+    );
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      init,
+      {once:true}
+    );
+  } else {
+    init();
+  }
+
+  window.reticulumContacts104 = {
+    toggleFavorite,
+    decorateContacts
+  };
+})();

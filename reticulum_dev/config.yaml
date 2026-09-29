@@ -1,5 +1,5 @@
 name: "Reticulum DEV"
-version: "1.03.4-dev"
+version: "1.04.0-dev"
 slug: "reticulum_dev"
 description: "Run a Reticulum Network Stack node directly on Home Assistant."
 startup: "application"
