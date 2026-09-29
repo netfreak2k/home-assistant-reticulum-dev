@@ -1697,7 +1697,9 @@ html, body {
       <button
         type="button"
         id="messenger-detail-close"
-        class="messenger-detail-close">
+        class="messenger-detail-close"
+        onclick="event.stopPropagation(); closeMessengerMessageDetail(); return false;"
+        aria-label="Schließen">
         ×
       </button>
     </div>
@@ -3082,6 +3084,15 @@ function closeMessengerMessageDetail() {
     "true"
   );
 }
+
+document.addEventListener(
+  "keydown",
+  event => {
+    if (event.key === "Escape") {
+      closeMessengerMessageDetail();
+    }
+  }
+);
 
 
 async function editMessengerAlias() {
@@ -7199,6 +7210,47 @@ refreshLXMFInbox();
     gap:
       4px;
   }
+}
+
+
+
+/* ==================================================
+   1.07.1 · DETAIL MODAL SAFETY FIX
+   ================================================== */
+
+#messenger-detail-modal[aria-hidden="true"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+#messenger-detail-modal.open[aria-hidden="false"] {
+  display: flex !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+#messenger-detail-modal
+.messenger-detail-panel {
+  position: relative !important;
+  z-index: 2 !important;
+
+  width: min(520px, calc(100vw - 32px)) !important;
+  min-width: 280px !important;
+
+  background: #111a20 !important;
+}
+
+#messenger-detail-close {
+  position: relative !important;
+  z-index: 10 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 </style>
