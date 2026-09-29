@@ -1024,6 +1024,81 @@ def get_network_snapshot():
 
 
 
+
+def update_messenger_profile(name):
+    name = str(name or "").strip()
+
+    if not name:
+        return {
+            "ok": False,
+            "error": "Messenger-Name darf nicht leer sein",
+        }
+
+    if len(name) > 40:
+        return {
+            "ok": False,
+            "error": "Messenger-Name maximal 40 Zeichen",
+        }
+
+    token = os.environ.get(
+        "SUPERVISOR_TOKEN",
+        ""
+    ).strip()
+
+    if not token:
+        return {
+            "ok": False,
+            "error": "Supervisor API nicht verfügbar",
+        }
+
+    try:
+        req = urllib.request.Request(
+            "http://supervisor/addons/self/options",
+            data=json.dumps({
+                "options": {
+                    "messenger_name": name
+                }
+            }).encode("utf-8"),
+            headers={
+                "Authorization":
+                    "Bearer " + token,
+                "Content-Type":
+                    "application/json",
+            },
+            method="POST",
+        )
+
+        with urllib.request.urlopen(
+            req,
+            timeout=10,
+        ) as response:
+            raw = response.read().decode(
+                "utf-8"
+            )
+
+        data = json.loads(raw or "{}")
+
+        if data.get("result") != "ok":
+            return {
+                "ok": False,
+                "error":
+                    data.get("message")
+                    or "Option konnte nicht gespeichert werden",
+            }
+
+        return {
+            "ok": True,
+            "messenger_name": name,
+            "restart_required": True,
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": str(exc),
+        }
+
+
 def request_lxmf_announce():
     state_dir = Path(
         "/config/reticulum/homeassistant-node"
@@ -1873,6 +1948,36 @@ class Handler(BaseHTTPRequestHandler):
         if path.endswith("/api/node/lxmf/announce"):
             self.send_json(request_lxmf_announce())
             return
+
+        if path.endswith("/api/messenger/profile"):
+            try:
+                length = int(
+                    self.headers.get(
+                        "Content-Length",
+                        "0",
+                    )
+                )
+
+                raw = self.rfile.read(length)
+
+                payload = json.loads(
+                    raw.decode("utf-8")
+                )
+
+                self.send_json(
+                    update_messenger_profile(
+                        payload.get("name")
+                    )
+                )
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc),
+                }, 400)
+
+            return
+
 
         path = self.path.split("?", 1)[0]
 

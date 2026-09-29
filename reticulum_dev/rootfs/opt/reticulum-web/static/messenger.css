@@ -118,3 +118,109 @@
     overflow-x: hidden;
   }
 }
+
+/* =====================================================
+   0.99.0 · PROFILE
+   ===================================================== */
+
+.m99-profile-panel {
+  padding: 12px;
+}
+
+.m99-card {
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.m99-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.m99-label {
+  display: block;
+  font-size: 12px;
+  opacity: .7;
+  margin-bottom: 6px;
+}
+
+.m99-name-row {
+  display: flex;
+  gap: 8px;
+}
+
+#m99-name {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.04);
+  color: inherit;
+}
+
+#m99-save,
+.m99-announce {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.m99-announce {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.m99-separator {
+  height: 1px;
+  background: rgba(255,255,255,.08);
+  margin: 16px 0;
+}
+
+.m99-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  font-size: 13px;
+}
+
+.m99-meta span {
+  opacity: .65;
+}
+
+.m99-meta strong {
+  min-width: 0;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m99-status {
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: .75;
+}
+
+.m99-error,
+.m99-loading {
+  padding: 18px;
+  text-align: center;
+  opacity: .7;
+}
+
+@media (max-width: 700px) {
+  .m99-name-row {
+    flex-direction: column;
+  }
+
+  #m99-save {
+    width: 100%;
+  }
+}

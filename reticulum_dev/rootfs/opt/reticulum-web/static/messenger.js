@@ -1245,3 +1245,353 @@
     applyChatHeader
   };
 })();
+
+/* =====================================================
+   0.99.0 · PROFILE / IDENTITY / ANNOUNCE
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  function shortHash(value) {
+    const v = String(value || "");
+    if (!v) return "—";
+    if (v.length <= 20) return v;
+    return v.slice(0,10) + "…" + v.slice(-8);
+  }
+
+  async function loadIdentity() {
+    const root =
+      $("msg-settings-view");
+
+    if (!root) return;
+
+    let panel =
+      $("m99-profile-panel");
+
+    if (!panel) {
+      panel =
+        document.createElement("div");
+
+      panel.id =
+        "m99-profile-panel";
+
+      panel.className =
+        "m99-profile-panel";
+
+      root.appendChild(panel);
+    }
+
+    panel.innerHTML = `
+      <div class="m99-loading">
+        Messenger-Profil wird geladen…
+      </div>
+    `;
+
+    try {
+      const response =
+        await fetch(
+          "api/node/identity?ts=" +
+          Date.now(),
+          {cache:"no-store"}
+        );
+
+      const data =
+        await response.json();
+
+      const name =
+        String(
+          data?.lxmf_display_name ||
+          "Home Assistant"
+        );
+
+      const identity =
+        String(
+          data?.identity_hash || ""
+        );
+
+      const destination =
+        String(
+          data?.lxmf_destination_hash || ""
+        );
+
+      const lastAnnounce =
+        Number(
+          data?.lxmf_last_announce || 0
+        );
+
+      let announceText =
+        "Noch kein LXMF-Announce";
+
+      if (lastAnnounce) {
+        announceText =
+          new Date(
+            lastAnnounce * 1000
+          ).toLocaleString("de-DE");
+      }
+
+      panel.innerHTML = `
+        <div class="m99-card">
+
+          <div class="m99-title">
+            Mein Messenger
+          </div>
+
+          <label class="m99-label">
+            Anzeigename
+          </label>
+
+          <div class="m99-name-row">
+            <input
+              id="m99-name"
+              type="text"
+              maxlength="40"
+              value="${escapeHtml(name)}"
+            >
+
+            <button
+              id="m99-save"
+              type="button"
+            >
+              Speichern
+            </button>
+          </div>
+
+          <div
+            id="m99-save-status"
+            class="m99-status"
+          ></div>
+
+          <div class="m99-separator"></div>
+
+          <div class="m99-meta">
+            <span>Identity</span>
+            <strong title="${escapeHtml(identity)}">
+              ${escapeHtml(shortHash(identity))}
+            </strong>
+          </div>
+
+          <div class="m99-meta">
+            <span>LXMF Destination</span>
+            <strong title="${escapeHtml(destination)}">
+              ${escapeHtml(shortHash(destination))}
+            </strong>
+          </div>
+
+          <div class="m99-meta">
+            <span>Letzter Announce</span>
+            <strong>
+              ${escapeHtml(announceText)}
+            </strong>
+          </div>
+
+          <button
+            id="m99-announce"
+            type="button"
+            class="m99-announce"
+          >
+            Jetzt announcen
+          </button>
+
+          <div
+            id="m99-announce-status"
+            class="m99-status"
+          ></div>
+
+        </div>
+      `;
+
+      bindProfileActions();
+
+    } catch (error) {
+      panel.innerHTML = `
+        <div class="m99-error">
+          Profil derzeit nicht verfügbar.
+        </div>
+      `;
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function bindProfileActions() {
+    const save =
+      $("m99-save");
+
+    const announce =
+      $("m99-announce");
+
+    if (save) {
+      save.onclick =
+        saveProfile;
+    }
+
+    if (announce) {
+      announce.onclick =
+        sendAnnounce;
+    }
+  }
+
+  async function saveProfile() {
+    const input =
+      $("m99-name");
+
+    const status =
+      $("m99-save-status");
+
+    const name =
+      String(
+        input?.value || ""
+      ).trim();
+
+    if (!name) {
+      if (status) {
+        status.textContent =
+          "Name darf nicht leer sein.";
+      }
+      return;
+    }
+
+    if (status) {
+      status.textContent =
+        "Wird gespeichert…";
+    }
+
+    try {
+      const response =
+        await fetch(
+          "api/messenger/profile",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify({
+              name
+            }),
+            cache: "no-store"
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data?.error ||
+          "Speichern fehlgeschlagen"
+        );
+      }
+
+      if (status) {
+        status.textContent =
+          "Gespeichert. Add-on neu starten, damit der neue Name aktiv wird.";
+      }
+
+    } catch (error) {
+      if (status) {
+        status.textContent =
+          "Speichern fehlgeschlagen: " +
+          error.message;
+      }
+    }
+  }
+
+  async function sendAnnounce() {
+    const status =
+      $("m99-announce-status");
+
+    if (status) {
+      status.textContent =
+        "Announce wird angefordert…";
+    }
+
+    try {
+      const response =
+        await fetch(
+          "api/node/lxmf/announce",
+          {
+            method: "POST",
+            cache: "no-store"
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data?.error ||
+          "Announce fehlgeschlagen"
+        );
+      }
+
+      if (status) {
+        status.textContent =
+          "Announce angefordert.";
+      }
+
+      setTimeout(
+        loadIdentity,
+        1500
+      );
+
+    } catch (error) {
+      if (status) {
+        status.textContent =
+          "Announce fehlgeschlagen: " +
+          error.message;
+      }
+    }
+  }
+
+  function hookSettingsTab() {
+    document
+      .querySelectorAll(
+        '[data-msg-tab="settings"]'
+      )
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          () => {
+            setTimeout(
+              loadIdentity,
+              50
+            );
+          }
+        );
+      });
+  }
+
+  function init() {
+    hookSettingsTab();
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      init,
+      {once:true}
+    );
+  } else {
+    init();
+  }
+
+  window.reticulumProfile099 = {
+    loadIdentity,
+    saveProfile,
+    sendAnnounce
+  };
+})();
