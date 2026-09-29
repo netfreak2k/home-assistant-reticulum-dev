@@ -1540,6 +1540,86 @@ def get_messenger_contacts():
 
 
 
+def set_messenger_contact_alias(peer_hash, name):
+    peer_hash = str(peer_hash or "").strip()
+    name = str(name or "").strip()
+
+    if len(peer_hash) != 32:
+        return {
+            "ok": False,
+            "error": "Ungültiger Peer Hash",
+        }
+
+    if len(name) > 40:
+        return {
+            "ok": False,
+            "error": "Alias maximal 40 Zeichen",
+        }
+
+    path = Path(
+        "/config/reticulum/homeassistant-node/contacts.json"
+    )
+
+    try:
+        if path.exists():
+            contacts = json.loads(
+                path.read_text(encoding="utf-8")
+            )
+        else:
+            contacts = []
+
+        if not isinstance(contacts, list):
+            contacts = []
+
+        found = False
+
+        for item in contacts:
+            if not isinstance(item, dict):
+                continue
+
+            if str(
+                item.get("destination_hash") or ""
+            ).strip() != peer_hash:
+                continue
+
+            item["display_name"] = name
+            found = True
+            break
+
+        if not found:
+            contacts.append({
+                "destination_hash": peer_hash,
+                "display_name": name,
+                "last_seen": 0,
+            })
+
+        tmp = path.with_suffix(".json.tmp")
+
+        tmp.write_text(
+            json.dumps(
+                contacts,
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
+        tmp.replace(path)
+
+        return {
+            "ok": True,
+            "peer_hash": peer_hash,
+            "display_name": name,
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": str(exc),
+        }
+
+
+
 MESSENGER_READ_STATE = Path(
     "/config/reticulum/homeassistant-node/read-state.json"
 )
@@ -2122,6 +2202,39 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/node/lxmf/announce"):
             self.send_json(request_lxmf_announce())
+            return
+
+        if path.endswith("/api/messenger/contact"):
+            try:
+                length = int(
+                    self.headers.get(
+                        "Content-Length",
+                        "0",
+                    )
+                )
+
+                raw = self.rfile.read(length)
+
+                payload = json.loads(
+                    raw.decode("utf-8")
+                )
+
+                result = set_messenger_contact_alias(
+                    payload.get("peer_hash"),
+                    payload.get("name"),
+                )
+
+                self.send_json(
+                    result,
+                    200 if result.get("ok") else 400,
+                )
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc),
+                }, 400)
+
             return
 
         if path.endswith("/api/messenger/read"):
