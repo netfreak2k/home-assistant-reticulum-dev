@@ -1827,6 +1827,11 @@ html, body {
         <img
           id="m110-qr-image"
           alt="Reticulum Kontakt QR">
+        <div
+          id="m110-qr-status"
+          class="m110-qr-status">
+          QR wird geladen…
+        </div>
       </div>
 
       <div
@@ -4462,7 +4467,7 @@ async function refreshMessengerContacts() {
 }
 
 
-function openM110QrModal(
+async function openM110QrModal(
   peer,
   name
 ) {
@@ -4490,6 +4495,11 @@ function openM110QrModal(
       "m110-qr-image"
     );
 
+  const status =
+    document.getElementById(
+      "m110-qr-status"
+    );
+
   if (!modal || !image) {
     return;
   }
@@ -4499,14 +4509,6 @@ function openM110QrModal(
       peer,
       name
     );
-
-  image.src =
-    "api/messenger/qr?peer=" +
-    encodeURIComponent(peer) +
-    "&name=" +
-    encodeURIComponent(name) +
-    "&t=" +
-    Date.now();
 
   document.getElementById(
     "m110-qr-name"
@@ -4519,6 +4521,21 @@ function openM110QrModal(
   ).textContent =
     peer;
 
+  image.removeAttribute(
+    "src"
+  );
+
+  image.style.display =
+    "none";
+
+  if (status) {
+    status.style.display =
+      "flex";
+
+    status.textContent =
+      "QR wird geladen…";
+  }
+
   modal.classList.add(
     "open"
   );
@@ -4527,6 +4544,143 @@ function openM110QrModal(
     "aria-hidden",
     "false"
   );
+
+  try {
+
+    const url =
+      "api/messenger/qr?peer=" +
+      encodeURIComponent(peer) +
+      "&name=" +
+      encodeURIComponent(name) +
+      "&t=" +
+      Date.now();
+
+    const response =
+      await fetch(
+        url,
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+    if (!response.ok) {
+
+      let reason =
+        "HTTP " +
+        response.status;
+
+      try {
+
+        const errorData =
+          await response.json();
+
+        if (errorData.error) {
+          reason =
+            errorData.error;
+        }
+
+      } catch (_) {
+      }
+
+      throw new Error(
+        reason
+      );
+    }
+
+    const contentType =
+      response.headers.get(
+        "Content-Type"
+      ) || "";
+
+    if (
+      !contentType.includes(
+        "image/svg+xml"
+      )
+    ) {
+
+      throw new Error(
+        "Unerwarteter Inhalt: " +
+        contentType
+      );
+    }
+
+    const blob =
+      await response.blob();
+
+    if (!blob.size) {
+
+      throw new Error(
+        "Leere QR-Antwort"
+      );
+    }
+
+    const objectUrl =
+      URL.createObjectURL(
+        blob
+      );
+
+    image.onload =
+      () => {
+
+        image.style.display =
+          "block";
+
+        if (status) {
+          status.style.display =
+            "none";
+        }
+
+        setTimeout(
+          () => URL.revokeObjectURL(
+            objectUrl
+          ),
+          5000
+        );
+      };
+
+    image.onerror =
+      () => {
+
+        image.style.display =
+          "none";
+
+        if (status) {
+
+          status.style.display =
+            "flex";
+
+          status.textContent =
+            "QR konnte nicht dargestellt werden";
+        }
+      };
+
+    image.src =
+      objectUrl;
+
+  } catch (error) {
+
+    image.style.display =
+      "none";
+
+    if (status) {
+
+      status.style.display =
+        "flex";
+
+      status.textContent =
+        "QR Fehler: " +
+        (
+          error.message ||
+          "unbekannt"
+        );
+    }
+
+    console.error(
+      "Reticulum QR:",
+      error
+    );
+  }
 }
 
 
@@ -9880,6 +10034,68 @@ refreshLXMFInbox();
     border-radius:
       12px 12px 8px 8px;
   }
+}
+
+
+
+/* ==================================================
+   1.10.2 · QR INGRESS FIX
+   ================================================== */
+
+.m110-qr-frame {
+  position:
+    relative;
+}
+
+.m110-qr-status {
+
+  position:
+    absolute;
+
+  inset:
+    12px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding:
+    14px;
+
+  box-sizing:
+    border-box;
+
+  color:
+    #33434c;
+
+  background:
+    #ffffff;
+
+  font-size:
+    11px;
+
+  line-height:
+    1.4;
+
+  text-align:
+    center;
+}
+
+#m110-qr-image {
+
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  background:
+    white;
 }
 
 </style>
