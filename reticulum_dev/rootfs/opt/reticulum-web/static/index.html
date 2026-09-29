@@ -1637,8 +1637,61 @@ html, body {
   <div id="msg-contacts-view"
        class="msg-secondary-view"
        hidden>
-    <div class="msg-view-title">Kontakte</div>
+
+    <div class="m110-contact-head">
+
+      <div>
+        <div class="msg-view-title">
+          Kontakte
+        </div>
+
+        <div class="m110-contact-sub">
+          LXMF · lokale Kontaktverwaltung
+        </div>
+      </div>
+
+      <button
+        id="m110-new-contact"
+        class="m110-primary-button"
+        type="button">
+        + Kontakt
+      </button>
+
+    </div>
+
+    <div class="m110-contact-tools">
+
+      <button
+        id="m110-own-qr"
+        class="m110-tool-button"
+        type="button">
+        Mein QR
+      </button>
+
+      <button
+        id="m110-export"
+        class="m110-tool-button"
+        type="button">
+        Export
+      </button>
+
+      <button
+        id="m110-import"
+        class="m110-tool-button"
+        type="button">
+        Import
+      </button>
+
+      <input
+        id="m110-import-file"
+        type="file"
+        accept="application/json,.json"
+        hidden>
+
+    </div>
+
     <div id="msg-contact-list"></div>
+
   </div>
 
   <div id="msg-settings-view"
@@ -1680,6 +1733,122 @@ html, body {
     </div>
   </div>
 
+</div>
+
+
+
+<div id="m110-contact-modal"
+     class="m110-modal"
+     aria-hidden="true">
+
+  <div class="m110-panel">
+
+    <div class="m110-panel-head">
+
+      <strong>
+        Neuer Reticulum-Kontakt
+      </strong>
+
+      <button
+        type="button"
+        class="m110-close"
+        onclick="closeM110ContactModal()">
+        ×
+      </button>
+
+    </div>
+
+    <div class="m110-form">
+
+      <label>
+        Name
+      </label>
+
+      <input
+        id="m110-contact-name"
+        type="text"
+        maxlength="40"
+        placeholder="z. B. Krisibot">
+
+      <label>
+        LXMF Destination Hash
+      </label>
+
+      <input
+        id="m110-contact-peer"
+        type="text"
+        maxlength="32"
+        spellcheck="false"
+        autocomplete="off"
+        placeholder="32-stelliger Hex-Hash">
+
+      <div
+        id="m110-contact-error"
+        class="m110-error">
+      </div>
+
+      <button
+        id="m110-contact-save"
+        class="m110-primary-button"
+        type="button">
+        Speichern & Chat öffnen
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+
+<div id="m110-qr-modal"
+     class="m110-modal"
+     aria-hidden="true">
+
+  <div class="m110-panel m110-qr-panel">
+
+    <div class="m110-panel-head">
+
+      <strong id="m110-qr-title">
+        Reticulum Kontakt
+      </strong>
+
+      <button
+        type="button"
+        class="m110-close"
+        onclick="closeM110QrModal()">
+        ×
+      </button>
+
+    </div>
+
+    <div class="m110-qr-body">
+
+      <div class="m110-qr-frame">
+        <img
+          id="m110-qr-image"
+          alt="Reticulum Kontakt QR">
+      </div>
+
+      <div
+        id="m110-qr-name"
+        class="m110-qr-name">
+      </div>
+
+      <code
+        id="m110-qr-peer"
+        class="m110-qr-peer">
+      </code>
+
+      <button
+        id="m110-copy-card"
+        class="m110-tool-button"
+        type="button">
+        Kontakt-Link kopieren
+      </button>
+
+    </div>
+
+  </div>
 </div>
 
 
@@ -3610,6 +3779,8 @@ document.addEventListener(
   event => {
     if (event.key === "Escape") {
       closeMessengerMessageDetail();
+      closeM110ContactModal();
+      closeM110QrModal();
     }
   }
 );
@@ -3835,7 +4006,943 @@ async function editMessengerAlias() {
 }
 
 
+
+let m110ActiveQrUri = "";
+
+
+function m110ValidPeer(peer) {
+
+  peer =
+    String(peer || "")
+      .trim()
+      .toLowerCase();
+
+  return /^[0-9a-f]{32}$/.test(peer);
+}
+
+
+function m110ContactUri(peer, name="") {
+
+  peer =
+    String(peer || "")
+      .trim()
+      .toLowerCase();
+
+  name =
+    String(name || "")
+      .trim();
+
+  return (
+    "reticulum://lxmf/" +
+    peer +
+    (
+      name
+        ? "?name=" +
+          encodeURIComponent(name)
+        : ""
+    )
+  );
+}
+
+
+function m110ParseContact(value) {
+
+  value =
+    String(value || "")
+      .trim();
+
+  if (!value) {
+    throw new Error(
+      "Keine Kontaktdaten"
+    );
+  }
+
+  if (/^[0-9a-fA-F]{32}$/.test(value)) {
+
+    return {
+      peer:
+        value.toLowerCase(),
+
+      name:
+        ""
+    };
+  }
+
+  if (
+    value.toLowerCase().startsWith(
+      "reticulum://lxmf/"
+    )
+  ) {
+
+    const url =
+      new URL(value);
+
+    const peer =
+      url.pathname
+        .replace(/^\/+/, "")
+        .toLowerCase();
+
+    const name =
+      url.searchParams.get(
+        "name"
+      ) || "";
+
+    if (!m110ValidPeer(peer)) {
+      throw new Error(
+        "Ungültiger Destination Hash"
+      );
+    }
+
+    return {
+      peer,
+      name
+    };
+  }
+
+  throw new Error(
+    "Kein gültiger Reticulum-Kontakt"
+  );
+}
+
+
+async function m110SaveContact(
+  peer,
+  name
+) {
+
+  peer =
+    String(peer || "")
+      .trim()
+      .toLowerCase();
+
+  name =
+    String(name || "")
+      .trim();
+
+  if (!m110ValidPeer(peer)) {
+
+    throw new Error(
+      "Destination Hash muss 32 Hex-Zeichen haben"
+    );
+  }
+
+  if (!name) {
+
+    name =
+      "Kontakt " +
+      peer.slice(0,6).toUpperCase();
+  }
+
+  const response =
+    await fetch(
+      "api/messenger/contact",
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify({
+            peer_hash:
+              peer,
+
+            name:
+              name
+          }),
+
+        cache:
+          "no-store"
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if (!data.ok) {
+
+    throw new Error(
+      data.error ||
+      "Kontakt konnte nicht gespeichert werden"
+    );
+  }
+
+  return data;
+}
+
+
+function openM110ContactModal(
+  peer="",
+  name=""
+) {
+
+  const modal =
+    document.getElementById(
+      "m110-contact-modal"
+    );
+
+  if (!modal) return;
+
+  document.getElementById(
+    "m110-contact-peer"
+  ).value =
+    peer || "";
+
+  document.getElementById(
+    "m110-contact-name"
+  ).value =
+    name || "";
+
+  document.getElementById(
+    "m110-contact-error"
+  ).textContent =
+    "";
+
+  modal.classList.add(
+    "open"
+  );
+
+  modal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  setTimeout(() => {
+
+    document.getElementById(
+      peer
+        ? "m110-contact-name"
+        : "m110-contact-peer"
+    )?.focus();
+
+  }, 30);
+}
+
+
+function closeM110ContactModal() {
+
+  const modal =
+    document.getElementById(
+      "m110-contact-modal"
+    );
+
+  if (!modal) return;
+
+  modal.classList.remove(
+    "open"
+  );
+
+  modal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+}
+
+
+async function saveM110Contact() {
+
+  const peer =
+    document.getElementById(
+      "m110-contact-peer"
+    ).value.trim();
+
+  const name =
+    document.getElementById(
+      "m110-contact-name"
+    ).value.trim();
+
+  const error =
+    document.getElementById(
+      "m110-contact-error"
+    );
+
+  try {
+
+    await m110SaveContact(
+      peer,
+      name
+    );
+
+    closeM110ContactModal();
+
+    await refreshMessengerContacts();
+    await refreshMessengerChats();
+
+    activateMessengerTab(
+      "chats"
+    );
+
+    openMessengerConversation(
+      peer.toLowerCase()
+    );
+
+  } catch (exc) {
+
+    error.textContent =
+      exc.message ||
+      "Kontakt konnte nicht gespeichert werden";
+  }
+}
+
+
+async function refreshMessengerContacts() {
+
+  const list =
+    document.getElementById(
+      "msg-contact-list"
+    );
+
+  if (!list) return;
+
+  try {
+
+    const response =
+      await fetch(
+        "api/messenger/contacts",
+        {cache:"no-store"}
+      );
+
+    const data =
+      await response.json();
+
+    const contacts =
+      data.ok &&
+      Array.isArray(data.contacts)
+        ? data.contacts
+        : [];
+
+    if (!contacts.length) {
+
+      list.innerHTML =
+        '<div class="messenger-empty">' +
+        'Noch keine Kontakte.<br>' +
+        'Destination Hash hinzufügen oder importieren.' +
+        '</div>';
+
+      return;
+    }
+
+    list.innerHTML =
+      contacts.map(contact => {
+
+        const peer =
+          String(
+            contact.destination_hash || ""
+          ).trim();
+
+        const name =
+          String(
+            contact.display_name ||
+            (
+              "Kontakt " +
+              peer.slice(0,6).toUpperCase()
+            )
+          );
+
+        const lastSeen =
+          Number(
+            contact.last_seen || 0
+          );
+
+        const seen =
+          lastSeen
+            ? "zuletzt " +
+              lxmfTime(lastSeen)
+            : "noch kein Announce";
+
+        return `
+          <div class="m110-contact-row">
+
+            <button
+              type="button"
+              class="m110-contact-main"
+              data-m110-open-peer="${
+                escapeHTML(peer)
+              }">
+
+              <span class="messenger-contact-avatar">
+                ${
+                  escapeHTML(
+                    name.slice(0,1).toUpperCase()
+                  )
+                }
+              </span>
+
+              <span class="messenger-contact-body">
+
+                <span class="messenger-contact-name">
+                  ${escapeHTML(name)}
+                </span>
+
+                <span class="messenger-contact-preview">
+                  ${escapeHTML(seen)}
+                </span>
+
+              </span>
+
+            </button>
+
+            <button
+              type="button"
+              class="m110-contact-qr"
+              data-m110-qr-peer="${
+                escapeHTML(peer)
+              }"
+              data-m110-qr-name="${
+                escapeHTML(name)
+              }"
+              title="Kontakt QR">
+              QR
+            </button>
+
+          </div>
+        `;
+
+      }).join("");
+
+    list
+      .querySelectorAll(
+        "[data-m110-open-peer]"
+      )
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const peer =
+              button.getAttribute(
+                "data-m110-open-peer"
+              ) || "";
+
+            activateMessengerTab(
+              "chats"
+            );
+
+            openMessengerConversation(
+              peer
+            );
+          }
+        );
+      });
+
+    list
+      .querySelectorAll(
+        "[data-m110-qr-peer]"
+      )
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            openM110QrModal(
+              button.getAttribute(
+                "data-m110-qr-peer"
+              ) || "",
+
+              button.getAttribute(
+                "data-m110-qr-name"
+              ) || ""
+            );
+          }
+        );
+      });
+
+  } catch (_) {
+
+    list.innerHTML =
+      '<div class="messenger-empty">' +
+      'Kontakte derzeit nicht erreichbar.' +
+      '</div>';
+  }
+}
+
+
+function openM110QrModal(
+  peer,
+  name
+) {
+
+  peer =
+    String(peer || "")
+      .trim()
+      .toLowerCase();
+
+  name =
+    String(name || "")
+      .trim();
+
+  if (!m110ValidPeer(peer)) {
+    return;
+  }
+
+  const modal =
+    document.getElementById(
+      "m110-qr-modal"
+    );
+
+  const image =
+    document.getElementById(
+      "m110-qr-image"
+    );
+
+  if (!modal || !image) {
+    return;
+  }
+
+  m110ActiveQrUri =
+    m110ContactUri(
+      peer,
+      name
+    );
+
+  image.src =
+    "api/messenger/qr?peer=" +
+    encodeURIComponent(peer) +
+    "&name=" +
+    encodeURIComponent(name) +
+    "&t=" +
+    Date.now();
+
+  document.getElementById(
+    "m110-qr-name"
+  ).textContent =
+    name ||
+    "Reticulum Kontakt";
+
+  document.getElementById(
+    "m110-qr-peer"
+  ).textContent =
+    peer;
+
+  modal.classList.add(
+    "open"
+  );
+
+  modal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+}
+
+
+function closeM110QrModal() {
+
+  const modal =
+    document.getElementById(
+      "m110-qr-modal"
+    );
+
+  if (!modal) return;
+
+  modal.classList.remove(
+    "open"
+  );
+
+  modal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+}
+
+
+async function openM110OwnQr() {
+
+  try {
+
+    const response =
+      await fetch(
+        "api/node/identity",
+        {cache:"no-store"}
+      );
+
+    const data =
+      await response.json();
+
+    const peer =
+      String(
+        data.lxmf_destination_hash ||
+        data.destination_hash ||
+        ""
+      ).trim();
+
+    if (!m110ValidPeer(peer)) {
+
+      throw new Error(
+        "Eigene LXMF Destination noch nicht verfügbar"
+      );
+    }
+
+    let name =
+      "Home Assistant";
+
+    try {
+
+      const contacts =
+        await fetch(
+          "api/status",
+          {cache:"no-store"}
+        );
+
+      await contacts.json();
+
+    } catch (_) {
+    }
+
+    openM110QrModal(
+      peer,
+      name
+    );
+
+  } catch (error) {
+
+    window.alert(
+      error.message ||
+      "Eigener Kontakt nicht verfügbar"
+    );
+  }
+}
+
+
+async function exportM110Contacts() {
+
+  try {
+
+    const response =
+      await fetch(
+        "api/messenger/contacts",
+        {cache:"no-store"}
+      );
+
+    const data =
+      await response.json();
+
+    const contacts =
+      data.ok &&
+      Array.isArray(data.contacts)
+        ? data.contacts
+        : [];
+
+    const payload = {
+      format:
+        "netfreak2k-reticulum-contacts",
+
+      version:
+        1,
+
+      exported_at:
+        new Date().toISOString(),
+
+      contacts:
+        contacts.map(item => ({
+          destination_hash:
+            String(
+              item.destination_hash || ""
+            ),
+
+          display_name:
+            String(
+              item.display_name || ""
+            )
+        }))
+    };
+
+    const blob =
+      new Blob(
+        [
+          JSON.stringify(
+            payload,
+            null,
+            2
+          )
+        ],
+        {
+          type:
+            "application/json"
+        }
+      );
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+    const a =
+      document.createElement(
+        "a"
+      );
+
+    a.href = url;
+
+    a.download =
+      "reticulum-contacts.json";
+
+    document.body.appendChild(
+      a
+    );
+
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(
+      url
+    );
+
+  } catch (error) {
+
+    window.alert(
+      "Kontakte konnten nicht exportiert werden."
+    );
+  }
+}
+
+
+async function importM110ContactsFile(file) {
+
+  if (!file) return;
+
+  try {
+
+    const text =
+      await file.text();
+
+    const data =
+      JSON.parse(text);
+
+    const contacts =
+      Array.isArray(data)
+        ? data
+        : (
+            Array.isArray(data.contacts)
+              ? data.contacts
+              : []
+          );
+
+    if (!contacts.length) {
+
+      throw new Error(
+        "Keine Kontakte in Datei gefunden"
+      );
+    }
+
+    let imported = 0;
+    let skipped = 0;
+
+    for (const item of contacts) {
+
+      const peer =
+        String(
+          item.destination_hash ||
+          item.peer ||
+          ""
+        ).trim();
+
+      const name =
+        String(
+          item.display_name ||
+          item.name ||
+          ""
+        ).trim();
+
+      if (!m110ValidPeer(peer)) {
+        skipped++;
+        continue;
+      }
+
+      try {
+
+        await m110SaveContact(
+          peer,
+          name
+        );
+
+        imported++;
+
+      } catch (_) {
+
+        skipped++;
+      }
+    }
+
+    await refreshMessengerContacts();
+    await refreshMessengerChats();
+
+    window.alert(
+      imported +
+      " Kontakt(e) importiert" +
+      (
+        skipped
+          ? " · " +
+            skipped +
+            " übersprungen"
+          : ""
+      )
+    );
+
+  } catch (error) {
+
+    window.alert(
+      error.message ||
+      "Import fehlgeschlagen"
+    );
+  }
+}
+
+
+function activateMessengerTab(tab) {
+
+  const tabs =
+    document.querySelectorAll(
+      "[data-msg-tab]"
+    );
+
+  tabs.forEach(button => {
+
+    button.classList.toggle(
+      "active",
+      button.getAttribute(
+        "data-msg-tab"
+      ) === tab
+    );
+  });
+
+  const contacts =
+    document.getElementById(
+      "msg-contacts-view"
+    );
+
+  const settings =
+    document.getElementById(
+      "msg-settings-view"
+    );
+
+  const search =
+    document.querySelector(
+      ".messenger-search-wrap"
+    );
+
+  const chatList =
+    document.getElementById(
+      "messenger-chat-list"
+    );
+
+  if (contacts) {
+    contacts.hidden =
+      tab !== "contacts";
+  }
+
+  if (settings) {
+    settings.hidden =
+      tab !== "settings";
+  }
+
+  if (search) {
+    search.hidden =
+      tab !== "chats";
+  }
+
+  if (chatList) {
+    chatList.hidden =
+      tab !== "chats";
+  }
+
+  if (tab === "contacts") {
+    refreshMessengerContacts();
+  }
+}
+
+
 function initMessengerCore() {
+
+  document
+    .querySelectorAll(
+      "[data-msg-tab]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          activateMessengerTab(
+            button.getAttribute(
+              "data-msg-tab"
+            ) || "chats"
+          );
+        }
+      );
+    });
+
+  document.getElementById(
+    "m110-new-contact"
+  )?.addEventListener(
+    "click",
+    () => openM110ContactModal()
+  );
+
+  document.getElementById(
+    "m110-contact-save"
+  )?.addEventListener(
+    "click",
+    saveM110Contact
+  );
+
+  document.getElementById(
+    "m110-own-qr"
+  )?.addEventListener(
+    "click",
+    openM110OwnQr
+  );
+
+  document.getElementById(
+    "m110-export"
+  )?.addEventListener(
+    "click",
+    exportM110Contacts
+  );
+
+  const importButton =
+    document.getElementById(
+      "m110-import"
+    );
+
+  const importFile =
+    document.getElementById(
+      "m110-import-file"
+    );
+
+  importButton?.addEventListener(
+    "click",
+    () => importFile?.click()
+  );
+
+  importFile?.addEventListener(
+    "change",
+    () => {
+
+      const file =
+        importFile.files?.[0];
+
+      importM110ContactsFile(
+        file
+      );
+
+      importFile.value = "";
+    }
+  );
+
+  document.getElementById(
+    "m110-copy-card"
+  )?.addEventListener(
+    "click",
+    () => messengerCopyValue(
+      m110ActiveQrUri
+    )
+  );
 
   const search =
     document.getElementById(
@@ -8266,6 +9373,512 @@ refreshLXMFInbox();
 
     width:
       100%;
+  }
+}
+
+
+
+/* ==================================================
+   1.10.0 · CONTACTS & DISCOVERY
+   ================================================== */
+
+.m110-contact-head {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    12px;
+
+  padding:
+    14px 14px 8px;
+}
+
+.m110-contact-sub {
+
+  margin-top:
+    3px;
+
+  color:
+    rgba(187,202,211,.55);
+
+  font-size:
+    11px;
+}
+
+.m110-contact-tools {
+
+  display:
+    flex;
+
+  gap:
+    7px;
+
+  flex-wrap:
+    wrap;
+
+  padding:
+    4px 14px 12px;
+}
+
+.m110-primary-button,
+.m110-tool-button {
+
+  min-height:
+    34px;
+
+  padding:
+    7px 11px;
+
+  border-radius:
+    7px;
+
+  cursor:
+    pointer;
+
+  font-size:
+    11px;
+
+  font-weight:
+    650;
+}
+
+.m110-primary-button {
+
+  border:
+    1px solid rgba(102,227,180,.18);
+
+  background:
+    rgba(102,227,180,.08);
+
+  color:
+    #7ce4ba;
+}
+
+.m110-tool-button {
+
+  border:
+    1px solid rgba(255,255,255,.07);
+
+  background:
+    rgba(255,255,255,.025);
+
+  color:
+    rgba(228,237,241,.75);
+}
+
+
+.m110-contact-row {
+
+  display:
+    flex;
+
+  align-items:
+    stretch;
+
+  border-top:
+    1px solid rgba(255,255,255,.045);
+}
+
+.m110-contact-main {
+
+  flex:
+    1 1 auto;
+
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    11px;
+
+  padding:
+    11px 14px;
+
+  border:
+    0;
+
+  background:
+    transparent;
+
+  color:
+    inherit;
+
+  text-align:
+    left;
+
+  cursor:
+    pointer;
+}
+
+.m110-contact-main:hover {
+
+  background:
+    rgba(255,255,255,.02);
+}
+
+.m110-contact-qr {
+
+  width:
+    48px;
+
+  flex:
+    0 0 48px;
+
+  border:
+    0;
+
+  border-left:
+    1px solid rgba(255,255,255,.045);
+
+  background:
+    transparent;
+
+  color:
+    rgba(115,217,255,.65);
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+}
+
+
+.m110-modal {
+
+  position:
+    fixed;
+
+  inset:
+    0;
+
+  z-index:
+    100500;
+
+  display:
+    none;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding:
+    18px;
+
+  box-sizing:
+    border-box;
+
+  background:
+    rgba(0,0,0,.62);
+
+  backdrop-filter:
+    blur(5px);
+}
+
+.m110-modal.open {
+
+  display:
+    flex;
+}
+
+.m110-modal[aria-hidden="true"] {
+
+  display:
+    none !important;
+}
+
+.m110-panel {
+
+  width:
+    min(480px,100%);
+
+  max-height:
+    88vh;
+
+  overflow:
+    auto;
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  border-radius:
+    11px;
+
+  background:
+    #111a20;
+
+  box-shadow:
+    0 24px 75px rgba(0,0,0,.45);
+}
+
+.m110-panel-head {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  padding:
+    14px 16px;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.055);
+}
+
+.m110-close {
+
+  width:
+    32px;
+
+  height:
+    32px;
+
+  border:
+    0;
+
+  border-radius:
+    6px;
+
+  background:
+    transparent;
+
+  color:
+    rgba(235,244,247,.75);
+
+  font-size:
+    23px;
+
+  cursor:
+    pointer;
+}
+
+.m110-form {
+
+  display:
+    grid;
+
+  gap:
+    8px;
+
+  padding:
+    16px;
+}
+
+.m110-form label {
+
+  margin-top:
+    6px;
+
+  color:
+    rgba(189,205,214,.60);
+
+  font-size:
+    10px;
+
+  font-weight:
+    650;
+
+  text-transform:
+    uppercase;
+
+  letter-spacing:
+    .05em;
+}
+
+.m110-form input {
+
+  width:
+    100%;
+
+  box-sizing:
+    border-box;
+
+  padding:
+    10px 11px;
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  border-radius:
+    7px;
+
+  outline:
+    none;
+
+  background:
+    rgba(255,255,255,.025);
+
+  color:
+    rgba(240,246,248,.94);
+
+  font-size:
+    13px;
+}
+
+.m110-form input:focus {
+
+  border-color:
+    rgba(102,227,180,.30);
+}
+
+.m110-error {
+
+  min-height:
+    18px;
+
+  color:
+    rgba(255,123,123,.90);
+
+  font-size:
+    10px;
+}
+
+
+.m110-qr-panel {
+
+  width:
+    min(390px,100%);
+}
+
+.m110-qr-body {
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  gap:
+    11px;
+
+  padding:
+    18px;
+}
+
+.m110-qr-frame {
+
+  width:
+    min(280px,78vw);
+
+  aspect-ratio:
+    1;
+
+  padding:
+    12px;
+
+  box-sizing:
+    border-box;
+
+  border-radius:
+    9px;
+
+  background:
+    white;
+}
+
+.m110-qr-frame img {
+
+  display:
+    block;
+
+  width:
+    100%;
+
+  height:
+    100%;
+
+  object-fit:
+    contain;
+}
+
+.m110-qr-name {
+
+  margin-top:
+    3px;
+
+  color:
+    rgba(238,245,247,.94);
+
+  font-size:
+    15px;
+
+  font-weight:
+    700;
+}
+
+.m110-qr-peer {
+
+  max-width:
+    100%;
+
+  overflow-wrap:
+    anywhere;
+
+  color:
+    rgba(170,194,207,.70);
+
+  font-size:
+    10px;
+
+  text-align:
+    center;
+}
+
+
+@media (max-width: 600px) {
+
+  .m110-contact-head {
+
+    padding:
+      12px 10px 7px;
+  }
+
+  .m110-contact-tools {
+
+    padding:
+      4px 10px 10px;
+  }
+
+  .m110-modal {
+
+    align-items:
+      flex-end;
+
+    padding:
+      8px;
+  }
+
+  .m110-panel {
+
+    width:
+      100%;
+
+    border-radius:
+      12px 12px 8px 8px;
   }
 }
 

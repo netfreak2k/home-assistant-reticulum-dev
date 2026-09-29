@@ -12,7 +12,8 @@ RUN python3 -m pip install \
     --no-cache-dir \
     --break-system-packages \
     rns==1.5.4 \
-    lxmf==1.1.1
+    lxmf==1.1.1 \
+    qrcode==7.4.2
 
 COPY rootfs /
 

@@ -10,6 +10,11 @@ import uuid
 import os
 import threading
 import urllib.request
+import urllib.parse
+import io
+
+import qrcode
+import qrcode.image.svg
 
 HOST = "0.0.0.0"
 PORT = 8100
@@ -1494,6 +1499,62 @@ def get_lxmf_outbox():
 
 
 
+
+def messenger_contact_uri(destination_hash, display_name=""):
+    destination_hash = str(
+        destination_hash or ""
+    ).strip().lower()
+
+    display_name = str(
+        display_name or ""
+    ).strip()
+
+    if len(destination_hash) != 32:
+        raise ValueError(
+            "Ungültiger LXMF Destination Hash"
+        )
+
+    try:
+        bytes.fromhex(destination_hash)
+    except Exception:
+        raise ValueError(
+            "Destination Hash ist nicht hexadezimal"
+        )
+
+    query = urllib.parse.urlencode({
+        "name": display_name
+    })
+
+    return (
+        "reticulum://lxmf/" +
+        destination_hash +
+        ("?" + query if display_name else "")
+    )
+
+
+def messenger_qr_svg(destination_hash, display_name=""):
+    uri = messenger_contact_uri(
+        destination_hash,
+        display_name,
+    )
+
+    factory = (
+        qrcode.image.svg.SvgPathImage
+    )
+
+    image = qrcode.make(
+        uri,
+        image_factory=factory,
+        box_size=8,
+        border=3,
+    )
+
+    buffer = io.BytesIO()
+    image.save(buffer)
+
+    return buffer.getvalue(), uri
+
+
 def get_messenger_contacts():
     path = Path(
         "/config/reticulum/homeassistant-node/"
@@ -2129,6 +2190,32 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
 
+
+    def send_svg(self, payload, status=200):
+        if isinstance(payload, str):
+            payload = payload.encode("utf-8")
+
+        self.send_response(status)
+
+        self.send_header(
+            "Content-Type",
+            "image/svg+xml; charset=utf-8",
+        )
+
+        self.send_header(
+            "Content-Length",
+            str(len(payload)),
+        )
+
+        self.send_header(
+            "Cache-Control",
+            "no-store",
+        )
+
+        self.end_headers()
+        self.wfile.write(payload)
+
+
     def do_POST(self):
         path = self.path.rstrip("/")
 
@@ -2440,6 +2527,45 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/node/lxmf/outbox"):
             self.send_json(get_lxmf_outbox())
+            return
+
+        if path.endswith("/api/messenger/qr"):
+            try:
+                parsed = urllib.parse.urlsplit(
+                    self.path
+                )
+
+                params = urllib.parse.parse_qs(
+                    parsed.query
+                )
+
+                peer = str(
+                    (
+                        params.get("peer")
+                        or [""]
+                    )[0]
+                ).strip()
+
+                name = str(
+                    (
+                        params.get("name")
+                        or [""]
+                    )[0]
+                ).strip()
+
+                svg, _ = messenger_qr_svg(
+                    peer,
+                    name,
+                )
+
+                self.send_svg(svg)
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc),
+                }, 400)
+
             return
 
         if path.endswith("/api/messenger/contacts"):
