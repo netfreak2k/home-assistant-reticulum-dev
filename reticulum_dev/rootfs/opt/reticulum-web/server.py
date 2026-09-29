@@ -1538,21 +1538,48 @@ def messenger_qr_svg(destination_hash, display_name=""):
         display_name,
     )
 
-    factory = (
-        qrcode.image.svg.SvgPathImage
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=1,
+        border=4,
     )
 
-    image = qrcode.make(
-        uri,
-        image_factory=factory,
-        box_size=8,
-        border=3,
+    qr.add_data(uri)
+    qr.make(fit=True)
+
+    matrix = qr.get_matrix()
+
+    size = len(matrix)
+
+    rects = []
+
+    for y, row in enumerate(matrix):
+        for x, dark in enumerate(row):
+            if dark:
+                rects.append(
+                    '<rect x="{}" y="{}" width="1" height="1"/>'.format(
+                        x,
+                        y,
+                    )
+                )
+
+    svg = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<svg xmlns="http://www.w3.org/2000/svg" '
+        'viewBox="0 0 {0} {0}" '
+        'shape-rendering="crispEdges">'
+        '<rect width="100%" height="100%" fill="#ffffff"/>'
+        '<g fill="#000000">'
+        '{1}'
+        '</g>'
+        '</svg>'
+    ).format(
+        size,
+        "".join(rects),
     )
 
-    buffer = io.BytesIO()
-    image.save(buffer)
-
-    return buffer.getvalue(), uri
+    return svg.encode("utf-8"), uri
 
 
 def get_messenger_contacts():
