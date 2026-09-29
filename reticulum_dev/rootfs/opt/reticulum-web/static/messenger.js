@@ -160,14 +160,29 @@
 
     if (contacts) {
       contacts.hidden = tab !== "contacts";
+      contacts.style.setProperty(
+        "display",
+        tab === "contacts" ? "block" : "none",
+        "important"
+      );
     }
 
     if (settings) {
       settings.hidden = tab !== "settings";
+      settings.style.setProperty(
+        "display",
+        tab === "settings" ? "block" : "none",
+        "important"
+      );
     }
 
     if (chats) {
       chats.hidden = tab !== "chats";
+      chats.style.setProperty(
+        "display",
+        tab === "chats" ? "block" : "none",
+        "important"
+      );
     }
 
     if (tab === "contacts") {
