@@ -7288,3 +7288,64 @@ if (document.readyState === "loading") {
   };
 })();
 </script>
+
+<style id="messenger-mobile-overflow-fix-0963">
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#messenger-app,
+.messenger-screen,
+.msg-secondary-view,
+#messenger-chat-list,
+#msg-contact-list,
+.lxmf-chat.messenger-conversation,
+#lxmf-inbox,
+.lxmf-chat-compose {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.messenger-contact,
+.messenger-contact-body,
+.messenger-contact-name,
+.messenger-contact-preview,
+.m80-peer-subtitle {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.messenger-contact-name,
+.messenger-contact-preview,
+.m80-peer-subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#lxmf-chat-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.lxmf-bubble {
+  max-width: 82%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 700px) {
+  #messenger-app,
+  .lxmf-chat.messenger-conversation {
+    max-width: 100vw !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+}
+</style>
