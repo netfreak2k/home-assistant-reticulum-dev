@@ -2293,6 +2293,55 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(result)
             return
 
+        # STATIC_ASSET_097
+        if path.startswith("/static/"):
+            rel = path[len("/static/"):]
+
+            if ".." in rel:
+                self.send_error(403)
+                return
+
+            asset = STATIC_DIR / rel
+
+            if not asset.is_file():
+                self.send_error(404)
+                return
+
+            suffix = asset.suffix.lower()
+
+            content_types = {
+                ".css": "text/css; charset=utf-8",
+                ".js": "application/javascript; charset=utf-8",
+                ".json": "application/json; charset=utf-8",
+                ".svg": "image/svg+xml",
+                ".png": "image/png",
+                ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".webp": "image/webp",
+            }
+
+            payload = asset.read_bytes()
+
+            self.send_response(200)
+            self.send_header(
+                "Content-Type",
+                content_types.get(
+                    suffix,
+                    "application/octet-stream",
+                ),
+            )
+            self.send_header(
+                "Content-Length",
+                str(len(payload)),
+            )
+            self.send_header(
+                "Cache-Control",
+                "no-store",
+            )
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
         if (
             path == "/"
             or path.endswith("/index.html")
