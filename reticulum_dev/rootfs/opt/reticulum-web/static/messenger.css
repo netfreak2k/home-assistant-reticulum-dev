@@ -1382,3 +1382,162 @@
   }
 }
 
+
+/* =====================================================
+   1.06.1-dev · FORCE MODERN CHAT OVERRIDES
+   Alte Inline-Regeln in index.html gezielt überstimmen
+   ===================================================== */
+
+.lxmf-chat.messenger-conversation {
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  background: rgba(255,255,255,.015) !important;
+}
+
+.lxmf-chat .lxmf-chat-header {
+  padding: 13px 14px !important;
+  background: rgba(255,255,255,.018) !important;
+  border-bottom: 1px solid rgba(255,255,255,.07) !important;
+}
+
+#lxmf-inbox.lxmf-chat-messages {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding: 18px 14px !important;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(75,135,255,.04),
+      transparent 44%
+    ) !important;
+}
+
+#lxmf-inbox .lxmf-message-row {
+  display: flex !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+#lxmf-inbox .lxmf-message-row.theirs {
+  justify-content: flex-start !important;
+}
+
+#lxmf-inbox .lxmf-message-row.mine {
+  justify-content: flex-end !important;
+}
+
+#lxmf-inbox .lxmf-message-row .lxmf-bubble {
+  width: fit-content !important;
+  max-width: 88% !important;
+
+  padding: 10px 12px 8px !important;
+
+  border-radius: 8px !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+
+  box-shadow: 0 5px 18px rgba(0,0,0,.10) !important;
+
+  color: inherit !important;
+}
+
+#lxmf-inbox .lxmf-message-row.theirs .lxmf-bubble {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(89,220,164,.07),
+      rgba(255,255,255,.025)
+    ) !important;
+
+  border-left:
+    3px solid rgba(89,220,164,.78) !important;
+
+  border-top-left-radius: 2px !important;
+}
+
+#lxmf-inbox .lxmf-message-row.mine .lxmf-bubble {
+  background:
+    linear-gradient(
+      270deg,
+      rgba(86,168,255,.09),
+      rgba(255,255,255,.025)
+    ) !important;
+
+  border-right:
+    3px solid rgba(86,168,255,.85) !important;
+
+  border-top-right-radius: 2px !important;
+}
+
+#lxmf-inbox .lxmf-bubble-content {
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#lxmf-inbox .lxmf-bubble-meta {
+  margin-top: 7px !important;
+  padding: 0 !important;
+
+  font-size: 9px !important;
+  opacity: .5 !important;
+
+  background: transparent !important;
+}
+
+.lxmf-chat .lxmf-chat-compose {
+  padding: 10px !important;
+  gap: 8px !important;
+
+  background: rgba(255,255,255,.018) !important;
+  border-top: 1px solid rgba(255,255,255,.07) !important;
+}
+
+#lxmf-chat-content {
+  min-height: 42px !important;
+  padding: 11px 13px !important;
+
+  border-radius: 10px !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+
+  background: rgba(255,255,255,.035) !important;
+}
+
+#lxmf-chat-send {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+
+  border-radius: 10px !important;
+
+  border: 1px solid rgba(100,165,255,.24) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(86,168,255,.22),
+      rgba(181,125,255,.13)
+    ) !important;
+}
+
+@media (max-width: 700px) {
+
+  #lxmf-inbox.lxmf-chat-messages {
+    padding: 12px 8px !important;
+    gap: 9px !important;
+  }
+
+  #lxmf-inbox .lxmf-message-row .lxmf-bubble {
+    max-width: 92% !important;
+    padding: 9px 10px 7px !important;
+  }
+
+  .lxmf-chat .lxmf-chat-compose {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 30 !important;
+
+    backdrop-filter: blur(12px);
+  }
+}
