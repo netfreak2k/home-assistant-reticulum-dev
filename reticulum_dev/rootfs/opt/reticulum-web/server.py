@@ -1051,38 +1051,61 @@ def update_messenger_profile(name):
             "error": "Supervisor API nicht verfügbar",
         }
 
+    headers = {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json",
+    }
+
     try:
-        req = urllib.request.Request(
+        # Aktuelle Add-on-Optionen lesen
+        info_req = urllib.request.Request(
+            "http://supervisor/addons/self/info",
+            headers=headers,
+            method="GET",
+        )
+
+        with urllib.request.urlopen(
+            info_req,
+            timeout=10,
+        ) as response:
+            info = json.loads(
+                response.read().decode("utf-8") or "{}"
+            )
+
+        current = (
+            info.get("data", {}).get("options")
+            or info.get("options")
+            or {}
+        )
+
+        if not isinstance(current, dict):
+            current = {}
+
+        current["messenger_name"] = name
+
+        # Vollständige Optionen zurückschreiben
+        save_req = urllib.request.Request(
             "http://supervisor/addons/self/options",
             data=json.dumps({
-                "options": {
-                    "messenger_name": name
-                }
+                "options": current
             }).encode("utf-8"),
-            headers={
-                "Authorization":
-                    "Bearer " + token,
-                "Content-Type":
-                    "application/json",
-            },
+            headers=headers,
             method="POST",
         )
 
         with urllib.request.urlopen(
-            req,
+            save_req,
             timeout=10,
         ) as response:
-            raw = response.read().decode(
-                "utf-8"
-            )
+            raw = response.read().decode("utf-8")
 
-        data = json.loads(raw or "{}")
+        result = json.loads(raw or "{}")
 
-        if data.get("result") != "ok":
+        if result.get("result") != "ok":
             return {
                 "ok": False,
                 "error":
-                    data.get("message")
+                    result.get("message")
                     or "Option konnte nicht gespeichert werden",
             }
 
@@ -1092,11 +1115,24 @@ def update_messenger_profile(name):
             "restart_required": True,
         }
 
+    except urllib.error.HTTPError as exc:
+        try:
+            detail = exc.read().decode("utf-8")
+        except Exception:
+            detail = str(exc)
+
+        return {
+            "ok": False,
+            "error":
+                f"Supervisor HTTP {exc.code}: {detail}",
+        }
+
     except Exception as exc:
         return {
             "ok": False,
             "error": str(exc),
         }
+
 
 
 def request_lxmf_announce():
