@@ -1,24 +1,27 @@
-"""Netfreak2k Reticulum Bridge."""
+"""Netfreak2k Reticulum bridge for Home Assistant."""
 
 from __future__ import annotations
 
 import json
-import logging
 import time
 import uuid
 from pathlib import Path
-from typing import override
 
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+)
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import llm
 
 DOMAIN = "reticulum"
 
+import logging
+
 _LOGGER = logging.getLogger(__name__)
+
 
 QUEUE_DIR = Path("/config/reticulum_bridge")
 QUEUE_FILE = QUEUE_DIR / "lxmf_outbound.json"
@@ -29,9 +32,9 @@ def queue_message(
     content: str,
     title: str = "",
 ) -> dict:
-    """Queue one LXMF message."""
+    """Queue one LXMF message atomically."""
 
-    destination_hash = destination_hash.strip().lower()
+    destination_hash = destination_hash.strip()
     content = content.strip()
     title = title.strip()
 
@@ -57,6 +60,8 @@ def queue_message(
         exist_ok=True,
     )
 
+    # Verhindert, dass zwei Nachrichten sich überschreiben,
+    # bevor der Reticulum Node die Queue konsumiert hat.
     if QUEUE_FILE.exists():
         raise HomeAssistantError(
             "Reticulum-Sendewarteschlange ist noch belegt"
@@ -66,11 +71,11 @@ def queue_message(
 
     payload = {
         "request_id": request_id,
-        "destination_hash": destination_hash,
+        "destination_hash": destination_hash.lower(),
         "content": content,
         "title": title,
         "requested_at": int(time.time()),
-        "source": "home_assistant_mcp",
+        "source": "home_assistant",
     }
 
     temporary = QUEUE_FILE.with_suffix(".tmp")
@@ -89,105 +94,56 @@ def queue_message(
         "ok": True,
         "state": "QUEUED",
         "request_id": request_id,
-        "destination_hash": destination_hash,
+        "destination_hash": destination_hash.lower(),
     }
-
-
-class SendReticulumMessageTool(llm.Tool):
-    """Send an LXMF message."""
-
-    name = "reticulum__SendReticulumMessage"
-    title = "Send Reticulum message"
-
-    description = (
-        "Send a text message over Reticulum using LXMF. "
-        "Requires a 32-character hexadecimal destination "
-        "hash and message content."
-    )
-
-    parameters = vol.Schema({
-        vol.Required("destination_hash"): str,
-        vol.Required("content"): str,
-        vol.Optional("title", default=""): str,
-    })
-
-    integration = DOMAIN
-
-    @override
-    async def async_call(
-        self,
-        hass: HomeAssistant,
-        tool_input: llm.ToolInput,
-        llm_context: llm.LLMContext,
-    ) -> llm.ToolResult:
-        """Queue an LXMF message."""
-
-        args = tool_input.tool_args
-
-        result = await hass.async_add_executor_job(
-            queue_message,
-            args["destination_hash"],
-            args["content"],
-            args.get("title", ""),
-        )
-
-        return llm.ToolResult(
-            data=result
-        )
-
-
-class ReticulumAPI(llm.API):
-    """Reticulum LLM API."""
-
-    def __init__(
-        self,
-        hass: HomeAssistant,
-    ) -> None:
-        """Initialize Reticulum API."""
-
-        super().__init__(
-            hass=hass,
-            id="reticulum",
-            name="Reticulum",
-        )
-
-    @override
-    async def async_get_api_instance(
-        self,
-        llm_context: llm.LLMContext,
-    ) -> llm.APIInstance:
-        """Return Reticulum API instance."""
-
-        return llm.APIInstance(
-            api=self,
-            api_prompt=(
-                "This API sends LXMF messages over "
-                "the Reticulum network."
-            ),
-            llm_context=llm_context,
-            tools=[
-                SendReticulumMessageTool(),
-            ],
-        )
 
 
 async def async_setup(
     hass: HomeAssistant,
     config: dict,
 ) -> bool:
-    """YAML compatibility."""
+    """Set up Reticulum bridge."""
+
+    _LOGGER.warning(
+        "NETFREAK2K RETICULUM INTEGRATION async_setup RUNNING"
+    )
+
+    async def handle_send_message(
+        call: ServiceCall,
+    ) -> None:
+
+        await hass.async_add_executor_job(
+            queue_message,
+            call.data["destination_hash"],
+            call.data["content"],
+            call.data.get("title", ""),
+        )
+
+    schema = vol.Schema({
+        vol.Required("destination_hash"): str,
+        vol.Required("content"): str,
+        vol.Optional("title", default=""): str,
+    })
+
+    hass.services.async_register(
+        DOMAIN,
+        "send_message",
+        handle_send_message,
+        schema=schema,
+    )
 
     return True
+
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
 ) -> bool:
-    """Set up Reticulum."""
+    """Set up Reticulum from a config entry."""
 
     _LOGGER.warning(
-        "NETFREAK2K RETICULUM 0.94 CONFIG ENTRY LOADING"
+        "NETFREAK2K RETICULUM CONFIG ENTRY LOADING"
     )
 
     async def handle_send_message(
@@ -218,19 +174,6 @@ async def async_setup_entry(
             schema=schema,
         )
 
-    unregister_api = llm.async_register_api(
-        hass,
-        ReticulumAPI(hass),
-    )
-
-    entry.async_on_unload(
-        unregister_api
-    )
-
-    _LOGGER.warning(
-        "NETFREAK2K RETICULUM LLM API REGISTERED: reticulum"
-    )
-
     return True
 
 
@@ -238,7 +181,7 @@ async def async_unload_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
 ) -> bool:
-    """Unload Reticulum."""
+    """Unload Reticulum config entry."""
 
     if hass.services.has_service(
         DOMAIN,

@@ -10,6 +10,9 @@ mkdir -p \
     /homeassistant/custom_components/reticulum \
     /homeassistant/reticulum_bridge
 
+rm -f \
+    /homeassistant/custom_components/reticulum/llm.py
+
 cp -f \
     /opt/reticulum-ha/custom_components/reticulum/* \
     /homeassistant/custom_components/reticulum/
