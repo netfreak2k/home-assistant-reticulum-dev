@@ -2238,6 +2238,15 @@ async function refreshLXMFInbox(scrollBottom=false) {
         ),
         id: String(
           message.message_id || ""
+        ),
+        deliveryStatus: String(
+          message.delivery_status || "queued"
+        ).toLowerCase(),
+        deliveredAt: Number(
+          message.delivered_at || 0
+        ),
+        deliveryError: String(
+          message.delivery_error || ""
         )
       });
     });
@@ -2264,6 +2273,30 @@ async function refreshLXMFInbox(scrollBottom=false) {
       const mine =
         message.direction === "out";
 
+      let deliveryLabel = "";
+      let deliveryClass = "";
+
+      if (mine) {
+        switch (message.deliveryStatus) {
+          case "delivered":
+            deliveryLabel = "Zugestellt";
+            deliveryClass = "delivered";
+            break;
+          case "failed":
+            deliveryLabel = "Fehler";
+            deliveryClass = "failed";
+            break;
+          default:
+            deliveryLabel = "Wartet";
+            deliveryClass = "queued";
+        }
+      }
+
+      const deliveryTitle =
+        mine && message.deliveryStatus === "failed"
+          ? message.deliveryError
+          : "";
+
       return `
         <div class="lxmf-message-row ${
           mine ? "mine" : "theirs"
@@ -2276,10 +2309,20 @@ async function refreshLXMFInbox(scrollBottom=false) {
             </div>
 
             <div class="lxmf-bubble-meta">
-              ${escapeHTML(
-                lxmfTime(message.timestamp)
-              )}
-              ${mine ? " · gesendet" : ""}
+              <span>
+                ${escapeHTML(
+                  lxmfTime(message.timestamp)
+                )}
+              </span>
+
+              ${
+                mine
+                  ? `<span
+                       class="lxmf-delivery-status ${deliveryClass}"
+                       title="${escapeHTML(deliveryTitle)}"
+                     >${deliveryLabel}</span>`
+                  : ""
+              }
             </div>
 
           </div>
@@ -5778,6 +5821,44 @@ refreshLXMFInbox();
 .lxmf-chat .message.out .message-meta,
 .lxmf-chat .message.out .messenger-message-meta {
   font-size: 10px !important;
+}
+
+
+.lxmf-bubble-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.lxmf-delivery-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .02em;
+}
+
+.lxmf-delivery-status.queued {
+  color: #ffd166;
+  background: rgba(255, 209, 102, .10);
+  border: 1px solid rgba(255, 209, 102, .22);
+}
+
+.lxmf-delivery-status.delivered {
+  color: #66e3b4;
+  background: rgba(102, 227, 180, .10);
+  border: 1px solid rgba(102, 227, 180, .22);
+}
+
+.lxmf-delivery-status.failed {
+  color: #ff7b7b;
+  background: rgba(255, 123, 123, .10);
+  border: 1px solid rgba(255, 123, 123, .22);
 }
 
 /* Technical dashboard becomes secondary on phones. */
