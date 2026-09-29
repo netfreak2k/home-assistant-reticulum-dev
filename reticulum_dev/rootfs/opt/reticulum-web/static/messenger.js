@@ -839,3 +839,87 @@
     isMobile
   };
 })();
+
+/* =====================================================
+   0.97.4 · RETURN TO SOURCE TAB
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  let sourceTab = "chats";
+
+  function rememberSourceTab() {
+    const active =
+      document.querySelector(
+        "[data-msg-tab].active"
+      );
+
+    sourceTab =
+      active?.dataset?.msgTab || "chats";
+  }
+
+  const oldOpen =
+    window.openMessengerConversation;
+
+  if (
+    typeof oldOpen === "function"
+  ) {
+    window.openMessengerConversation =
+      function(peer) {
+        rememberSourceTab();
+        oldOpen(peer);
+      };
+  }
+
+  const oldShowList =
+    window.reticulumMobile097?.showList;
+
+  function restoreSourceTab() {
+    if (
+      window.reticulumMessenger097 &&
+      typeof window.reticulumMessenger097.selectTab
+        === "function"
+    ) {
+      window.reticulumMessenger097.selectTab(
+        sourceTab
+      );
+    }
+  }
+
+  if (
+    window.reticulumMobile097 &&
+    typeof oldShowList === "function"
+  ) {
+    window.reticulumMobile097.showList =
+      function() {
+        oldShowList();
+        restoreSourceTab();
+      };
+  }
+
+  const back =
+    document.getElementById(
+      "messenger-back"
+    );
+
+  if (back) {
+    back.onclick = event => {
+      event.preventDefault();
+
+      if (
+        window.reticulumMobile097?.showList
+      ) {
+        window.reticulumMobile097.showList();
+      }
+
+      restoreSourceTab();
+    };
+  }
+
+  window.reticulumReturn0974 = {
+    get sourceTab() {
+      return sourceTab;
+    }
+  };
+})();
