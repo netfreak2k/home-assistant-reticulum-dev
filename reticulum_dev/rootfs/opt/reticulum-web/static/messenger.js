@@ -2228,3 +2228,63 @@
     refreshSorted
   };
 })();
+
+/* =====================================================
+   1.02.1-dev · CHAT OPEN FIX
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  const oldOpen =
+    window.openMessengerConversation;
+
+  if (typeof oldOpen !== "function") {
+    console.error(
+      "[Messenger 1.02.1] open function missing"
+    );
+    return;
+  }
+
+  window.openMessengerConversation =
+    function(peer) {
+
+      oldOpen(peer);
+
+      const app =
+        document.getElementById(
+          "messenger-app"
+        );
+
+      const conversation =
+        document.querySelector(
+          ".messenger-conversation"
+        );
+
+      if (app) {
+        app.style.setProperty(
+          "display",
+          "block",
+          "important"
+        );
+
+        app.classList.add(
+          "m97-chat-open"
+        );
+      }
+
+      if (conversation) {
+        conversation.style.setProperty(
+          "display",
+          "flex",
+          "important"
+        );
+      }
+
+      console.info(
+        "[Messenger 1.02.1] chat opened",
+        peer
+      );
+    };
+
+})();
