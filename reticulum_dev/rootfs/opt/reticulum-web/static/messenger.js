@@ -953,3 +953,295 @@
     }
   };
 })();
+
+/* =====================================================
+   0.98.0 · BETA UX CORE
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  let contactNames = new Map();
+  let refreshTimer = null;
+
+  function clean(value) {
+    return String(value || "")
+      .replace(/[\u0000-\u001f\u007f]/g, "")
+      .trim();
+  }
+
+  async function loadContactNames() {
+    try {
+      const response = await fetch(
+        "api/messenger/contacts?ts=" + Date.now(),
+        {cache:"no-store"}
+      );
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      const contacts =
+        Array.isArray(data?.contacts)
+          ? data.contacts
+          : [];
+
+      contactNames = new Map();
+
+      contacts.forEach(contact => {
+        const peer =
+          String(contact.destination_hash || "");
+
+        let name =
+          clean(contact.display_name);
+
+        if (
+          !name ||
+          name === "Anonymous Peer" ||
+          name.includes("\uFFFD")
+        ) {
+          name =
+            "Kontakt " +
+            peer.slice(0,6).toUpperCase();
+        }
+
+        contactNames.set(peer, name);
+      });
+
+    } catch (_) {}
+  }
+
+  function applyChatHeader(peer) {
+    peer = String(peer || "").trim();
+
+    if (!peer) return;
+
+    const name =
+      contactNames.get(peer) ||
+      "Kontakt " +
+      peer.slice(0,6).toUpperCase();
+
+    const title =
+      $("lxmf-chat-name");
+
+    const sub =
+      $("lxmf-chat-peer");
+
+    const avatar =
+      $("lxmf-chat-avatar");
+
+    if (title) {
+      title.textContent = name;
+    }
+
+    if (sub) {
+      sub.textContent =
+        "Reticulum · LXMF";
+      sub.title = peer;
+    }
+
+    if (avatar) {
+      avatar.textContent =
+        (name[0] || "?").toUpperCase();
+    }
+  }
+
+  function installSearch() {
+    const app =
+      $("messenger-app");
+
+    const tabs =
+      app?.querySelector(".msg-tabs");
+
+    if (!app || !tabs) return;
+
+    if ($("m98-search")) return;
+
+    const wrap =
+      document.createElement("div");
+
+    wrap.id = "m98-search-wrap";
+
+    wrap.innerHTML = `
+      <input
+        id="m98-search"
+        type="search"
+        autocomplete="off"
+        placeholder="Chats und Kontakte durchsuchen…"
+      >
+    `;
+
+    tabs.insertAdjacentElement(
+      "afterend",
+      wrap
+    );
+
+    const input =
+      $("m98-search");
+
+    input.addEventListener(
+      "input",
+      () => {
+        const query =
+          input.value
+            .trim()
+            .toLowerCase();
+
+        document
+          .querySelectorAll(
+            "#messenger-chat-list .messenger-contact," +
+            "#msg-contact-list .messenger-contact"
+          )
+          .forEach(item => {
+            const text =
+              item.textContent
+                .toLowerCase();
+
+            item.style.display =
+              !query ||
+              text.includes(query)
+                ? ""
+                : "none";
+          });
+      }
+    );
+  }
+
+  function installTabMemory() {
+    document
+      .querySelectorAll("[data-msg-tab]")
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          () => {
+            localStorage.setItem(
+              "reticulum-messenger-tab",
+              button.dataset.msgTab
+            );
+
+            const search =
+              $("m98-search");
+
+            if (search) {
+              search.value = "";
+              search.dispatchEvent(
+                new Event("input")
+              );
+            }
+          }
+        );
+      });
+
+    const saved =
+      localStorage.getItem(
+        "reticulum-messenger-tab"
+      );
+
+    if (
+      saved &&
+      window.reticulumMessenger097
+        ?.selectTab
+    ) {
+      window.reticulumMessenger097
+        .selectTab(saved);
+    }
+  }
+
+  function installComposer() {
+    const input =
+      $("lxmf-chat-content");
+
+    if (!input) return;
+
+    function resize() {
+      input.style.height = "auto";
+
+      input.style.height =
+        Math.min(
+          input.scrollHeight,
+          140
+        ) + "px";
+    }
+
+    input.addEventListener(
+      "input",
+      resize
+    );
+
+    resize();
+  }
+
+  function installOpenHook() {
+    const oldOpen =
+      window.openMessengerConversation;
+
+    if (
+      typeof oldOpen !== "function"
+    ) return;
+
+    window.openMessengerConversation =
+      function(peer) {
+
+        oldOpen(peer);
+
+        applyChatHeader(peer);
+
+        loadContactNames().then(() => {
+          applyChatHeader(peer);
+        });
+      };
+  }
+
+  function startLiveRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+
+    refreshTimer =
+      setInterval(() => {
+
+        const peer =
+          window.reticulumConversation097
+            ?.activePeer;
+
+        if (!peer) return;
+
+        window.reticulumConversation097
+          ?.render(false);
+
+      }, 5000);
+  }
+
+  async function init() {
+    await loadContactNames();
+
+    installSearch();
+    installTabMemory();
+    installComposer();
+    installOpenHook();
+    startLiveRefresh();
+
+    console.info(
+      "[Reticulum Messenger] 0.98 Beta UX ready"
+    );
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      init,
+      {once:true}
+    );
+  } else {
+    init();
+  }
+
+  window.reticulumBeta098 = {
+    loadContactNames,
+    applyChatHeader
+  };
+})();

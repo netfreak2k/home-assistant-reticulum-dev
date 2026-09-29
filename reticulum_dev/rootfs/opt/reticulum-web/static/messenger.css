@@ -36,3 +36,85 @@
     min-height: 0 !important;
   }
 }
+
+/* =====================================================
+   0.98.0 · BETA UX
+   ===================================================== */
+
+#messenger-app {
+  overflow-x: hidden;
+}
+
+#m98-search-wrap {
+  padding: 10px 12px;
+}
+
+#m98-search {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  padding: 11px 13px;
+  background: rgba(255,255,255,.04);
+  color: inherit;
+  outline: none;
+}
+
+#m98-search:focus {
+  border-color: rgba(255,255,255,.22);
+}
+
+.messenger-contact {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.messenger-contact-body {
+  min-width: 0;
+}
+
+.messenger-contact-name,
+.messenger-contact-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lxmf-bubble {
+  max-width: 82%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#lxmf-chat-content {
+  width: 100%;
+  min-width: 0;
+  max-height: 140px;
+  resize: none;
+  box-sizing: border-box;
+}
+
+@media (max-width: 700px) {
+
+  #messenger-app .msg-tabs {
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+  }
+
+  #messenger-app.m97-chat-open
+  #m98-search-wrap {
+    display: none;
+  }
+
+  .lxmf-chat.messenger-conversation {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #lxmf-inbox {
+    overflow-x: hidden;
+  }
+}
