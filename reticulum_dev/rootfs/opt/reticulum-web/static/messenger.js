@@ -1641,3 +1641,54 @@
     setTimeout(showVersion, 50);
   }
 })();
+
+/* =====================================================
+   1.00.0-beta3 · GLOBAL BRAND HEADER
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  function initGlobalBrand() {
+    if (document.getElementById("n2k-global-brand")) {
+      return;
+    }
+
+    const main =
+      document.querySelector("main") ||
+      document.body;
+
+    if (!main) return;
+
+    const brand =
+      document.createElement("div");
+
+    brand.id = "n2k-global-brand";
+
+    brand.innerHTML = `
+      <div class="n2k-global-title">
+        Netfreak2k
+      </div>
+
+      <div class="n2k-global-sub">
+        Offgrid Mesh Local Intelligence
+      </div>
+
+      <div class="n2k-global-version">
+        Reticulum · 1.00 Beta 3
+      </div>
+    `;
+
+    main.prepend(brand);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initGlobalBrand,
+      {once:true}
+    );
+  } else {
+    initGlobalBrand();
+  }
+})();
