@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -e
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+CFG="reticulum_dev/config.yaml"
+HTML="reticulum_dev/rootfs/opt/reticulum-web/static/index.html"
+SERVER="reticulum_dev/rootfs/opt/reticulum-web/server.py"
+MSGJS="reticulum_dev/rootfs/opt/reticulum-web/static/messenger.js"
+MSGCSS="reticulum_dev/rootfs/opt/reticulum-web/static/messenger.css"
+BACKUP="$ROOT/.n2k-backups"
+
+cmd="${1:-check}"
+
+case "$cmd" in
+
+  backup)
+    mkdir -p "$BACKUP"
+    ts="$(date +%Y%m%d-%H%M%S)"
+    cp -a "$CFG" "$BACKUP/config-$ts.yaml"
+    cp -a "$HTML" "$BACKUP/index-$ts.html"
+    echo "PASS: Backup $ts"
+    ;;
+
+  check)
+    echo "=== VERSION ==="
+    grep '^version:' "$CFG"
+    echo
+    echo "=== GIT ==="
+    git status --short
+    echo
+    echo "=== DIFF ==="
+    git diff --stat
+    echo
+    echo "PASS: Check fertig"
+    ;;
+
+  bump)
+    ver="$2"
+    [ -n "$ver" ] || { echo "Nutzung: ./n2k-dev bump 0.97.0-dev"; exit 1; }
+    sed -i -E "s/^version: \".*\"/version: \"$ver\"/" "$CFG"
+    echo "PASS: Version -> $ver"
+    ;;
+
+  diff)
+    git diff -- "$CFG" "$HTML"
+    ;;
+
+  commit)
+    msg="${2:-development update}"
+    git add "$CFG" "$HTML" "$SERVER" "$MSGJS" "$MSGCSS"
+    git commit -m "$msg"
+    echo "PASS: Commit erstellt"
+    ;;
+
+  push)
+    git push
+    echo "PASS: Push fertig"
+    ;;
+
+  *)
+    echo "Befehle:"
+    echo "  ./n2k-dev backup"
+    echo "  ./n2k-dev check"
+    echo "  ./n2k-dev bump 0.97.0-dev"
+    echo "  ./n2k-dev diff"
+    echo "  ./n2k-dev commit \"Nachricht\""
+    echo "  ./n2k-dev push"
+    exit 1
+    ;;
+esac
