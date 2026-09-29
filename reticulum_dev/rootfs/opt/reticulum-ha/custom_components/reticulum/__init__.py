@@ -167,7 +167,7 @@ class GetReticulumStatusTool(llm.Tool):
             "status",
         )
 
-        return llm.ToolResult(data=result)
+        return result
 
 
 class GetReticulumIdentityTool(llm.Tool):
@@ -194,7 +194,7 @@ class GetReticulumIdentityTool(llm.Tool):
             "identity",
         )
 
-        return llm.ToolResult(data=result)
+        return result
 
 
 class GetReticulumContactsTool(llm.Tool):
@@ -221,7 +221,7 @@ class GetReticulumContactsTool(llm.Tool):
             "contacts",
         )
 
-        return llm.ToolResult(data=result)
+        return result
 
 
 class GetReticulumMessagesTool(llm.Tool):
@@ -249,7 +249,7 @@ class GetReticulumMessagesTool(llm.Tool):
             "messages",
         )
 
-        return llm.ToolResult(data=result)
+        return result
 
 
 class SendReticulumMessageTool(llm.Tool):
@@ -290,9 +290,7 @@ class SendReticulumMessageTool(llm.Tool):
             args.get("title", ""),
         )
 
-        return llm.ToolResult(
-            data=result
-        )
+        return result
 
 
 class ReticulumAPI(llm.API):
