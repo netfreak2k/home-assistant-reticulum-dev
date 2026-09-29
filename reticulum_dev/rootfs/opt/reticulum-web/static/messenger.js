@@ -713,3 +713,129 @@
     send: sendMessage
   };
 })();
+
+/* =====================================================
+   0.97.3 · MOBILE NAVIGATION
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  function isMobile() {
+    return window.matchMedia(
+      "(max-width: 700px)"
+    ).matches;
+  }
+
+  function showList() {
+    if (!isMobile()) return;
+
+    const list = $("messenger-app");
+
+    const chat =
+      document.querySelector(
+        ".messenger-conversation"
+      );
+
+    if (list) {
+      list.style.setProperty(
+        "display",
+        "block",
+        "important"
+      );
+    }
+
+    if (chat) {
+      chat.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+    }
+  }
+
+  function showConversation() {
+    if (!isMobile()) return;
+
+    const list = $("messenger-app");
+
+    const chat =
+      document.querySelector(
+        ".messenger-conversation"
+      );
+
+    if (list) {
+      list.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+    }
+
+    if (chat) {
+      chat.style.setProperty(
+        "display",
+        "flex",
+        "important"
+      );
+    }
+  }
+
+  const oldOpen =
+    window.openMessengerConversation;
+
+  if (
+    typeof oldOpen === "function"
+  ) {
+    window.openMessengerConversation =
+      function(peer) {
+        oldOpen(peer);
+        showConversation();
+      };
+  }
+
+  function init() {
+    const back =
+      $("messenger-back");
+
+    if (back) {
+      back.onclick = event => {
+        event.preventDefault();
+        showList();
+      };
+    }
+
+    if (isMobile()) {
+      showList();
+    }
+
+    window.addEventListener(
+      "popstate",
+      () => {
+        if (isMobile()) {
+          showList();
+        }
+      }
+    );
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      init,
+      {once:true}
+    );
+  } else {
+    init();
+  }
+
+  window.reticulumMobile097 = {
+    showList,
+    showConversation,
+    isMobile
+  };
+})();
