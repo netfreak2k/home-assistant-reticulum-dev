@@ -2424,15 +2424,17 @@ async function sendLXMFChat() {
      * Danach erscheint die eigene Bubble aus
      * der persistenten Outbox.
      */
-    setTimeout(
-      () => refreshLXMFInbox(true),
-      1200
-    );
-
-    setTimeout(
-      () => refreshLXMFInbox(true),
-      3000
-    );
+    /*
+     * Delivery burst polling:
+     * Kurz nach dem Senden häufiger aktualisieren,
+     * danach übernimmt wieder das normale 5s-Polling.
+     */
+    [1200, 3000, 6000, 10000].forEach(delay => {
+      setTimeout(
+        () => refreshLXMFInbox(true),
+        delay
+      );
+    });
 
     setTimeout(() => {
       status.textContent = "";
