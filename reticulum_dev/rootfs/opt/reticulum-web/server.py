@@ -20,6 +20,67 @@ STATIC_DIR = Path("/opt/reticulum-web/static")
 START_TIME = time.time()
 
 
+SHARED_BRIDGE_DIR = Path(
+    "/homeassistant/reticulum_bridge"
+)
+
+
+def write_bridge_snapshot(
+    name: str,
+    data,
+):
+    """Atomically publish data for Home Assistant/MCP."""
+
+    SHARED_BRIDGE_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    target = (
+        SHARED_BRIDGE_DIR /
+        f"{name}.json"
+    )
+
+    temporary = target.with_suffix(
+        ".json.tmp"
+    )
+
+    temporary.write_text(
+        json.dumps(
+            data,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    temporary.replace(target)
+
+
+def publish_mcp_snapshots():
+    """Publish read-only Reticulum snapshots."""
+
+    snapshots = {
+        "status": get_status(),
+        "identity": get_node_identity_status(),
+        "contacts": get_messenger_contacts(),
+        "messages": get_messenger_data(),
+    }
+
+    for name, data in snapshots.items():
+        write_bridge_snapshot(
+            name,
+            data,
+        )
+
+    return {
+        "ok": True,
+        "files": list(snapshots),
+        "timestamp": int(time.time()),
+    }
+
+
+
 def run_command(command, timeout=5):
     try:
         result = subprocess.run(
@@ -1648,8 +1709,15 @@ def home_assistant_publisher_loop():
         try:
             publish_reticulum_status_to_home_assistant()
 
+            publish_mcp_snapshots()
+
             print(
                 "[HA] sensor.reticulum_status published",
+                flush=True
+            )
+
+            print(
+                "[MCP] shared snapshots published",
                 flush=True
             )
 

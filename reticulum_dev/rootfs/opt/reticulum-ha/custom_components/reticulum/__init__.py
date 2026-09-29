@@ -24,6 +24,53 @@ QUEUE_DIR = Path("/config/reticulum_bridge")
 QUEUE_FILE = QUEUE_DIR / "lxmf_outbound.json"
 
 
+SNAPSHOT_FILES = {
+    "status": QUEUE_DIR / "status.json",
+    "identity": QUEUE_DIR / "identity.json",
+    "contacts": QUEUE_DIR / "contacts.json",
+    "messages": QUEUE_DIR / "messages.json",
+}
+
+
+def read_reticulum_snapshot(
+    name: str,
+) -> dict:
+    """Read an add-on snapshot shared with Home Assistant."""
+
+    path = SNAPSHOT_FILES.get(name)
+
+    if path is None:
+        raise HomeAssistantError(
+            f"Unbekannter Reticulum Snapshot: {name}"
+        )
+
+    if not path.exists():
+        raise HomeAssistantError(
+            f"Reticulum Snapshot noch nicht verfügbar: {name}"
+        )
+
+    try:
+        data = json.loads(
+            path.read_text(
+                encoding="utf-8"
+            )
+        )
+
+    except Exception as exc:
+        raise HomeAssistantError(
+            f"Reticulum Snapshot {name} ungültig: {exc}"
+        ) from exc
+
+    if not isinstance(data, dict):
+        raise HomeAssistantError(
+            f"Reticulum Snapshot {name} hat ungültiges Format"
+        )
+
+    return data
+
+
+
+
 def queue_message(
     destination_hash: str,
     content: str,
@@ -91,6 +138,118 @@ def queue_message(
         "request_id": request_id,
         "destination_hash": destination_hash,
     }
+
+
+
+
+class GetReticulumStatusTool(llm.Tool):
+    """Get Reticulum status."""
+
+    name = "reticulum__GetStatus"
+    title = "Get Reticulum status"
+    description = (
+        "Get the current Reticulum node, interface and "
+        "connectivity status."
+    )
+    parameters = vol.Schema({})
+    integration = DOMAIN
+
+    @override
+    async def async_call(
+        self,
+        hass: HomeAssistant,
+        tool_input: llm.ToolInput,
+        llm_context: llm.LLMContext,
+    ) -> llm.ToolResult:
+
+        result = await hass.async_add_executor_job(
+            read_reticulum_snapshot,
+            "status",
+        )
+
+        return llm.ToolResult(data=result)
+
+
+class GetReticulumIdentityTool(llm.Tool):
+    """Get Reticulum identity."""
+
+    name = "reticulum__GetIdentity"
+    title = "Get Reticulum identity"
+    description = (
+        "Get the local Reticulum and LXMF identity status."
+    )
+    parameters = vol.Schema({})
+    integration = DOMAIN
+
+    @override
+    async def async_call(
+        self,
+        hass: HomeAssistant,
+        tool_input: llm.ToolInput,
+        llm_context: llm.LLMContext,
+    ) -> llm.ToolResult:
+
+        result = await hass.async_add_executor_job(
+            read_reticulum_snapshot,
+            "identity",
+        )
+
+        return llm.ToolResult(data=result)
+
+
+class GetReticulumContactsTool(llm.Tool):
+    """Get Reticulum contacts."""
+
+    name = "reticulum__GetContacts"
+    title = "Get Reticulum contacts"
+    description = (
+        "Get known Reticulum and LXMF messenger contacts."
+    )
+    parameters = vol.Schema({})
+    integration = DOMAIN
+
+    @override
+    async def async_call(
+        self,
+        hass: HomeAssistant,
+        tool_input: llm.ToolInput,
+        llm_context: llm.LLMContext,
+    ) -> llm.ToolResult:
+
+        result = await hass.async_add_executor_job(
+            read_reticulum_snapshot,
+            "contacts",
+        )
+
+        return llm.ToolResult(data=result)
+
+
+class GetReticulumMessagesTool(llm.Tool):
+    """Get Reticulum messages."""
+
+    name = "reticulum__GetMessages"
+    title = "Get Reticulum messages"
+    description = (
+        "Get Reticulum and LXMF messenger conversations "
+        "and recent messages."
+    )
+    parameters = vol.Schema({})
+    integration = DOMAIN
+
+    @override
+    async def async_call(
+        self,
+        hass: HomeAssistant,
+        tool_input: llm.ToolInput,
+        llm_context: llm.LLMContext,
+    ) -> llm.ToolResult:
+
+        result = await hass.async_add_executor_job(
+            read_reticulum_snapshot,
+            "messages",
+        )
+
+        return llm.ToolResult(data=result)
 
 
 class SendReticulumMessageTool(llm.Tool):
@@ -166,6 +325,10 @@ class ReticulumAPI(llm.API):
             ),
             llm_context=llm_context,
             tools=[
+                GetReticulumStatusTool(),
+                GetReticulumIdentityTool(),
+                GetReticulumContactsTool(),
+                GetReticulumMessagesTool(),
                 SendReticulumMessageTool(),
             ],
         )
