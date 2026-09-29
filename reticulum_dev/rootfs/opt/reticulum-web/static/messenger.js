@@ -2448,6 +2448,55 @@
 
     svg.replaceChildren();
 
+    const defs =
+      svgElement("defs");
+
+    const gradient =
+      svgElement(
+        "linearGradient",
+        {
+          id: "n2k-link-gradient",
+          x1: "0%",
+          y1: "0%",
+          x2: "100%",
+          y2: "100%"
+        }
+      );
+
+    const stop1 =
+      svgElement(
+        "stop",
+        {
+          offset: "0%",
+          "stop-color": "#56a8ff"
+        }
+      );
+
+    const stop2 =
+      svgElement(
+        "stop",
+        {
+          offset: "50%",
+          "stop-color": "#b57dff"
+        }
+      );
+
+    const stop3 =
+      svgElement(
+        "stop",
+        {
+          offset: "100%",
+          "stop-color": "#59dca4"
+        }
+      );
+
+    gradient.appendChild(stop1);
+    gradient.appendChild(stop2);
+    gradient.appendChild(stop3);
+
+    defs.appendChild(gradient);
+    svg.appendChild(defs);
+
     const nodes =
       paths
         .filter(
@@ -2603,7 +2652,10 @@
           {
             class:
               "n2k-viz-node",
-            tabindex: "0"
+            tabindex: "0",
+            "data-hop": String(
+              path.hops ?? 0
+            )
           }
         );
 

@@ -611,3 +611,104 @@
     animation: none;
   }
 }
+
+/* =====================================================
+   1.03.2-dev · MODERN COLOR MESH
+   ===================================================== */
+
+#n2k-network-viz {
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(86,156,255,.08),
+      rgba(255,255,255,.02) 38%,
+      rgba(255,255,255,.01) 70%
+    );
+}
+
+.n2k-viz-link {
+  stroke: url(#n2k-link-gradient);
+  stroke-width: 1.6;
+  opacity: .42;
+  filter:
+    drop-shadow(
+      0 0 3px rgba(100,170,255,.25)
+    );
+}
+
+.n2k-viz-core-circle {
+  fill: rgba(73,146,255,.20);
+  stroke: rgb(112,177,255);
+  stroke-width: 2.4;
+  filter:
+    drop-shadow(
+      0 0 8px rgba(73,146,255,.55)
+    );
+}
+
+.n2k-viz-core-pulse {
+  stroke: rgb(112,177,255);
+}
+
+.n2k-viz-core-text {
+  fill: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.n2k-viz-node circle {
+  fill: rgba(255,255,255,.075);
+  stroke-width: 1.7;
+  filter:
+    drop-shadow(
+      0 0 5px rgba(255,255,255,.12)
+    );
+}
+
+.n2k-viz-node[data-hop="0"] circle,
+.n2k-viz-node[data-hop="1"] circle {
+  stroke: rgb(89,220,164);
+  fill: rgba(89,220,164,.14);
+}
+
+.n2k-viz-node[data-hop="2"] circle {
+  stroke: rgb(86,168,255);
+  fill: rgba(86,168,255,.13);
+}
+
+.n2k-viz-node[data-hop="3"] circle {
+  stroke: rgb(181,125,255);
+  fill: rgba(181,125,255,.13);
+}
+
+.n2k-viz-node[data-hop="4"] circle,
+.n2k-viz-node[data-hop="5"] circle {
+  stroke: rgb(255,182,92);
+  fill: rgba(255,182,92,.13);
+}
+
+.n2k-viz-node[data-hop="6"] circle,
+.n2k-viz-node[data-hop="7"] circle,
+.n2k-viz-node[data-hop="8"] circle {
+  stroke: rgb(255,104,132);
+  fill: rgba(255,104,132,.13);
+}
+
+.n2k-viz-node:hover circle,
+.n2k-viz-node:focus circle {
+  transform: scale(1.22);
+  filter:
+    drop-shadow(
+      0 0 10px rgba(120,180,255,.55)
+    );
+}
+
+.n2k-viz-hop {
+  fill: #ffffff !important;
+  font-weight: 800;
+}
+
+.n2k-viz-detail strong {
+  color: rgb(112,177,255);
+}
+
