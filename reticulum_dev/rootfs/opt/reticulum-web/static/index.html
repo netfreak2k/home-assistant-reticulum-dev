@@ -6545,6 +6545,389 @@ if (document.readyState === "loading") {
 })();
 </script>
 
+
+<style id="messenger-chat-ux-0961-css">
+
+/* 0.96.1 · CHAT UX */
+
+.lxmf-chat.messenger-conversation {
+  min-height: 68vh;
+}
+
+.lxmf-chat .lxmf-chat-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(12px);
+}
+
+#lxmf-inbox.lxmf-chat-messages {
+  scroll-behavior: smooth;
+}
+
+.lxmf-chat .lxmf-chat-compose {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  padding-bottom:
+    max(12px, env(safe-area-inset-bottom));
+  backdrop-filter: blur(12px);
+}
+
+#lxmf-chat-content {
+  resize: none;
+}
+
+#lxmf-chat-send {
+  touch-action: manipulation;
+}
+
+@media (max-width: 600px) {
+
+  .lxmf-chat.messenger-conversation {
+    min-height:
+      calc(100dvh - 110px);
+    max-height:
+      calc(100dvh - 110px);
+  }
+
+  #lxmf-inbox.lxmf-chat-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .lxmf-chat .lxmf-chat-compose {
+    flex: 0 0 auto;
+  }
+}
+
+</style>
+
+<script id="messenger-chat-ux-0961">
+(() => {
+  "use strict";
+
+  const $ = id =>
+    document.getElementById(id);
+
+  const contactCache =
+    new Map();
+
+  function cleanName(value, peer) {
+    const raw =
+      String(value || "")
+        .replace(/[\u0000-\u001f\u007f]/g, "")
+        .trim();
+
+    if (
+      raw &&
+      raw !== "Anonymous Peer" &&
+      !raw.includes("\uFFFD") &&
+      !/^Kontakt\s+[0-9A-F]+$/i.test(raw)
+    ) {
+      return raw;
+    }
+
+    return peer
+      ? "Kontakt " +
+        String(peer)
+          .slice(0, 6)
+          .toUpperCase()
+      : "Unbekannter Kontakt";
+  }
+
+  function initial(name) {
+    return (
+      String(name || "?")
+        .trim()[0] || "?"
+    ).toUpperCase();
+  }
+
+  async function loadContacts() {
+    try {
+      const response =
+        await fetch(
+          "api/messenger/contacts?ts=" +
+          Date.now(),
+          {cache:"no-store"}
+        );
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data =
+        await response.json();
+
+      const contacts =
+        Array.isArray(data?.contacts)
+          ? data.contacts
+          : [];
+
+      contacts.forEach(contact => {
+        const peer =
+          String(
+            contact.destination_hash || ""
+          ).trim();
+
+        if (!peer) return;
+
+        contactCache.set(
+          peer,
+          cleanName(
+            contact.display_name,
+            peer
+          )
+        );
+      });
+
+    } catch (_) {
+      /* Bestehende UI bleibt nutzbar. */
+    }
+  }
+
+  function applyContactHeader(peer) {
+    peer =
+      String(peer || "").trim();
+
+    if (!peer) return;
+
+    const name =
+      contactCache.get(peer) ||
+      cleanName("", peer);
+
+    const title =
+      $("lxmf-chat-name");
+
+    const subtitle =
+      $("lxmf-chat-peer");
+
+    const avatar =
+      $("lxmf-chat-avatar");
+
+    if (title) {
+      title.textContent = name;
+    }
+
+    if (subtitle) {
+      subtitle.textContent =
+        "Reticulum · LXMF";
+      subtitle.title = peer;
+    }
+
+    if (avatar) {
+      avatar.textContent =
+        initial(name);
+    }
+  }
+
+  /*
+   * Hook existing working chat opener.
+   */
+  const previousOpen =
+    window.openLXMFChat;
+
+  if (
+    typeof previousOpen === "function"
+  ) {
+    window.openLXMFChat =
+      function(peer) {
+
+        previousOpen(peer);
+
+        applyContactHeader(peer);
+
+        /*
+         * Contact list may still be loading.
+         * Re-apply once cache is available.
+         */
+        loadContacts().then(() => {
+          applyContactHeader(peer);
+        });
+      };
+  }
+
+  /*
+   * Existing openMessengerConversation may hold
+   * a reference to the old function, therefore
+   * hook it as well.
+   */
+  const previousConversation =
+    window.openMessengerConversation;
+
+  if (
+    typeof previousConversation === "function"
+  ) {
+    window.openMessengerConversation =
+      function(peer) {
+
+        previousConversation(peer);
+
+        applyContactHeader(peer);
+
+        loadContacts().then(() => {
+          applyContactHeader(peer);
+        });
+      };
+  }
+
+  /*
+   * Never claim delivery when backend only
+   * guarantees that a message is queued/outgoing.
+   */
+  function normalizeMessageState() {
+    document
+      .querySelectorAll(
+        "#lxmf-inbox .lxmf-bubble-meta"
+      )
+      .forEach(node => {
+
+        node.textContent =
+          node.textContent
+            .replace(
+              /\s*·\s*gesendet/gi,
+              " · ausgehend"
+            )
+            .replace(
+              /\s*·\s*zugestellt/gi,
+              " · ausgehend"
+            );
+      });
+  }
+
+  /*
+   * Keep the latest message visible while
+   * the user is inside an active conversation.
+   */
+  function scrollChatBottom() {
+    const box =
+      $("lxmf-inbox");
+
+    if (!box) return;
+
+    box.scrollTop =
+      box.scrollHeight;
+  }
+
+  /*
+   * Observe only the message box, not the
+   * complete document.
+   */
+  function installMessageObserver() {
+    const box =
+      $("lxmf-inbox");
+
+    if (!box) return;
+
+    const observer =
+      new MutationObserver(() => {
+        normalizeMessageState();
+      });
+
+    observer.observe(
+      box,
+      {
+        childList: true,
+        subtree: true
+      }
+    );
+  }
+
+  /*
+   * Enhance existing sender without replacing
+   * the proven backend send path.
+   */
+  const previousSend =
+    window.sendLXMFChat;
+
+  if (
+    typeof previousSend === "function"
+  ) {
+    window.sendLXMFChat =
+      async function() {
+
+        const input =
+          $("lxmf-chat-content");
+
+        const before =
+          input
+            ? input.value.trim()
+            : "";
+
+        await previousSend();
+
+        if (before) {
+
+          setTimeout(() => {
+            if (
+              typeof window.refreshLXMFInbox
+              === "function"
+            ) {
+              window.refreshLXMFInbox(true);
+            }
+
+            normalizeMessageState();
+            scrollChatBottom();
+          }, 350);
+
+          setTimeout(() => {
+            if (
+              typeof window.refreshLXMFInbox
+              === "function"
+            ) {
+              window.refreshLXMFInbox(true);
+            }
+
+            normalizeMessageState();
+            scrollChatBottom();
+          }, 1500);
+        }
+      };
+  }
+
+  function init() {
+    loadContacts();
+
+    installMessageObserver();
+    normalizeMessageState();
+
+    const input =
+      $("lxmf-chat-content");
+
+    if (input) {
+      input.addEventListener(
+        "focus",
+        () => {
+          setTimeout(
+            scrollChatBottom,
+            250
+          );
+        }
+      );
+    }
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      init,
+      {once:true}
+    );
+  } else {
+    init();
+  }
+
+  window.reticulumChatUX0961 = {
+    loadContacts,
+    applyContactHeader,
+    normalizeMessageState
+  };
+})();
+</script>
+
 </body>
 </html>
 
