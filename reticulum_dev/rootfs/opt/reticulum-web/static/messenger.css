@@ -429,3 +429,185 @@
     left: 1px;
   }
 }
+
+/* =====================================================
+   1.03.0-dev · LIVE RETICULUM NODE MAP
+   ===================================================== */
+
+#n2k-network-viz {
+  margin: 18px 0;
+  padding: 14px;
+  border: 1px solid
+    rgba(255,255,255,.08);
+  border-radius: 14px;
+  background:
+    rgba(255,255,255,.025);
+  overflow: hidden;
+}
+
+.n2k-viz-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.n2k-viz-title {
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.n2k-viz-sub {
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: .55;
+}
+
+#n2k-viz-count {
+  font-size: 11px;
+  opacity: .65;
+}
+
+.n2k-viz-stage {
+  width: 100%;
+  overflow: hidden;
+}
+
+#n2k-viz-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 230px;
+  max-height: 330px;
+}
+
+.n2k-viz-link {
+  stroke: currentColor;
+  stroke-width: 1.3;
+  opacity: .22;
+  stroke-dasharray: 5 8;
+  animation:
+    n2k-flow 2.6s linear infinite;
+}
+
+@keyframes n2k-flow {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+
+.n2k-viz-core-circle {
+  fill: rgba(255,255,255,.14);
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.n2k-viz-core-pulse {
+  fill: none;
+  stroke: currentColor;
+  opacity: .2;
+  animation:
+    n2k-core-pulse 2.2s
+    ease-out infinite;
+}
+
+@keyframes n2k-core-pulse {
+  0% {
+    r: 24;
+    opacity: .4;
+  }
+
+  100% {
+    r: 40;
+    opacity: 0;
+  }
+}
+
+.n2k-viz-core-text {
+  fill: currentColor;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.n2k-viz-node {
+  cursor: pointer;
+  outline: none;
+}
+
+.n2k-viz-node circle {
+  fill: rgba(255,255,255,.08);
+  stroke: currentColor;
+  stroke-width: 1.4;
+  opacity: .85;
+  transition:
+    transform .18s ease,
+    opacity .18s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.n2k-viz-node:hover circle,
+.n2k-viz-node:focus circle {
+  transform: scale(1.18);
+  opacity: 1;
+}
+
+.n2k-viz-node text {
+  fill: currentColor;
+  font-size: 9px;
+  opacity: .62;
+}
+
+.n2k-viz-node
+.n2k-viz-hop {
+  font-size: 9px;
+  font-weight: 800;
+  opacity: .9;
+}
+
+.n2k-viz-detail {
+  min-height: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  margin-top: 5px;
+  padding-top: 10px;
+  border-top: 1px solid
+    rgba(255,255,255,.06);
+  font-size: 11px;
+  opacity: .72;
+}
+
+@media (max-width: 700px) {
+
+  #n2k-network-viz {
+    margin: 14px 0;
+    padding: 10px;
+  }
+
+  #n2k-viz-svg {
+    min-height: 210px;
+  }
+
+  .n2k-viz-detail {
+    display: block;
+  }
+
+  .n2k-viz-detail span,
+  .n2k-viz-detail strong {
+    display: block;
+    margin-top: 3px;
+  }
+}
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+  .n2k-viz-link,
+  .n2k-viz-core-pulse {
+    animation: none;
+  }
+}

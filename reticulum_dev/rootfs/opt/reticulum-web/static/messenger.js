@@ -2288,3 +2288,480 @@
     };
 
 })();
+
+/* =====================================================
+   1.03.0-dev · RETICULUM LIVE NODE MAP
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  const SVG_NS =
+    "http://www.w3.org/2000/svg";
+
+  let lastSignature = "";
+  let timer = null;
+
+  function shortHash(value) {
+    const text =
+      String(value || "");
+
+    if (!text) return "—";
+
+    return text.length > 10
+      ? text.slice(0, 6) + "…" +
+        text.slice(-4)
+      : text;
+  }
+
+  function svgElement(name, attrs = {}) {
+    const el =
+      document.createElementNS(
+        SVG_NS,
+        name
+      );
+
+    Object.entries(attrs)
+      .forEach(([key, value]) => {
+        el.setAttribute(
+          key,
+          String(value)
+        );
+      });
+
+    return el;
+  }
+
+  function ensureUI() {
+    if (
+      document.getElementById(
+        "n2k-network-viz"
+      )
+    ) return true;
+
+    const network =
+      document.getElementById(
+        "reticulum-network"
+      );
+
+    const table =
+      network?.querySelector(
+        ".network-table-wrap"
+      );
+
+    if (!network || !table) {
+      return false;
+    }
+
+    const wrap =
+      document.createElement("div");
+
+    wrap.id =
+      "n2k-network-viz";
+
+    wrap.innerHTML = `
+      <div class="n2k-viz-head">
+        <div>
+          <div class="n2k-viz-title">
+            Live Mesh
+          </div>
+
+          <div class="n2k-viz-sub">
+            Reticulum Pfade · live
+          </div>
+        </div>
+
+        <span id="n2k-viz-count">
+          0 Nodes
+        </span>
+      </div>
+
+      <div class="n2k-viz-stage">
+        <svg
+          id="n2k-viz-svg"
+          viewBox="0 0 600 360"
+          role="img"
+          aria-label="Reticulum Netzwerk"
+        ></svg>
+      </div>
+
+      <div
+        id="n2k-viz-detail"
+        class="n2k-viz-detail"
+      >
+        Node antippen für Details
+      </div>
+    `;
+
+    table.parentNode.insertBefore(
+      wrap,
+      table
+    );
+
+    return true;
+  }
+
+  function showDetail(path) {
+    const detail =
+      document.getElementById(
+        "n2k-viz-detail"
+      );
+
+    if (!detail) return;
+
+    detail.innerHTML = `
+      <strong>
+        ${shortHash(path.destination)}
+      </strong>
+
+      <span>
+        Hops:
+        ${path.hops ?? "—"}
+      </span>
+
+      <span>
+        Interface:
+        ${String(path.interface || "—")}
+      </span>
+
+      <span>
+        Next Hop:
+        ${shortHash(path.next_hop)}
+      </span>
+    `;
+  }
+
+  function render(paths) {
+    if (!ensureUI()) return;
+
+    const svg =
+      document.getElementById(
+        "n2k-viz-svg"
+      );
+
+    const count =
+      document.getElementById(
+        "n2k-viz-count"
+      );
+
+    if (!svg) return;
+
+    svg.replaceChildren();
+
+    const nodes =
+      paths
+        .filter(
+          p => p &&
+          p.destination
+        )
+        .slice(0, 12);
+
+    if (count) {
+      count.textContent =
+        nodes.length +
+        (nodes.length === 1
+          ? " Node"
+          : " Nodes");
+    }
+
+    const cx = 300;
+    const cy = 180;
+
+    /*
+     * Animated path lines first,
+     * so nodes stay above them.
+     */
+    nodes.forEach((path, index) => {
+      const angle =
+        (Math.PI * 2 * index) /
+        Math.max(nodes.length, 1)
+        - Math.PI / 2;
+
+      const hops =
+        Math.max(
+          1,
+          Math.min(
+            Number(path.hops || 1),
+            8
+          )
+        );
+
+      const radius =
+        105 + hops * 8;
+
+      const x =
+        cx + Math.cos(angle) * radius;
+
+      const y =
+        cy + Math.sin(angle) * radius;
+
+      const line =
+        svgElement(
+          "line",
+          {
+            x1: cx,
+            y1: cy,
+            x2: x,
+            y2: y,
+            class:
+              "n2k-viz-link"
+          }
+        );
+
+      line.style.animationDelay =
+        `${index * 0.12}s`;
+
+      svg.appendChild(line);
+    });
+
+    /*
+     * Local Home Assistant node.
+     */
+    const core =
+      svgElement(
+        "g",
+        {
+          class:
+            "n2k-viz-core"
+        }
+      );
+
+    const corePulse =
+      svgElement(
+        "circle",
+        {
+          cx,
+          cy,
+          r: 30,
+          class:
+            "n2k-viz-core-pulse"
+        }
+      );
+
+    const coreCircle =
+      svgElement(
+        "circle",
+        {
+          cx,
+          cy,
+          r: 22,
+          class:
+            "n2k-viz-core-circle"
+        }
+      );
+
+    const coreText =
+      svgElement(
+        "text",
+        {
+          x: cx,
+          y: cy + 4,
+          "text-anchor": "middle",
+          class:
+            "n2k-viz-core-text"
+        }
+      );
+
+    coreText.textContent = "HA";
+
+    core.appendChild(corePulse);
+    core.appendChild(coreCircle);
+    core.appendChild(coreText);
+
+    svg.appendChild(core);
+
+    /*
+     * Remote Reticulum destinations.
+     */
+    nodes.forEach((path, index) => {
+      const angle =
+        (Math.PI * 2 * index) /
+        Math.max(nodes.length, 1)
+        - Math.PI / 2;
+
+      const hops =
+        Math.max(
+          1,
+          Math.min(
+            Number(path.hops || 1),
+            8
+          )
+        );
+
+      const radius =
+        105 + hops * 8;
+
+      const x =
+        cx + Math.cos(angle) * radius;
+
+      const y =
+        cy + Math.sin(angle) * radius;
+
+      const group =
+        svgElement(
+          "g",
+          {
+            class:
+              "n2k-viz-node",
+            tabindex: "0"
+          }
+        );
+
+      const circle =
+        svgElement(
+          "circle",
+          {
+            cx: x,
+            cy: y,
+            r: 15
+          }
+        );
+
+      const label =
+        svgElement(
+          "text",
+          {
+            x,
+            y: y + 31,
+            "text-anchor": "middle"
+          }
+        );
+
+      label.textContent =
+        shortHash(
+          path.destination
+        );
+
+      const hopsLabel =
+        svgElement(
+          "text",
+          {
+            x,
+            y: y + 4,
+            "text-anchor": "middle",
+            class:
+              "n2k-viz-hop"
+          }
+        );
+
+      hopsLabel.textContent =
+        String(
+          path.hops ?? "?"
+        );
+
+      group.appendChild(circle);
+      group.appendChild(hopsLabel);
+      group.appendChild(label);
+
+      group.addEventListener(
+        "click",
+        () => showDetail(path)
+      );
+
+      group.addEventListener(
+        "keydown",
+        event => {
+          if (
+            event.key === "Enter" ||
+            event.key === " "
+          ) {
+            event.preventDefault();
+            showDetail(path);
+          }
+        }
+      );
+
+      svg.appendChild(group);
+    });
+  }
+
+  async function refresh() {
+    try {
+      if (!ensureUI()) return;
+
+      const response =
+        await fetch(
+          "api/network?ts=" +
+          Date.now(),
+          {
+            cache: "no-store"
+          }
+        );
+
+      if (!response.ok) return;
+
+      const data =
+        await response.json();
+
+      const paths =
+        Array.isArray(
+          data?.paths
+        )
+          ? data.paths
+          : [];
+
+      const visible =
+        paths.slice(0, 12);
+
+      const signature =
+        JSON.stringify(
+          visible.map(
+            p => [
+              p.destination,
+              p.hops,
+              p.next_hop,
+              p.interface
+            ]
+          )
+        );
+
+      if (
+        signature ===
+        lastSignature
+      ) return;
+
+      lastSignature =
+        signature;
+
+      render(visible);
+
+    } catch (error) {
+      console.error(
+        "[Reticulum 1.03] node map",
+        error
+      );
+    }
+  }
+
+  function init() {
+    ensureUI();
+    refresh();
+
+    timer =
+      setInterval(
+        refresh,
+        10000
+      );
+
+    console.info(
+      "[Reticulum] 1.03 Live Mesh ready"
+    );
+  }
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      init,
+      {once:true}
+    );
+  } else {
+    init();
+  }
+
+  window.reticulumMesh103 = {
+    refresh
+  };
+})();
