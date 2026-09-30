@@ -71,9 +71,22 @@
       : "Unbekannt";
   }
 
-  function renderContacts() {
+  const CONTACT_PAGE_SIZE = 15;
+  let visibleContactCount = CONTACT_PAGE_SIZE;
+
+  function removeContactMoreButton() {
+    document.getElementById("m97-contact-more")?.remove();
+  }
+
+  function renderContacts(resetLimit=false) {
     const root = $("msg-contact-list");
     if (!root) return;
+
+    if (resetLimit) {
+      visibleContactCount = CONTACT_PAGE_SIZE;
+    }
+
+    removeContactMoreButton();
 
     if (!state.contacts.length) {
       root.innerHTML =
@@ -81,8 +94,11 @@
       return;
     }
 
+    const visibleContacts =
+      state.contacts.slice(0, visibleContactCount);
+
     root.innerHTML =
-      state.contacts.map(contact => {
+      visibleContacts.map(contact => {
         const peer =
           String(contact.destination_hash || "");
 
@@ -130,6 +146,40 @@
           }
         };
       });
+
+    const remaining =
+      state.contacts.length - visibleContacts.length;
+
+    if (remaining > 0) {
+      const more =
+        document.createElement("button");
+
+      more.id = "m97-contact-more";
+      more.type = "button";
+      more.className = "m97-contact-more";
+      more.textContent =
+        "Weitere anzeigen (" + remaining + ")";
+
+      more.style.cssText =
+        "display:block;width:calc(100% - 24px);margin:10px 12px 14px;" +
+        "min-height:44px;border:1px solid rgba(255,255,255,.12);" +
+        "border-radius:12px;background:rgba(255,255,255,.035);" +
+        "color:#cbd3d7;font:inherit;font-weight:650;cursor:pointer;";
+
+      more.onclick = () => {
+        visibleContactCount += CONTACT_PAGE_SIZE;
+        renderContacts(false);
+
+        if (
+          typeof window.reticulumContacts104?.decorateContacts
+          === "function"
+        ) {
+          window.reticulumContacts104.decorateContacts();
+        }
+      };
+
+      root.insertAdjacentElement("afterend", more);
+    }
   }
 
   async function loadContacts() {
@@ -143,10 +193,36 @@
       const data =
         await response.json();
 
-      state.contacts =
+      const rawContacts =
         Array.isArray(data?.contacts)
           ? data.contacts
           : [];
+
+      const uniqueContacts =
+        new Map();
+
+      rawContacts.forEach(contact => {
+        const peer =
+          String(contact?.destination_hash || "")
+            .trim()
+            .toLowerCase();
+
+        if (!peer) return;
+
+        const previous =
+          uniqueContacts.get(peer);
+
+        if (
+          !previous ||
+          Number(contact?.last_seen || 0) >=
+          Number(previous?.last_seen || 0)
+        ) {
+          uniqueContacts.set(peer, contact);
+        }
+      });
+
+      state.contacts =
+        [...uniqueContacts.values()];
 
       state.contacts.sort(
         (a, b) =>
@@ -154,7 +230,7 @@
           Number(a?.last_seen || 0)
       );
 
-      renderContacts();
+      renderContacts(true);
 
     } catch (error) {
       console.error(
