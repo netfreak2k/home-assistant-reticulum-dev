@@ -295,16 +295,38 @@ def select_best_propagation_node():
         except Exception:
             continue
 
+        # RNS.Transport.hops_to() returns PATHFINDER_M (normally 128)
+        # when no usable path is currently known. Do not rank that sentinel
+        # as a real hop count; fall back to the fresh hop value captured with
+        # the propagation announce/cache record instead.
+        stored_hops = int(
+            item.get("hops") or 9999
+        )
+
         try:
-            hops = int(
+            live_hops = int(
                 RNS.Transport.hops_to(
                     peer_bytes
                 )
             )
         except Exception:
-            hops = int(
-                item.get("hops") or 9999
+            live_hops = 9999
+
+        pathfinder_m = int(
+            getattr(
+                RNS.Transport,
+                "PATHFINDER_M",
+                128,
             )
+            or 128
+        )
+
+        if 0 <= live_hops < pathfinder_m:
+            hops = live_hops
+        elif 0 <= stored_hops < pathfinder_m:
+            hops = stored_hops
+        else:
+            hops = 9999
 
         candidates.append({
             "peer": peer,
