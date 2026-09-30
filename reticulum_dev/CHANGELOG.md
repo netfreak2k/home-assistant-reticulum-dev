@@ -1,3 +1,9 @@
+## 1.18.4-dev
+
+- Fix Diagnostics · rnstatus staying on "Loading…".
+- Start the existing status refresh on page load and refresh it every 10 seconds.
+- No Reticulum, RNode, firmware or RF configuration changes.
+
 ## 1.18.3-dev
 
 - Increase the manual RNode info probe timeout from 5 to 15 seconds.
