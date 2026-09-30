@@ -7,7 +7,7 @@ This repository contains the current public beta development build.
 
 ## Current status
 
-**1.14.4-dev · Public Beta Onboarding**
+**1.18.4-dev · Beta baseline**
 
 The core software stack has passed remote beta validation.
 
@@ -112,7 +112,17 @@ names, but users should still review files before publishing them publicly.
 - Integrated system self-test
 - Privacy-conscious support diagnostic export
 
+## Documentation
+
+- [User guide](docs/USER_GUIDE.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
+- [Project license](LICENSE)
+
+The integrated **About** section in the add-on also identifies the project,
+developer, Reticulum/LXMF relationship and licensing references.
+
 ## Requirements
+
 
 - Home Assistant OS or another Home Assistant installation with add-on support
 - Supported architecture:
