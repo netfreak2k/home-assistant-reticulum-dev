@@ -1593,6 +1593,14 @@
     hookSettingsTab();
   }
 
+  // Public hook for the custom mobile navigation.
+  // The mobile Status tab does not click the legacy settings tab,
+  // so it must be able to load the profile/announce panel directly.
+  window.reticulumProfile099 = {
+    loadIdentity,
+    sendAnnounce
+  };
+
   if (
     document.readyState === "loading"
   ) {
