@@ -555,6 +555,7 @@
             message.timestamp || 0,
             message.direction || "",
             message.delivery_status || "",
+            message.delivery_method || "",
             message.delivery_updated_at || 0,
             message.content || ""
           ])
@@ -605,7 +606,9 @@
                             ? "zugestellt ✓✓"
                             : message.delivery_status === "failed"
                               ? "fehlgeschlagen ⚠"
-                              : "in Übertragung …"
+                              : message.delivery_method === "propagated"
+                                ? "Store & Forward ⏳"
+                                : "in Übertragung …"
                         }</span>`
                       : ""
                   }
