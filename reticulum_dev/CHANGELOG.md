@@ -1,3 +1,10 @@
+## 1.21.6-beta1
+
+- Store & Forward scanner now exposes its full discovery pipeline: valid → active → persisted → eligible.
+- Added diagnostics for rejected destination hashes, handler errors, last candidate and last scanner stage.
+- Candidate API now reports raw discovery-file counts and rejection previews to make zero-result scans debuggable.
+- Mobile status UI shows the concrete failure stage instead of only reporting “0 Server gefunden”.
+
 ## 1.21.5-beta1
 
 - Propagation-Scanner zeigt jetzt gültige, aktive, inaktive und ungültige LXMF-Propagation-Announces getrennt an.
