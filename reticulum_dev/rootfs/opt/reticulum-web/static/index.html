@@ -2257,6 +2257,45 @@ code {
 }
 </style>
 
+
+<script id="n2k-mobile-nav-fix-1164">
+(function () {
+  window.n2kMobileOpenTab = function (name) {
+    try {
+      var api = window.reticulumMessenger097;
+
+      if (api && typeof api.selectTab === "function") {
+        api.selectTab(name);
+      } else {
+        var tab = document.querySelector(
+          '.msg-tab[data-msg-tab="' + name + '"]'
+        );
+        if (tab) {
+          tab.click();
+        }
+      }
+
+      document.querySelectorAll(".n2k-bottom-tab").forEach(function (button) {
+        button.classList.toggle(
+          "active",
+          button.getAttribute("data-n2k-tab") === name
+        );
+      });
+
+      var app = document.getElementById("messenger-app");
+      if (app) {
+        app.scrollTop = 0;
+      }
+
+      return false;
+    } catch (error) {
+      console.error("[N2K Mobile Nav]", error);
+      return false;
+    }
+  };
+})();
+</script>
+
 </head>
 
 <body>
@@ -2264,7 +2303,7 @@ code {
 
   <div id="n2k-mobile-topbar" class="n2k-mobile-topbar" aria-hidden="true">
     <div class="n2k-mobile-home"><span class="n2k-home-icon">⌂</span><span>Home Assistant</span></div>
-    <button id="n2k-mobile-gear" class="n2k-mobile-gear" type="button" aria-label="Status öffnen">⚙</button>
+    <button id="n2k-mobile-gear" class="n2k-mobile-gear" type="button" aria-label="Status öffnen" onclick="n2kMobileOpenTab('settings')">⚙</button>
   </div>
 
   <header class="n2k-main-header">
@@ -2997,9 +3036,9 @@ code {
   </div>
 
   <nav id="n2k-mobile-bottom-nav" class="n2k-mobile-bottom-nav" aria-label="Mobile Navigation">
-    <button type="button" class="n2k-bottom-tab active" data-n2k-tab="chats"><span class="n2k-bottom-icon">●</span><span>Chats</span></button>
-    <button type="button" class="n2k-bottom-tab" data-n2k-tab="contacts"><span class="n2k-bottom-icon">◎</span><span>Kontakte</span></button>
-    <button type="button" class="n2k-bottom-tab" data-n2k-tab="settings"><span class="n2k-bottom-icon">⌁</span><span>Status</span></button>
+    <button type="button" class="n2k-bottom-tab active" data-n2k-tab="chats" onclick="n2kMobileOpenTab('chats')"><span class="n2k-bottom-icon">●</span><span>Chats</span></button>
+    <button type="button" class="n2k-bottom-tab" data-n2k-tab="contacts" onclick="n2kMobileOpenTab('contacts')"><span class="n2k-bottom-icon">◎</span><span>Kontakte</span></button>
+    <button type="button" class="n2k-bottom-tab" data-n2k-tab="settings" onclick="n2kMobileOpenTab('settings')"><span class="n2k-bottom-icon">⌁</span><span>Status</span></button>
   </nav>
 
 </div>
