@@ -3198,6 +3198,14 @@ def get_messenger_data():
                 item.get("delivery_status")
                 or "queued"
             ),
+            "delivery_method": str(
+                item.get("delivery_method")
+                or "direct"
+            ),
+            "propagation_node": str(
+                item.get("propagation_node")
+                or ""
+            ),
             "delivery_updated_at": int(
                 item.get("delivery_updated_at")
                 or 0
