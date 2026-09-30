@@ -7,7 +7,7 @@ This repository contains the current public beta development build.
 
 ## Current status
 
-**1.14.3-dev · Public Beta Preparation**
+**1.14.4-dev · Public Beta Onboarding**
 
 The core software stack has passed remote beta validation.
 
@@ -31,6 +31,63 @@ Not yet physically validated:
 
 These hardware reconnect tests remain explicitly unverified and do not block
 continued software beta testing.
+
+## For beta testers — 60 seconds
+
+1. Open Home Assistant.
+2. Go to:
+
+   Settings → Add-ons → Add-on Store → ⋮ → Repositories
+
+3. Add:
+
+   https://github.com/netfreak2k/home-assistant-reticulum-dev
+
+4. Install **N2K RNS Gateway DEV**.
+5. Start the add-on.
+6. Open its Web UI.
+7. Go to:
+
+   Messenger → Einstellungen → Systemcheck → Prüfen
+
+8. If all required checks show **PASS**, the basic installation is working.
+
+### First test
+
+After installation:
+
+1. Confirm the Reticulum node shows online.
+2. Open Messenger.
+3. Add or select a known LXMF contact.
+4. Send a short test message.
+5. Check that delivery state updates.
+6. Run the Systemcheck again.
+
+### If something fails
+
+Before reporting a problem:
+
+1. Run the Systemcheck.
+2. Open:
+
+   Messenger → Einstellungen
+
+3. Use:
+
+   **Diagnose exportieren**
+
+4. Include the generated JSON file with the bug report if appropriate.
+
+Do not publish:
+
+- passwords
+- access tokens
+- API keys
+- private Home Assistant URLs
+- private network credentials
+
+The diagnostic export is designed not to contain message bodies or contact
+names, but users should still review files before publishing them publicly.
 
 ## Main features
 

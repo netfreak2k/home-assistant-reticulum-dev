@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.14.4-dev — Beta Tester Onboarding
+
+### Documentation
+
+- 60-second beta tester quick start
+- Dedicated beta tester guide
+- Recommended validation sequence
+- Bug reporting checklist
+- Privacy reminders for external testers
+
+### Status
+
+No core functionality changed.
+
+Feature freeze remains active.
+
+
 ## 1.14.3-dev — Public Beta Preparation
 
 ### Documentation
