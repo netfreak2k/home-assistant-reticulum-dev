@@ -8099,10 +8099,21 @@ setInterval(refreshNodeIdentity, 60000);
 
 <!-- CONSOLIDATED EXTENSIONS · 0.62 -->
 <script>
-setInterval(
-  refreshLXMFInbox,
-  5000
-);
+setInterval(() => {
+  /*
+   * The current Messenger (0.97+) owns the active conversation.
+   * Do not let the legacy inbox renderer replace its DOM every
+   * five seconds; that caused Mesh Photo payload text and flicker.
+   */
+  if (
+    window.reticulumConversation097 &&
+    window.reticulumConversation097.activePeer
+  ) {
+    return;
+  }
+
+  refreshLXMFInbox();
+}, 5000);
 
 setInterval(() => {
   if (lxmfActivePeer) {
@@ -8113,7 +8124,13 @@ setInterval(() => {
 }, 15000);
 
 initLXMFChat();
-refreshLXMFInbox();
+
+if (
+  !window.reticulumConversation097 ||
+  !window.reticulumConversation097.activePeer
+) {
+  refreshLXMFInbox();
+}
 </script>
 
 <style>
