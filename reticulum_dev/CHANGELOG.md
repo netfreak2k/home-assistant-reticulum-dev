@@ -1,3 +1,16 @@
+## 1.20.0-beta1 · Resilience Core
+
+- Added **Resilience Core** status panel with simplified RNS, LXMF, active-interface and path overview.
+- Added a persistent **Notfallmodus** that reduces the Status UI without changing Reticulum/RNode configuration.
+- Added full **Gateway Backup** export for persistent Identity, contacts and supported add-on settings; message history is intentionally excluded.
+- Added guarded **Backup Restore** with format/size validation, atomic Identity/contact replacement and explicit add-on restart requirement.
+- Added clearer outbound message state: queued LXMF messages now show **in Übertragung …**, plus existing delivered/failed states.
+- Added guided Systemcheck recovery text with a concrete next step after PASS/FAIL.
+- Added runtime feature-bundle integrity check for Scanner, Announce, Mesh Photo, Emoji and Resilience UI.
+- Expanded the local handbook for backup/restore and Resilience mode.
+- Rollback branch: `backup-1.19.1-beta1-before-resilience-core`.
+- Clean-install validation on a second Home Assistant instance remains the final manual release gate.
+
 ## 1.19.1-beta1
 
 - Added an in-chat emoji picker next to the photo button.
