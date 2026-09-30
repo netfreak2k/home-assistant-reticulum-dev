@@ -43,6 +43,10 @@ options:
   rnode_spreadingfactor: 8
   rnode_codingrate: 5
   transport: false
+  propagation_enabled: false
+  propagation_node: ""
+  propagation_auto_sync: true
+  propagation_sync_interval: 900
   loglevel: "info"
 
 schema:
@@ -60,4 +64,8 @@ schema:
   rnode_spreadingfactor: "int(5,12)"
   rnode_codingrate: "int(5,8)"
   transport: "bool"
+  propagation_enabled: "bool"
+  propagation_node: "str?"
+  propagation_auto_sync: "bool"
+  propagation_sync_interval: "int(300,86400)"
   loglevel: "list(error|warning|notice|info|verbose|debug|path|extreme)"
