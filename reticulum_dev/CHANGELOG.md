@@ -1,3 +1,16 @@
+## 1.19.0-beta1
+
+- Added **Mesh Photo** sending inside LXMF chats.
+- Added camera/photo-library picker in the chat composer.
+- Photos are compressed locally in the browser to roughly 320 px and a target of about 18 KB JPEG before sending.
+- Added image preview, compressed dimensions/size and explicit **Foto senden** confirmation.
+- Received Mesh Photo messages render inline in chat; chat list shows **📷 Foto** instead of encoded payload data.
+- Added server-side photo payload validation and size protection.
+- Pending photos are bound to the selected contact and discarded if the destination changes.
+- Existing text-message send/receive path remains unchanged.
+- Added in-app handbook documentation for Mesh Photo.
+- Rollback branch: `backup-1.18.9-beta1-before-photos`.
+
 ## 1.18.9-beta1
 
 - Fixed mobile Status view not loading the Messenger profile panel.
