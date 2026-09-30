@@ -22,6 +22,33 @@
       .replaceAll("'", "&#039;");
   }
 
+  const N2K_PHOTO_PREFIX = "N2KPHOTO/1|image/jpeg|";
+
+  function isPhotoContent(value) {
+    return String(value || "").startsWith(N2K_PHOTO_PREFIX);
+  }
+
+  function renderMessageContent(value) {
+    const content = String(value || "");
+
+    if (!isPhotoContent(content)) {
+      return esc(content);
+    }
+
+    const b64 = content.slice(N2K_PHOTO_PREFIX.length);
+
+    if (
+      !b64 ||
+      b64.length > 40000 ||
+      !/^[A-Za-z0-9+/]+={0,2}$/.test(b64)
+    ) {
+      return '<span class="n2k-photo-invalid">📷 Foto konnte nicht angezeigt werden</span>';
+    }
+
+    return '<img class="n2k-chat-photo" alt="Gesendetes Foto" loading="lazy" ' +
+      'src="data:image/jpeg;base64,' + b64 + '">';
+  }
+
   function cleanName(contact) {
     const peer =
       String(contact?.destination_hash || "");
@@ -322,8 +349,13 @@
       const name =
         chatName(chat);
 
-      const preview =
+      const rawPreview =
         String(chat.last_message || "Noch keine Nachrichten");
+
+      const preview =
+        isPhotoContent(rawPreview)
+          ? "📷 Foto"
+          : rawPreview;
 
       const unread =
         Number(chat.unread || 0);
@@ -512,7 +544,7 @@
             }">
               <div class="lxmf-bubble">
                 <div class="lxmf-bubble-content">
-                  ${esc(message.content || "")}
+                  ${renderMessageContent(message.content || "")}
                 </div>
                 <div class="lxmf-bubble-meta">
                   ${esc(shortTime(message.timestamp))}
@@ -968,6 +1000,222 @@
       return sourceTab;
     }
   };
+})();
+
+/* =====================================================
+   1.19.0 · MESH PHOTO
+   ===================================================== */
+
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+  const PREFIX = "N2KPHOTO/1|image/jpeg|";
+  const MAX_DIMENSION = 320;
+  const TARGET_BYTES = 18 * 1024;
+  let pendingPayload = "";
+  let pendingBytes = 0;
+
+  function dataUrlBytes(dataUrl) {
+    const comma = String(dataUrl || "").indexOf(",");
+    if (comma < 0) return 0;
+    const b64 = dataUrl.slice(comma + 1);
+    return Math.floor((b64.length * 3) / 4);
+  }
+
+  function loadImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(img);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("Bild konnte nicht gelesen werden"));
+      };
+      img.src = url;
+    });
+  }
+
+  async function compressPhoto(file) {
+    if (!file || !String(file.type || "").startsWith("image/")) {
+      throw new Error("Bitte ein Bild auswählen");
+    }
+
+    const img = await loadImage(file);
+    const sourceWidth = img.naturalWidth || img.width;
+    const sourceHeight = img.naturalHeight || img.height;
+    const ratio = Math.min(1, MAX_DIMENSION / Math.max(sourceWidth, sourceHeight));
+
+    let width = Math.max(1, Math.round(sourceWidth * ratio));
+    let height = Math.max(1, Math.round(sourceHeight * ratio));
+    let quality = 0.72;
+    let dataUrl = "";
+
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d", {alpha:false});
+      if (!ctx) throw new Error("Bildkomprimierung nicht verfügbar");
+
+      ctx.drawImage(img, 0, 0, width, height);
+      dataUrl = canvas.toDataURL("image/jpeg", quality);
+
+      const bytes = dataUrlBytes(dataUrl);
+      if (bytes <= TARGET_BYTES) {
+        return {
+          payload: PREFIX + dataUrl.split(",", 2)[1],
+          dataUrl,
+          bytes,
+          width,
+          height
+        };
+      }
+
+      if (quality > 0.36) {
+        quality -= 0.08;
+      } else {
+        width = Math.max(120, Math.round(width * 0.84));
+        height = Math.max(120, Math.round(height * 0.84));
+        quality = 0.48;
+      }
+    }
+
+    const bytes = dataUrlBytes(dataUrl);
+    if (bytes > 24 * 1024) {
+      throw new Error("Foto bleibt nach Komprimierung zu groß");
+    }
+
+    return {
+      payload: PREFIX + dataUrl.split(",", 2)[1],
+      dataUrl,
+      bytes,
+      width,
+      height
+    };
+  }
+
+  function clearPending() {
+    pendingPayload = "";
+    pendingBytes = 0;
+
+    const input = $("n2k-photo-input");
+    const preview = $("n2k-photo-preview");
+    const img = $("n2k-photo-preview-image");
+    const meta = $("n2k-photo-preview-meta");
+
+    if (input) input.value = "";
+    if (img) img.removeAttribute("src");
+    if (meta) meta.textContent = "";
+    if (preview) preview.hidden = true;
+  }
+
+  async function choosePhoto(file) {
+    const status = $("lxmf-chat-status");
+    const preview = $("n2k-photo-preview");
+    const img = $("n2k-photo-preview-image");
+    const meta = $("n2k-photo-preview-meta");
+
+    try {
+      if (status) status.textContent = "Foto wird für Mesh komprimiert…";
+      const result = await compressPhoto(file);
+      pendingPayload = result.payload;
+      pendingBytes = result.bytes;
+
+      if (img) img.src = result.dataUrl;
+      if (meta) {
+        meta.textContent =
+          result.width + "×" + result.height + " · " +
+          Math.max(1, Math.round(result.bytes / 1024)) + " KB";
+      }
+      if (preview) preview.hidden = false;
+      if (status) status.textContent = "Mesh-Foto bereit";
+    } catch (error) {
+      clearPending();
+      if (status) status.textContent = "Foto: " + error.message;
+    }
+  }
+
+  async function sendPhoto() {
+    const peer = String($("lxmf-chat-destination")?.value || "").trim();
+    const status = $("lxmf-chat-status");
+    const send = $("n2k-photo-send");
+
+    if (!peer) {
+      if (status) status.textContent = "Kein Kontakt ausgewählt.";
+      return;
+    }
+
+    if (!pendingPayload) return;
+
+    if (send) send.disabled = true;
+    if (status) {
+      status.textContent =
+        "Mesh-Foto (" + Math.max(1, Math.round(pendingBytes/1024)) +
+        " KB) wird über LXMF gesendet…";
+    }
+
+    try {
+      const response = await fetch("api/node/lxmf/send", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          destination_hash:peer,
+          content:pendingPayload,
+          title:"N2K Mesh Photo"
+        }),
+        cache:"no-store"
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data?.error || "Versand fehlgeschlagen");
+      }
+
+      clearPending();
+      if (status) status.textContent = "Foto ausgehend";
+
+      setTimeout(() => window.reticulumConversation097?.render(true), 300);
+      setTimeout(() => {
+        window.reticulumConversation097?.render(true);
+        window.reticulumMessengerChats097?.refresh();
+      }, 1500);
+
+    } catch (error) {
+      if (status) status.textContent = "Foto-Versand fehlgeschlagen: " + error.message;
+    } finally {
+      if (send) send.disabled = false;
+    }
+  }
+
+  function init() {
+    const input = $("n2k-photo-input");
+    const pick = $("n2k-photo-pick");
+    const cancel = $("n2k-photo-cancel");
+    const send = $("n2k-photo-send");
+
+    if (pick) pick.addEventListener("click", () => input?.click());
+
+    if (input) {
+      input.addEventListener("change", () => {
+        const file = input.files?.[0];
+        if (file) choosePhoto(file);
+      });
+    }
+
+    if (cancel) cancel.addEventListener("click", clearPending);
+    if (send) send.addEventListener("click", sendPhoto);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, {once:true});
+  } else {
+    init();
+  }
 })();
 
 /* =====================================================
