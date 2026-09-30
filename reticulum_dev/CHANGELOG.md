@@ -1,3 +1,11 @@
+## 1.21.10-beta1
+
+- Umgebungsscanner nutzt jetzt den dauerhaft gepflegten LXMF-Announce-Cache statt nur das 30-Sekunden-Zeitfenster.
+- Bekannte LXMF-Peers der letzten 24 Stunden werden sofort angezeigt; neue Announces während des Scans werden separat als **live** markiert.
+- Manuell angelegte/importierte Kontakte werden nicht fälschlich als Umgebungstreffer gewertet.
+- Anzeige unterscheidet **live**, **bekannt aus Cache** und die Gesamtzahl; 128-Hop-Sentinel wird nicht als echter Hop angezeigt.
+- Der Scan bleibt passiv und erzeugt keine zusätzliche Funkübertragung.
+
 ## 1.21.8-beta1
 
 - Store & Forward discovery now persists valid inactive `lxmf.propagation` announces instead of discarding them.
