@@ -2950,6 +2950,17 @@ code {
         Noch kein aktiver Propagation Node entdeckt.
       </div>
       <div id="n2k-propagation-candidates" class="n2k-propagation-candidates"></div>
+
+      <div class="n2k-propagation-diagnostics" id="n2k-propagation-diagnostics">
+        <div><span>Scanner</span><strong id="n2k-propagation-scanner-state">aktiv</strong></div>
+        <div><span>Letzter Scan</span><strong id="n2k-propagation-last-scan">—</strong></div>
+        <div><span>Announces</span><strong id="n2k-propagation-announces">0</strong></div>
+        <div><span>Gespeichert</span><strong id="n2k-propagation-persisted">0</strong></div>
+      </div>
+
+      <button id="n2k-propagation-scan-now" class="n2k-propagation-scan-now" type="button">
+        Jetzt scannen
+      </button>
     </div>
 
     <div id="n2k-propagation-manual-box">
@@ -10299,9 +10310,17 @@ if (
     }
 
     if(runtime){
-      runtime.textContent=data.runtime_enabled
-        ? ((data.sync_result||"BEREIT")+(data.runtime_node?" · "+data.runtime_node.slice(0,8)+"…":""))
-        : "nicht aktiv";
+      if(data.runtime_enabled){
+        runtime.textContent=
+          (data.sync_result||"BEREIT")+
+          (data.runtime_node?" · "+data.runtime_node.slice(0,8)+"…":"");
+      }else if(data.enabled){
+        runtime.textContent=data.auto_discovery
+          ? "aktiv · warte auf Propagation Node"
+          : "aktiv · kein Node gesetzt";
+      }else{
+        runtime.textContent="aus";
+      }
     }
 
     if(last) last.textContent=stamp(data.last_sync);
@@ -10347,6 +10366,31 @@ if (
 
       var items=Array.isArray(data.candidates)?data.candidates:[];
       count.textContent=items.length+" Server gefunden";
+
+      var scannerState=$("n2k-propagation-scanner-state");
+      var lastScan=$("n2k-propagation-last-scan");
+      var announces=$("n2k-propagation-announces");
+      var persisted=$("n2k-propagation-persisted");
+
+      if(scannerState){
+        scannerState.textContent=String(
+          data.discovery_error||data.cache_error||data.probe_error||""
+        ).trim() ? "Fehler" : "aktiv";
+      }
+
+      if(lastScan){
+        lastScan.textContent=stamp(
+          data.last_cache_scan||data.last_probe||data.last_announce||0
+        );
+      }
+
+      if(announces){
+        announces.textContent=String(Number(data.announce_total||0));
+      }
+
+      if(persisted){
+        persisted.textContent=String(Number(data.announce_persisted||0));
+      }
 
       if(!items.length){
         list.innerHTML='<div class="n2k-propagation-candidate">'+
@@ -10562,6 +10606,24 @@ if (
   function boot(){
     $("n2k-propagation-save")?.addEventListener("click",save);
     $("n2k-propagation-auto-discovery")?.addEventListener("change",syncModeVisibility);
+
+    $("n2k-propagation-scan-now")?.addEventListener("click",async function(){
+      var button=$("n2k-propagation-scan-now");
+      if(button){
+        button.disabled=true;
+        button.textContent="Scanne…";
+      }
+
+      try{
+        await loadCandidates();
+      }finally{
+        if(button){
+          button.disabled=false;
+          button.textContent="Jetzt scannen";
+        }
+      }
+    });
+
     load();
     setInterval(load,30000);
   }
@@ -13117,6 +13179,50 @@ if (
   border-top:1px solid rgba(255,255,255,.04);
   color:rgba(176,193,203,.58);
   font-size:9px;
+}
+
+.n2k-propagation-diagnostics{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px 10px;
+  margin-top:10px;
+  padding:9px 10px;
+  border-top:1px solid rgba(255,255,255,.04);
+}
+
+.n2k-propagation-diagnostics div{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  min-width:0;
+  font-size:9px;
+}
+
+.n2k-propagation-diagnostics span{
+  color:rgba(172,190,199,.5);
+}
+
+.n2k-propagation-diagnostics strong{
+  color:rgba(225,234,239,.82);
+  text-align:right;
+  overflow-wrap:anywhere;
+}
+
+.n2k-propagation-scan-now{
+  width:100%;
+  min-height:36px;
+  margin-top:8px;
+  border:1px solid rgba(113,217,176,.18);
+  border-radius:9px;
+  background:rgba(113,217,176,.055);
+  color:rgba(129,224,187,.92);
+  font:inherit;
+  font-size:10px;
+  font-weight:750;
+}
+
+.n2k-propagation-scan-now:disabled{
+  opacity:.55;
 }
 
 #n2k-propagation-manual-box[hidden],
