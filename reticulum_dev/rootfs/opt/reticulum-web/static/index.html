@@ -10521,15 +10521,33 @@ if (
         throw new Error(data.error||"Speichern fehlgeschlagen");
       }
 
-      alert(
-        "Store & Forward gespeichert.\n\n"+
-        (autoDiscovery
-          ?"N2K sucht Propagation Nodes automatisch. "
-          :"Manueller Propagation Node gespeichert. ")+
-        "Bitte das Add-on jetzt neu starten."
-      );
+      if(data.restart_scheduled){
+        alert(
+          "Store & Forward gespeichert.\n\n"+
+          "N2K startet das Add-on jetzt automatisch neu. "+
+          "Die Oberfläche ist für einige Sekunden nicht erreichbar."
+        );
 
-      await load();
+        var note=$("n2k-propagation-note");
+        if(note){
+          note.textContent="Add-on wird neu gestartet · Scanner startet danach automatisch.";
+        }
+
+        setTimeout(function(){
+          window.location.reload();
+        },8000);
+
+      }else{
+        alert(
+          "Store & Forward gespeichert.\n\n"+
+          (autoDiscovery
+            ?"N2K sucht Propagation Nodes automatisch. "
+            :"Manueller Propagation Node gespeichert. ")+
+          "Bitte das Add-on jetzt neu starten."
+        );
+
+        await load();
+      }
 
     }catch(e){
       alert("Store & Forward konnte nicht gespeichert werden: "+(e.message||"Fehler"));
