@@ -1,3 +1,13 @@
+## 1.18.6-beta1
+
+- Public beta baseline.
+- Fix contact QR generation in Home Assistant Ingress.
+- Use POST + JSON for the QR request to avoid query-string/Ingress failures.
+- Render generated SVG inline in the contact modal.
+- Clean-install validation completed on a second Home Assistant system.
+- Documentation, licensing, update and backup checks completed.
+- Feature freeze remains active; beta work is limited to stabilization.
+
 ## 1.18.4-dev
 
 - Fix Diagnostics · rnstatus staying on "Loading…".
