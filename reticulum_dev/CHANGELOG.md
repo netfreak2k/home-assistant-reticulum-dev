@@ -1,3 +1,8 @@
+## 1.21.5-beta1
+
+- Propagation-Scanner zeigt jetzt gültige, aktive, inaktive und ungültige LXMF-Propagation-Announces getrennt an.
+- Diagnose erklärt bei 0 gefundenen Servern präziser, ob Announces vorhanden sind, aber kein Node aktiv/erreichbar ist.
+
 ## 1.21.1-beta1 · Auto Propagation Discovery
 
 - Added passive discovery of valid active `lxmf.propagation` announces.
