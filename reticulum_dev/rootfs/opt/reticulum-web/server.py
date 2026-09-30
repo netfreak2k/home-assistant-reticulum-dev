@@ -2283,6 +2283,7 @@ N2K_BACKUP_OPTION_KEYS = (
     "rnode_codingrate",
     "transport",
     "propagation_enabled",
+    "propagation_auto_discovery",
     "propagation_node",
     "propagation_auto_sync",
     "propagation_sync_interval",
@@ -2324,6 +2325,12 @@ def get_propagation_config():
                 False,
             )
         ),
+        "auto_discovery": bool(
+            options.get(
+                "propagation_auto_discovery",
+                True,
+            )
+        ),
         "node": str(
             options.get(
                 "propagation_node",
@@ -2349,6 +2356,33 @@ def get_propagation_config():
                 "lxmf_propagation_enabled",
                 False,
             )
+        ),
+        "runtime_auto_discovery": bool(
+            state.get(
+                "lxmf_propagation_auto_discovery",
+                False,
+            )
+        ),
+        "runtime_source": str(
+            state.get(
+                "lxmf_propagation_source",
+                "",
+            )
+            or ""
+        ),
+        "candidate_count": int(
+            state.get(
+                "lxmf_propagation_candidates",
+                0,
+            )
+            or 0
+        ),
+        "selected_hops": int(
+            state.get(
+                "lxmf_propagation_selected_hops",
+                0,
+            )
+            or 0
         ),
         "runtime_node": str(
             state.get(
@@ -2381,6 +2415,86 @@ def get_propagation_config():
     }
 
 
+def get_propagation_candidates():
+    path = Path(
+        "/config/reticulum/homeassistant-node/propagation-nodes.json"
+    )
+
+    now = int(time.time())
+
+    try:
+        if path.exists():
+            value = json.loads(
+                path.read_text(
+                    encoding="utf-8"
+                )
+            )
+        else:
+            value = []
+
+        if not isinstance(value, list):
+            value = []
+
+        candidates = []
+
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+
+            peer = str(
+                item.get("destination_hash") or ""
+            ).strip().lower()
+
+            seen = int(
+                item.get("last_seen") or 0
+            )
+
+            if not re.fullmatch(
+                r"[0-9a-f]{32}",
+                peer,
+            ):
+                continue
+
+            if not seen or now - seen > 1800:
+                continue
+
+            candidates.append({
+                "destination_hash": peer,
+                "active": item.get("active") is True,
+                "last_seen": seen,
+                "age_seconds": max(0, now - seen),
+                "hops": int(
+                    item.get("hops") or 0
+                ),
+                "stamp_cost": int(
+                    item.get("stamp_cost") or 0
+                ),
+            })
+
+        candidates.sort(
+            key=lambda item: (
+                0 if item["active"] else 1,
+                item["hops"],
+                item["age_seconds"],
+                item["stamp_cost"],
+            )
+        )
+
+        return {
+            "ok": True,
+            "count": len(candidates),
+            "candidates": candidates,
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "count": 0,
+            "candidates": [],
+            "error": str(exc),
+        }
+
+
 def save_propagation_config(payload):
     if not isinstance(payload, dict):
         return {
@@ -2390,6 +2504,13 @@ def save_propagation_config(payload):
 
     enabled = bool(
         payload.get("enabled", False)
+    )
+
+    auto_discovery = bool(
+        payload.get(
+            "auto_discovery",
+            True,
+        )
     )
 
     node = str(
@@ -2419,15 +2540,19 @@ def save_propagation_config(payload):
         ),
     )
 
-    if enabled and not re.fullmatch(
-        r"[0-9a-f]{32}",
-        node,
+    if (
+        enabled
+        and not auto_discovery
+        and not re.fullmatch(
+            r"[0-9a-f]{32}",
+            node,
+        )
     ):
         return {
             "ok": False,
             "error": (
-                "Propagation Node muss ein "
-                "32-stelliger Hex-Destination-Hash sein"
+                "Im manuellen Modus muss ein "
+                "32-stelliger Propagation Node Hash eingetragen sein"
             ),
         }
 
@@ -2444,6 +2569,7 @@ def save_propagation_config(payload):
         current = get_addon_options()
 
         current["propagation_enabled"] = enabled
+        current["propagation_auto_discovery"] = auto_discovery
         current["propagation_node"] = node
         current["propagation_auto_sync"] = auto_sync
         current["propagation_sync_interval"] = interval
@@ -2495,6 +2621,7 @@ def save_propagation_config(payload):
         return {
             "ok": True,
             "enabled": enabled,
+            "auto_discovery": auto_discovery,
             "node": node,
             "auto_sync": auto_sync,
             "sync_interval": interval,
@@ -3676,6 +3803,12 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/node/lxmf/announce"):
             self.send_json(request_lxmf_announce())
+            return
+
+        if path.endswith("/api/propagation/candidates"):
+            self.send_json(
+                get_propagation_candidates()
+            )
             return
 
         if path.endswith("/api/propagation"):
