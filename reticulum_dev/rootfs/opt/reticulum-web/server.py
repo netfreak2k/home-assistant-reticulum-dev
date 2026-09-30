@@ -2219,8 +2219,230 @@ N2K_BACKUP_OPTION_KEYS = (
     "rnode_spreadingfactor",
     "rnode_codingrate",
     "transport",
+    "propagation_enabled",
+    "propagation_node",
+    "propagation_auto_sync",
+    "propagation_sync_interval",
     "loglevel",
 )
+
+
+def get_propagation_config():
+    try:
+        options = get_addon_options()
+    except Exception:
+        options = {}
+
+    state_file = Path(
+        "/config/reticulum/homeassistant-node/state.json"
+    )
+
+    state = {}
+
+    try:
+        if state_file.exists():
+            value = json.loads(
+                state_file.read_text(
+                    encoding="utf-8"
+                )
+            )
+
+            if isinstance(value, dict):
+                state = value
+
+    except Exception:
+        state = {}
+
+    return {
+        "ok": True,
+        "enabled": bool(
+            options.get(
+                "propagation_enabled",
+                False,
+            )
+        ),
+        "node": str(
+            options.get(
+                "propagation_node",
+                "",
+            )
+            or ""
+        ).strip().lower(),
+        "auto_sync": bool(
+            options.get(
+                "propagation_auto_sync",
+                True,
+            )
+        ),
+        "sync_interval": int(
+            options.get(
+                "propagation_sync_interval",
+                900,
+            )
+            or 900
+        ),
+        "runtime_enabled": bool(
+            state.get(
+                "lxmf_propagation_enabled",
+                False,
+            )
+        ),
+        "runtime_node": str(
+            state.get(
+                "lxmf_propagation_node",
+                "",
+            )
+            or ""
+        ),
+        "last_sync": int(
+            state.get(
+                "lxmf_propagation_last_sync",
+                0,
+            )
+            or 0
+        ),
+        "sync_result": str(
+            state.get(
+                "lxmf_propagation_sync_result",
+                "",
+            )
+            or ""
+        ),
+        "error": str(
+            state.get(
+                "lxmf_propagation_error",
+                "",
+            )
+            or ""
+        ),
+    }
+
+
+def save_propagation_config(payload):
+    if not isinstance(payload, dict):
+        return {
+            "ok": False,
+            "error": "Ungültige Daten",
+        }
+
+    enabled = bool(
+        payload.get("enabled", False)
+    )
+
+    node = str(
+        payload.get("node") or ""
+    ).strip().lower()
+
+    auto_sync = bool(
+        payload.get("auto_sync", True)
+    )
+
+    try:
+        interval = int(
+            payload.get(
+                "sync_interval",
+                900,
+            )
+            or 900
+        )
+    except Exception:
+        interval = 900
+
+    interval = max(
+        300,
+        min(
+            interval,
+            86400,
+        ),
+    )
+
+    if enabled and not re.fullmatch(
+        r"[0-9a-f]{32}",
+        node,
+    ):
+        return {
+            "ok": False,
+            "error": (
+                "Propagation Node muss ein "
+                "32-stelliger Hex-Destination-Hash sein"
+            ),
+        }
+
+    if node and not re.fullmatch(
+        r"[0-9a-f]{32}",
+        node,
+    ):
+        return {
+            "ok": False,
+            "error": "Ungültiger Propagation Node Hash",
+        }
+
+    try:
+        current = get_addon_options()
+
+        current["propagation_enabled"] = enabled
+        current["propagation_node"] = node
+        current["propagation_auto_sync"] = auto_sync
+        current["propagation_sync_interval"] = interval
+
+        token = os.environ.get(
+            "SUPERVISOR_TOKEN"
+        )
+
+        if not token:
+            raise RuntimeError(
+                "Supervisor API nicht verfügbar"
+            )
+
+        body = json.dumps({
+            "options": current
+        }).encode("utf-8")
+
+        request = urllib.request.Request(
+            "http://supervisor/addons/self/options",
+            data=body,
+            method="POST",
+            headers={
+                "Authorization": "Bearer " + token,
+                "Content-Type": "application/json",
+            },
+        )
+
+        with urllib.request.urlopen(
+            request,
+            timeout=10,
+        ) as response:
+            raw = response.read().decode(
+                "utf-8"
+            )
+
+        result = json.loads(
+            raw or "{}"
+        )
+
+        if result.get("result") not in (
+            None,
+            "ok",
+        ):
+            raise RuntimeError(
+                result.get("message")
+                or "Option konnte nicht gespeichert werden"
+            )
+
+        return {
+            "ok": True,
+            "enabled": enabled,
+            "node": node,
+            "auto_sync": auto_sync,
+            "sync_interval": interval,
+            "restart_required": True,
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": str(exc),
+        }
 
 
 def get_n2k_backup():
@@ -3385,6 +3607,42 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(request_lxmf_announce())
             return
 
+        if path.endswith("/api/propagation"):
+            try:
+                length = int(
+                    self.headers.get(
+                        "Content-Length",
+                        "0",
+                    )
+                )
+
+                if length <= 0 or length > 16384:
+                    raise ValueError(
+                        "Ungültige Anfrage"
+                    )
+
+                raw = self.rfile.read(length)
+                payload = json.loads(
+                    raw.decode("utf-8")
+                )
+
+                result = save_propagation_config(
+                    payload
+                )
+
+                self.send_json(
+                    result,
+                    200 if result.get("ok") else 400,
+                )
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc),
+                }, 400)
+
+            return
+
         if path.endswith("/api/backup/restore"):
             try:
                 length = int(
@@ -3731,6 +3989,12 @@ class Handler(BaseHTTPRequestHandler):
                     "error": str(exc),
                 }, 400)
 
+            return
+
+        if path.endswith("/api/propagation"):
+            self.send_json(
+                get_propagation_config()
+            )
             return
 
         if path.endswith("/api/backup"):
