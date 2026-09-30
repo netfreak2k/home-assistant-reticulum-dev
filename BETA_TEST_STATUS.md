@@ -2,11 +2,11 @@
 
 Version target:
 
-`1.14.0-dev`
+`1.14.1-dev`
 
 Status:
 
-`BETA CANDIDATE`
+`BETA 2 · REMOTE VALIDATED`
 
 ## Remote acceptance test
 
@@ -35,19 +35,30 @@ system is currently being accessed remotely.
 
 ## Release rule
 
-Major feature development is frozen for this beta candidate.
+The software stack may continue through beta validation without the
+physical USB reconnect test.
 
-Allowed before the next beta/stable release:
+The following limitation remains explicitly unverified:
+
+- physical RNode USB disconnect
+- physical RNode USB reconnect
+- automatic RNode recovery after reconnect
+
+This does not block remote software beta testing.
+
+Feature freeze remains active.
+
+Allowed:
 
 - bug fixes
 - compatibility fixes
 - documentation
 - licensing corrections
 - stability improvements
-- hardware reconnect fixes if required
+- diagnostic improvements
 
-Not planned before hardware acceptance:
+Not allowed during feature freeze:
 
 - major UI redesign
 - new messaging architecture
-- new protocol features
+- major protocol features

@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.14.1-dev — Beta 2
+
+### Status
+
+Remote software validation complete.
+
+The physical RNode USB reconnect test remains unverified because no
+on-site access is currently available.
+
+This limitation does not block continued beta testing of the software
+stack.
+
+### Validation state
+
+PASS:
+
+- Add-on restart
+- Persistent identity
+- Contacts persistence
+- Reticulum stack
+- LXMF send
+- Delivery status
+- Retry workflow
+- Integrated self-test
+
+UNVERIFIED:
+
+- Physical RNode USB disconnect
+- Physical RNode USB reconnect
+- Automatic recovery after reconnect
+
+### Development policy
+
+Feature freeze remains active.
+
+
 ## 1.14.0-dev — Beta Candidate
 
 ### Status
