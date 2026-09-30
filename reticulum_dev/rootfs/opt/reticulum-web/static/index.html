@@ -10917,6 +10917,8 @@ if (
     var items=Array.isArray(data&&data.contacts)?data.contacts:[];
     var live=Number(data&&data.live_count||0);
     var cached=Number(data&&data.cached_count||0);
+    var rnsPaths=Number(data&&data.rns_path_count||0);
+    var cacheMatches=Number(data&&data.lxmf_cache_matches||0);
 
     if(!items.length){
       box.innerHTML='<div class="n2k-nearby-empty">Keine LXMF-Announces aus den letzten 24 Stunden bekannt.</div>';
@@ -10953,9 +10955,10 @@ if (
     var status=el("n2k-nearby-status");
     if(status && !scanTimer){
       status.textContent=
-        "Bekannt: "+items.length+
-        " · live im letzten Scan: "+live+
-        " · Cache: "+cached;
+        items.length+" LXMF bekannt · "+
+        live+" live · "+
+        rnsPaths+" RNS-Ziele"+
+        (cacheMatches ? " · "+cacheMatches+" aus RNS-Cache" : "");
     }
 
     box.querySelectorAll(".n2k-nearby-open").forEach(function(btn){
@@ -11009,12 +11012,15 @@ if (
       var live=Number(data.live_count||0);
       var total=Number(data.count||0);
       var cached=Number(data.cached_count||0);
+      var rnsPaths=Number(data.rns_path_count||0);
+      var cacheMatches=Number(data.lxmf_cache_matches||0);
 
       if(status){
         status.textContent=
           "Scan beendet · "+live+" live · "+
-          cached+" bekannt aus Cache · "+
-          total+" gesamt";
+          cached+" LXMF bekannt · "+
+          rnsPaths+" RNS-Ziele"+
+          (cacheMatches ? " · "+cacheMatches+" Cache-Treffer" : "");
       }
 
       setTimeout(function(){
@@ -11057,7 +11063,8 @@ if (
         status.textContent=
           "Scan läuft · noch "+left+" s · "+
           Number(data.live_count||0)+" live · "+
-          Number(data.cached_count||0)+" bekannt";
+          Number(data.cached_count||0)+" LXMF bekannt · "+
+          Number(data.rns_path_count||0)+" RNS-Ziele";
       }
 
       if(bar){
