@@ -562,29 +562,29 @@ def parse_rnstatus(text):
         peers = re.search(r"Peers\s*:\s*(\d+)\s+reachable", block)
 
         noise_line = re.search(
-            r"Noise\\s+Fl\\.\\s*:\\s*([^\\n]+)",
+            r"Noise\s+Fl\.\s*:\s*([^\n]+)",
             block,
             re.I,
         )
         noise_dbm = re.search(
-            r"(-?\\d+(?:\\.\\d+)?)\\s*dBm",
+            r"(-?\d+(?:\.\d+)?)\s*dBm",
             noise_line.group(1) if noise_line else "",
             re.I,
         )
         airtime = re.search(
-            r"Airtime\\s*:\\s*([0-9.]+)%\\s*\\(15s\\),"
-            r"\\s*([0-9.]+)%\\s*\\(1h\\)",
+            r"Airtime\s*:\s*([0-9.]+)%\s*\(15s\),"
+            r"\s*([0-9.]+)%\s*\(1h\)",
             block,
             re.I,
         )
         channel_load = re.search(
-            r"Ch\\.\\s*Load\\s*:\\s*([0-9.]+)%\\s*\\(15s\\),"
-            r"\\s*([0-9.]+)%\\s*\\(1h\\)",
+            r"Ch\.\s*Load\s*:\s*([0-9.]+)%\s*\(15s\),"
+            r"\s*([0-9.]+)%\s*\(1h\)",
             block,
             re.I,
         )
         cpu_load = re.search(
-            r"CPU\\s+load\\s*:\\s*([^\\n]+)",
+            r"CPU\s+load\s*:\s*([^\n]+)",
             block,
             re.I,
         )
