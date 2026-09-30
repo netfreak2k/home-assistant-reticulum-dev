@@ -2437,6 +2437,27 @@ def get_propagation_config():
             )
             or ""
         ),
+        "last_probe": int(
+            state.get(
+                "lxmf_propagation_last_probe",
+                0,
+            )
+            or 0
+        ),
+        "probe_requests": int(
+            state.get(
+                "lxmf_propagation_probe_requests",
+                0,
+            )
+            or 0
+        ),
+        "probe_error": str(
+            state.get(
+                "lxmf_propagation_probe_error",
+                "",
+            )
+            or ""
+        ),
         "error": str(
             state.get(
                 "lxmf_propagation_error",
@@ -2498,7 +2519,7 @@ def get_propagation_candidates():
             total_seen += 1
             newest_seen = max(newest_seen, seen)
 
-            if not seen or now - seen > 1800:
+            if not seen or now - seen > 86400:
                 stale_count += 1
                 continue
 
