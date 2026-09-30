@@ -1804,6 +1804,38 @@ def get_n2k_selftest():
 
     failed = len(required) - passed
 
+    failed_keys = [
+        item.get("key")
+        for item in required
+        if not item.get("passed")
+    ]
+
+    if failed == 0:
+        next_step = (
+            "System bereit. Text, Announce, Scanner und bei Bedarf "
+            "Mesh-Foto mit einem bekannten Kontakt testen."
+        )
+    elif "identity" in failed_keys:
+        next_step = (
+            "Add-on neu starten. Bleibt die Identity fehlerhaft, "
+            "vor weiteren Änderungen ein Gateway-Backup prüfen."
+        )
+    elif "network" in failed_keys:
+        next_step = (
+            "Aktive Reticulum-Interfaces prüfen. Bei RNode zuerst "
+            "USB/Port, sonst AutoInterface/TCP/Internet Bootstrap prüfen."
+        )
+    elif "rnode" in failed_keys:
+        next_step = (
+            "RNode-Verbindung und konfigurierten seriellen Port prüfen. "
+            "Keine Identity oder Kontakte löschen."
+        )
+    else:
+        next_step = (
+            "Diagnose exportieren und den ersten FAIL-Eintrag prüfen. "
+            "Keine weiteren Einstellungen auf Verdacht ändern."
+        )
+
     return {
         "ok": failed == 0,
         "state":
@@ -1813,6 +1845,7 @@ def get_n2k_selftest():
         "passed": passed,
         "failed": failed,
         "checks": checks,
+        "next_step": next_step,
         "timestamp": int(time.time()),
     }
 
@@ -2367,19 +2400,30 @@ def restore_n2k_backup(payload):
             },
         )
 
-        with urllib.request.urlopen(
-            request,
-            timeout=5,
-        ) as response:
-            response.read()
+        try:
+            with urllib.request.urlopen(
+                request,
+                timeout=5,
+            ) as response:
+                response.read()
 
-        options_restored = len(clean_options)
+            options_restored = len(clean_options)
+            options_warning = None
+
+        except Exception as exc:
+            options_warning = (
+                "Identity und Kontakte wurden wiederhergestellt, "
+                "Einstellungen aber nicht vollständig: " + str(exc)
+            )
+    else:
+        options_warning = None
 
     return {
         "ok": True,
         "restart_required": True,
         "contacts_restored": len(clean_contacts),
         "options_restored": options_restored,
+        "warning": options_warning,
         "message": (
             "Backup wiederhergestellt. "
             "Add-on jetzt neu starten."
