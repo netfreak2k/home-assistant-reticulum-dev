@@ -1,3 +1,10 @@
+## 1.19.1-beta1
+
+- Added an in-chat emoji picker next to the photo button.
+- Emojis are inserted into the existing text composer at the current cursor position.
+- Uses the unchanged LXMF text send/receive path; no protocol changes.
+- Includes a compact set of common reactions plus mesh/offgrid-friendly symbols such as 📡, ⚡, 📍, ✅ and ⚠️.
+
 ## 1.19.0-beta1
 
 - Added **Mesh Photo** sending inside LXMF chats.
