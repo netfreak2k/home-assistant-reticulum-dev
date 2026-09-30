@@ -608,13 +608,30 @@ def lxmf_message_id(message):
 def lxmf_outbound_delivered(message):
     message_id = lxmf_message_id(message)
 
+    propagated = (
+        getattr(message, "method", None)
+        == LXMF.LXMessage.PROPAGATED
+        or getattr(message, "desired_method", None)
+        == LXMF.LXMessage.PROPAGATED
+    )
+
+    status = (
+        "propagated"
+        if propagated
+        else "delivered"
+    )
+
     update_lxmf_outbox_status(
         message_id,
-        "delivered",
+        status,
     )
 
     RNS.log(
-        "LXMF DELIVERED: " + message_id,
+        (
+            "LXMF PROPAGATED: "
+            if propagated
+            else "LXMF DELIVERED: "
+        ) + message_id,
         RNS.LOG_INFO,
     )
 
