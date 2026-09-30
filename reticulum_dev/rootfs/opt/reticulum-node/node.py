@@ -463,7 +463,7 @@ def scan_cached_propagation_nodes():
                 ):
                     continue
 
-                import msgpack
+                import RNS.vendor.umsgpack as msgpack
 
                 unpacked = msgpack.unpackb(
                     app_data
@@ -917,7 +917,7 @@ class LXMFPropagationDiscoveryHandler:
 
             PROPAGATION_DIAGNOSTICS["announce_valid"] += 1
 
-            import msgpack
+            import RNS.vendor.umsgpack as msgpack
 
             unpacked = msgpack.unpackb(
                 app_data
