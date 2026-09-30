@@ -5791,18 +5791,20 @@ async function openM110QrModal(
 
   try {
 
-    const url =
-      "api/messenger/qr?peer=" +
-      encodeURIComponent(peer) +
-      "&name=" +
-      encodeURIComponent(name) +
-      "&t=" +
-      Date.now();
-
     const response =
       await fetch(
-        url,
-        { cache: "no-store" }
+        "api/messenger/qr",
+        {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            peer: peer,
+            name: name
+          })
+        }
       );
 
     if (!response.ok) {
