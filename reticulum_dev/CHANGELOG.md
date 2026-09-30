@@ -1,3 +1,16 @@
+## 1.21.1-beta1 · Auto Propagation Discovery
+
+- Added passive discovery of valid active `lxmf.propagation` announces.
+- Added automatic propagation-node selection ranked by hop count, freshness and stamp cost.
+- Added anti-flap behaviour: the current discovered node is retained when it remains fresh and within one hop of the best candidate.
+- Added automatic/manual selection mode in the mobile Store & Forward UI.
+- Added visible selected-node, hop-count and discovered-candidate status.
+- Added `/api/propagation/candidates` for recent discovered propagation nodes.
+- Automatic mode no longer requires manually entering a propagation-node hash.
+- Automatically selected nodes are used for Store & Forward, auto-sync, message metadata and Systemcheck.
+- Auto-discovery is passive and does not emit extra discovery traffic.
+- Rollback branch: `backup-1.21.0-beta1-before-auto-propagation`.
+
 ## 1.21.0-beta1 · Store & Forward
 
 - Added standards-based **LXMF Propagation / Store & Forward** support without RFed-specific dependencies.
