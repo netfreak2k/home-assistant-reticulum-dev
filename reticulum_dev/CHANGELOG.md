@@ -1,3 +1,9 @@
+## 1.18.3-dev
+
+- Increase the manual RNode info probe timeout from 5 to 15 seconds.
+- Keep the probe read-only; no flashing, RF changes or automatic activation.
+- Improve timeout diagnostics for slower RNode handshakes.
+
 ## 1.18.2-dev
 
 - Add live RNode interface telemetry to the Web UI.
