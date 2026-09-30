@@ -604,11 +604,13 @@
                         }">${
                           message.delivery_status === "delivered"
                             ? "zugestellt ✓✓"
-                            : message.delivery_status === "failed"
-                              ? "fehlgeschlagen ⚠"
-                              : message.delivery_method === "propagated"
-                                ? "Store & Forward ⏳"
-                                : "in Übertragung …"
+                            : message.delivery_status === "propagated"
+                              ? "am Propagation Node ✓"
+                              : message.delivery_status === "failed"
+                                ? "fehlgeschlagen ⚠"
+                                : message.delivery_method === "propagated"
+                                  ? "Store & Forward ⏳"
+                                  : "in Übertragung …"
                         }</span>`
                       : ""
                   }
