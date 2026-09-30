@@ -1037,6 +1037,7 @@
   const TARGET_BYTES = 18 * 1024;
   let pendingPayload = "";
   let pendingBytes = 0;
+  let pendingPeer = "";
 
   function dataUrlBytes(dataUrl) {
     const comma = String(dataUrl || "").indexOf(",");
@@ -1124,6 +1125,7 @@
   function clearPending() {
     pendingPayload = "";
     pendingBytes = 0;
+    pendingPeer = "";
 
     const input = $("n2k-photo-input");
     const preview = $("n2k-photo-preview");
@@ -1147,6 +1149,7 @@
       const result = await compressPhoto(file);
       pendingPayload = result.payload;
       pendingBytes = result.bytes;
+      pendingPeer = String($("lxmf-chat-destination")?.value || "").trim();
 
       if (img) img.src = result.dataUrl;
       if (meta) {
@@ -1173,6 +1176,12 @@
     }
 
     if (!pendingPayload) return;
+
+    if (pendingPeer && pendingPeer !== peer) {
+      clearPending();
+      if (status) status.textContent = "Foto verworfen: Kontakt wurde gewechselt.";
+      return;
+    }
 
     if (send) send.disabled = true;
     if (status) {
