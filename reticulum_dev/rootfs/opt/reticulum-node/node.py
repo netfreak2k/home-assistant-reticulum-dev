@@ -475,9 +475,6 @@ def scan_cached_propagation_nodes():
                     unpacked[5][0]
                 )
 
-                if not active:
-                    continue
-
                 peer = destination_hash.hex()
 
                 try:
@@ -515,7 +512,7 @@ def scan_cached_propagation_nodes():
                     nodes.append(existing)
 
                 existing.update({
-                    "active": True,
+                    "active": active,
                     "last_seen": max(
                         int(existing.get("last_seen") or 0),
                         last_seen,
@@ -568,9 +565,6 @@ def probe_known_propagation_nodes():
 
     for item in _read_propagation_nodes():
         if not isinstance(item, dict):
-            continue
-
-        if item.get("active") is not True:
             continue
 
         peer = str(
@@ -935,13 +929,15 @@ class LXMFPropagationDiscoveryHandler:
                 unpacked[5][0]
             )
 
-            if not active:
+            if active:
+                PROPAGATION_DIAGNOSTICS["announce_active"] += 1
+                PROPAGATION_DIAGNOSTICS["last_stage"] = "active"
+            else:
+                # A valid inactive propagation announce is still useful
+                # discovery information. Persist it so the UI can
+                # distinguish "known but inactive" from "never seen".
                 PROPAGATION_DIAGNOSTICS["announce_inactive"] += 1
                 PROPAGATION_DIAGNOSTICS["last_stage"] = "inactive"
-                return
-
-            PROPAGATION_DIAGNOSTICS["announce_active"] += 1
-            PROPAGATION_DIAGNOSTICS["last_stage"] = "active"
 
             if isinstance(
                 destination_hash,
@@ -1001,11 +997,12 @@ class LXMFPropagationDiscoveryHandler:
                 nodes.append(existing)
 
             existing.update({
-                "active": True,
+                "active": active,
                 "last_seen": now,
                 "emitted": emitted,
                 "hops": hops,
                 "stamp_cost": stamp_cost,
+                "source": "announce",
             })
 
             PROPAGATION_DIAGNOSTICS["last_stage"] = "persisting"
@@ -1018,9 +1015,17 @@ class LXMFPropagationDiscoveryHandler:
             PROPAGATION_DIAGNOSTICS["last_stage"] = "persisted"
             PROPAGATION_DIAGNOSTICS["last_error"] = ""
 
-            select_best_propagation_node()
+            selected = select_best_propagation_node()
 
-            PROPAGATION_DIAGNOSTICS["last_stage"] = "selected"
+            PROPAGATION_DIAGNOSTICS["last_stage"] = (
+                "selected"
+                if selected is not None
+                else (
+                    "inactive_persisted"
+                    if not active
+                    else "active_persisted"
+                )
+            )
 
         except Exception as exc:
             PROPAGATION_DIAGNOSTICS["handler_errors"] += 1
