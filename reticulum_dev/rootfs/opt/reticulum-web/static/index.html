@@ -2840,7 +2840,7 @@ code {
       </div>
 
       <div class="n2k-nearby-status" id="n2k-nearby-status">
-        Bereit · passiver Scan · keine zusätzliche Funkübertragung
+        Bereit · bekannte LXMF-Announces werden aus dem 24-h-Cache angezeigt
       </div>
 
       <div class="n2k-nearby-progress" id="n2k-nearby-progress" hidden>
@@ -2848,7 +2848,7 @@ code {
       </div>
 
       <div class="n2k-nearby-results" id="n2k-nearby-results">
-        <div class="n2k-nearby-empty">Noch kein Scan durchgeführt.</div>
+        <div class="n2k-nearby-empty">Lade bekannte LXMF-Announces…</div>
       </div>
 
       <div class="n2k-nearby-note">
@@ -10884,12 +10884,13 @@ if (
 })();
 </script>
 
-<script id="n2k-nearby-js-1188">
+<script id="n2k-nearby-js-12110">
 (function(){
   var scanTimer=null;
   var pollTimer=null;
   var scanStarted=0;
   var duration=30;
+  var lastData=null;
 
   function el(id){ return document.getElementById(id); }
 
@@ -10900,38 +10901,62 @@ if (
   }
 
   function ageText(sec){
-    if(sec==null) return "gerade gesehen";
+    if(sec==null) return "Zeit unbekannt";
     sec=Math.max(0,Number(sec)||0);
     if(sec<5) return "gerade eben";
     if(sec<60) return "vor "+Math.round(sec)+" s";
-    return "vor "+Math.round(sec/60)+" min";
+    if(sec<3600) return "vor "+Math.round(sec/60)+" min";
+    return "vor "+Math.round(sec/3600)+" h";
   }
 
   function render(data){
+    lastData=data||{};
     var box=el("n2k-nearby-results");
     if(!box) return;
+
     var items=Array.isArray(data&&data.contacts)?data.contacts:[];
+    var live=Number(data&&data.live_count||0);
+    var cached=Number(data&&data.cached_count||0);
+
     if(!items.length){
-      box.innerHTML='<div class="n2k-nearby-empty">Noch keine LXMF-Announces während dieses Scans empfangen.</div>';
+      box.innerHTML='<div class="n2k-nearby-empty">Keine LXMF-Announces aus den letzten 24 Stunden bekannt.</div>';
       return;
     }
 
     box.innerHTML=items.map(function(item){
       var hash=String(item.destination_hash||"");
       var name=String(item.display_name||"").trim() || (hash.slice(0,10)+"…");
-      var meta=[ageText(item.age_seconds)];
+      var isLive=item.seen_during_scan===true;
+      var meta=[
+        isLive ? "● live" : "○ bekannt",
+        ageText(item.age_seconds)
+      ];
+
       if(item.hops!==null && item.hops!==undefined && item.hops!==""){
-        meta.push(String(item.hops)+" Hop"+(Number(item.hops)===1?"":"s"));
+        var hops=Number(item.hops);
+        if(Number.isFinite(hops) && hops>=0 && hops<128){
+          meta.push(String(hops)+" Hop"+(hops===1?"":"s"));
+        }
       }else if(item.path_known){
         meta.push("Pfad bekannt");
       }
+
       if(item.interface) meta.push(String(item.interface));
+
       return '<div class="n2k-nearby-row">'+
         '<div><div class="n2k-nearby-name">'+esc(name)+'</div>'+
         '<div class="n2k-nearby-meta">'+esc(meta.join(" · "))+'<br>'+esc(hash)+'</div></div>'+
         '<button type="button" class="n2k-nearby-open" data-peer="'+esc(hash)+'">Chat</button>'+
         '</div>';
     }).join("");
+
+    var status=el("n2k-nearby-status");
+    if(status && !scanTimer){
+      status.textContent=
+        "Bekannt: "+items.length+
+        " · live im letzten Scan: "+live+
+        " · Cache: "+cached;
+    }
 
     box.querySelectorAll(".n2k-nearby-open").forEach(function(btn){
       btn.addEventListener("click",function(){
@@ -10944,13 +10969,19 @@ if (
   }
 
   async function poll(){
-    if(!scanStarted) return;
     try{
-      var res=await fetch("api/messenger/nearby?since="+encodeURIComponent(scanStarted)+"&ts="+Date.now(),{
-        cache:"no-store"
-      });
+      var since=scanStarted||0;
+      var res=await fetch(
+        "api/messenger/nearby?since="+encodeURIComponent(since)+"&ts="+Date.now(),
+        {cache:"no-store"}
+      );
       var data=await res.json();
-      if(data&&data.ok) render(data);
+
+      if(!res.ok || !data || !data.ok){
+        throw new Error((data&&data.error)||("HTTP "+res.status));
+      }
+
+      render(data);
     }catch(e){
       var status=el("n2k-nearby-status");
       if(status) status.textContent="Scanner: API momentan nicht erreichbar";
@@ -10960,54 +10991,102 @@ if (
   function finish(){
     if(scanTimer){clearInterval(scanTimer);scanTimer=null;}
     if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
+
     var button=el("n2k-nearby-start");
     var status=el("n2k-nearby-status");
     var progress=el("n2k-nearby-progress");
     var bar=el("n2k-nearby-progress-bar");
-    if(button){button.disabled=false;button.textContent="Erneut scannen";}
-    if(status) status.textContent="Scan beendet · Ergebnisse zeigen während der letzten 30 s empfangene Announces";
+
+    if(button){
+      button.disabled=false;
+      button.textContent="Erneut scannen";
+    }
+
     if(bar) bar.style.width="100%";
-    setTimeout(function(){if(progress) progress.hidden=true;},700);
-    poll();
+
+    poll().finally(function(){
+      var data=lastData||{};
+      var live=Number(data.live_count||0);
+      var total=Number(data.count||0);
+      var cached=Number(data.cached_count||0);
+
+      if(status){
+        status.textContent=
+          "Scan beendet · "+live+" live · "+
+          cached+" bekannt aus Cache · "+
+          total+" gesamt";
+      }
+
+      setTimeout(function(){
+        if(progress) progress.hidden=true;
+      },700);
+    });
   }
 
   function start(){
     if(scanTimer||pollTimer) return;
+
     scanStarted=Math.floor(Date.now()/1000);
     var startMs=Date.now();
     var button=el("n2k-nearby-start");
     var status=el("n2k-nearby-status");
     var progress=el("n2k-nearby-progress");
     var bar=el("n2k-nearby-progress-bar");
-    var box=el("n2k-nearby-results");
 
-    if(button){button.disabled=true;button.textContent="Scan läuft…";}
+    if(button){
+      button.disabled=true;
+      button.textContent="Scan läuft…";
+    }
+
     if(progress) progress.hidden=false;
     if(bar) bar.style.width="0%";
-    if(box) box.innerHTML='<div class="n2k-nearby-empty">Lausche auf LXMF-Announces…</div>';
+
+    if(status){
+      status.textContent="Scan läuft · 30 s · Cache bleibt sichtbar";
+    }
 
     poll();
     pollTimer=setInterval(poll,2000);
+
     scanTimer=setInterval(function(){
       var elapsed=(Date.now()-startMs)/1000;
       var left=Math.max(0,Math.ceil(duration-elapsed));
-      if(status) status.textContent="Scan läuft · noch "+left+" s · passiv";
-      if(bar) bar.style.width=Math.min(100,(elapsed/duration)*100)+"%";
+
+      if(status){
+        var data=lastData||{};
+        status.textContent=
+          "Scan läuft · noch "+left+" s · "+
+          Number(data.live_count||0)+" live · "+
+          Number(data.cached_count||0)+" bekannt";
+      }
+
+      if(bar){
+        bar.style.width=
+          Math.min(100,(elapsed/duration)*100)+"%";
+      }
+
       if(elapsed>=duration) finish();
     },250);
   }
 
   function boot(){
     var button=el("n2k-nearby-start");
+
     if(button&&!button.dataset.bound){
       button.dataset.bound="1";
       button.addEventListener("click",start);
     }
+
+    // Important: show the persistent announce cache immediately.
+    // A peer does not have to re-announce inside a 30-second window.
+    poll();
   }
 
   if(document.readyState==="loading"){
     document.addEventListener("DOMContentLoaded",boot,{once:true});
-  }else{boot();}
+  }else{
+    boot();
+  }
 })();
 </script>
 
