@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.14.2-dev — Beta 3 Hardening
+
+### Added
+
+- Privacy-conscious diagnostic export
+- Integrated support snapshot
+- Redacted Reticulum identity hashes
+- Network and RNode configuration summary
+
+### Privacy
+
+The support export does not include:
+
+- message contents
+- contact names
+- message history
+- passwords
+- tokens
+
+### Status
+
+Feature freeze remains active.
+
+
 ## 1.14.1-dev — Beta 2
 
 ### Status

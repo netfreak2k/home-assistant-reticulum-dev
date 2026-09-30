@@ -1283,6 +1283,195 @@ def get_lxmf_inbox():
 
 
 
+
+def redact_n2k_value(value):
+    text = str(value or "")
+
+    if len(text) <= 10:
+        return text
+
+    return (
+        text[:6]
+        + "…"
+        + text[-4:]
+    )
+
+
+def get_n2k_support_diagnostic():
+
+    result = {
+        "ok": True,
+        "generated_at": int(time.time()),
+        "product": "N2K RNS Gateway",
+        "privacy": (
+            "No message bodies or contact names "
+            "are included."
+        ),
+    }
+
+    # -------------------------------------------------
+    # SELFTEST
+    # -------------------------------------------------
+
+    try:
+        result["selftest"] = get_n2k_selftest()
+
+    except Exception as exc:
+        result["selftest"] = {
+            "ok": False,
+            "error": str(exc),
+        }
+
+
+    # -------------------------------------------------
+    # IDENTITY · HASHES REDACTED
+    # -------------------------------------------------
+
+    try:
+        identity = get_node_identity_status()
+
+        result["identity"] = {
+            "ok": identity.get("ok"),
+            "state": identity.get("state"),
+            "persistent": identity.get(
+                "persistent"
+            ),
+            "state_age_seconds":
+                identity.get(
+                    "state_age_seconds"
+                ),
+            "identity_hash":
+                redact_n2k_value(
+                    identity.get(
+                        "identity_hash"
+                    )
+                ),
+            "destination_hash":
+                redact_n2k_value(
+                    identity.get(
+                        "destination_hash"
+                    )
+                ),
+            "lxmf_destination_hash":
+                redact_n2k_value(
+                    identity.get(
+                        "lxmf_destination_hash"
+                    )
+                ),
+        }
+
+    except Exception as exc:
+        result["identity"] = {
+            "ok": False,
+            "error": str(exc),
+        }
+
+
+    # -------------------------------------------------
+    # NETWORK · NO MESSAGE DATA
+    # -------------------------------------------------
+
+    try:
+        network = get_network_snapshot()
+
+        result["network"] = {
+            "ok": network.get("ok"),
+            "interfaces_total":
+                network.get(
+                    "interfaces_total"
+                ),
+            "interfaces_up":
+                network.get(
+                    "interfaces_up"
+                ),
+            "internet_total":
+                network.get(
+                    "internet_total"
+                ),
+            "internet_up":
+                network.get(
+                    "internet_up"
+                ),
+            "path_count":
+                network.get(
+                    "path_count"
+                ),
+            "tx_bytes":
+                network.get(
+                    "tx_bytes"
+                ),
+            "rx_bytes":
+                network.get(
+                    "rx_bytes"
+                ),
+            "errors":
+                network.get(
+                    "errors",
+                    []
+                )[:10],
+        }
+
+    except Exception as exc:
+        result["network"] = {
+            "ok": False,
+            "error": str(exc),
+        }
+
+
+    # -------------------------------------------------
+    # RNode CONFIG · PORT ONLY, NO USB SERIAL NUMBERS
+    # -------------------------------------------------
+
+    try:
+        options = get_addon_options()
+
+        result["rnode"] = {
+            "enabled":
+                bool(
+                    options.get(
+                        "rnode_interface",
+                        False,
+                    )
+                ),
+            "port":
+                str(
+                    options.get(
+                        "rnode_port",
+                        "",
+                    )
+                ),
+            "frequency":
+                options.get(
+                    "rnode_frequency"
+                ),
+            "bandwidth":
+                options.get(
+                    "rnode_bandwidth"
+                ),
+            "txpower":
+                options.get(
+                    "rnode_txpower"
+                ),
+            "spreadingfactor":
+                options.get(
+                    "rnode_spreadingfactor"
+                ),
+            "codingrate":
+                options.get(
+                    "rnode_codingrate"
+                ),
+        }
+
+    except Exception as exc:
+        result["rnode"] = {
+            "ok": False,
+            "error": str(exc),
+        }
+
+
+    return result
+
+
 def get_n2k_selftest():
     checks = []
 
@@ -2830,6 +3019,12 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "ok"
             })
+            return
+
+        if path.endswith("/api/support/diagnostic"):
+            self.send_json(
+                get_n2k_support_diagnostic()
+            )
             return
 
         if path.endswith("/api/selftest"):

@@ -1796,12 +1796,23 @@ html, body {
 
       </div>
 
-      <button
-        id="n2k-selftest-button"
-        class="n2k-selftest-button"
-        type="button">
-        Prüfen
-      </button>
+      <div class="n2k-selftest-actions">
+
+        <button
+          id="n2k-diagnostic-export"
+          class="n2k-selftest-button n2k-secondary-button"
+          type="button">
+          Diagnose exportieren
+        </button>
+
+        <button
+          id="n2k-selftest-button"
+          class="n2k-selftest-button"
+          type="button">
+          Prüfen
+        </button>
+
+      </div>
 
     </div>
 
@@ -5155,6 +5166,121 @@ function activateMessengerTab(tab) {
 
 
 
+
+async function exportN2KDiagnostic() {
+
+  const button =
+    document.getElementById(
+      "n2k-diagnostic-export"
+    );
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Erstelle…";
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        "api/support/diagnostic",
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+    }
+
+    const data =
+      await response.json();
+
+    const stamp =
+      new Date()
+      .toISOString()
+      .replaceAll(
+        ":",
+        "-"
+      )
+      .replace(
+        "T",
+        "_"
+      )
+      .slice(
+        0,
+        19
+      );
+
+    const blob =
+      new Blob(
+        [
+          JSON.stringify(
+            data,
+            null,
+            2
+          )
+        ],
+        {
+          type:
+            "application/json"
+        }
+      );
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+    const a =
+      document.createElement(
+        "a"
+      );
+
+    a.href =
+      url;
+
+    a.download =
+      "n2k-rns-gateway-diagnostic-" +
+      stamp +
+      ".json";
+
+    document.body.appendChild(
+      a
+    );
+
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(
+      url
+    );
+
+  } catch (error) {
+
+    alert(
+      "Diagnoseexport fehlgeschlagen: " +
+      (
+        error.message ||
+        "Unbekannter Fehler"
+      )
+    );
+
+  } finally {
+
+    if (button) {
+      button.disabled = false;
+      button.textContent =
+        "Diagnose exportieren";
+    }
+  }
+}
+
+
 async function runN2KSelftest() {
 
   const button =
@@ -5316,6 +5442,13 @@ function initMessengerCore() {
   )?.addEventListener(
     "click",
     runN2KSelftest
+  );
+
+  document.getElementById(
+    "n2k-diagnostic-export"
+  )?.addEventListener(
+    "click",
+    exportN2KDiagnostic
   );
 
   document
@@ -11451,6 +11584,53 @@ body {
 
     grid-template-columns:
       58px minmax(0,1fr);
+  }
+}
+
+
+
+/* ==================================================
+   1.14.2 · BETA HARDENING / SUPPORT EXPORT
+   ================================================== */
+
+.n2k-selftest-actions {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    7px;
+
+  flex-wrap:
+    wrap;
+}
+
+
+.n2k-secondary-button {
+
+  border-color:
+    rgba(255,255,255,.07);
+
+  background:
+    rgba(255,255,255,.025);
+
+  color:
+    rgba(205,219,226,.78);
+}
+
+
+@media (max-width: 520px) {
+
+  .n2k-selftest-actions {
+
+    width:
+      100%;
+
+    justify-content:
+      flex-end;
   }
 }
 
