@@ -1,3 +1,12 @@
+## 1.21.8-beta1
+
+- Store & Forward discovery now persists valid inactive `lxmf.propagation` announces instead of discarding them.
+- The scanner now distinguishes **known** propagation nodes from **currently active** nodes in the mobile UI.
+- Automatic selection remains safety-first: only active nodes are eligible for Store & Forward.
+- Reticulum identity-cache recovery now restores inactive valid propagation records as well.
+- Known recent propagation nodes are probed again even when their last announce marked them inactive.
+- This makes “0 active” diagnosable without losing evidence that propagation servers were actually seen.
+
 ## 1.21.7-beta1
 
 - Store & Forward settings now trigger an automatic add-on restart after saving, so the node process immediately receives the new propagation environment.
