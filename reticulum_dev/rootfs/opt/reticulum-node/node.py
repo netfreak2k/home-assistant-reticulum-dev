@@ -660,6 +660,16 @@ CONTACTS_LIMIT = 500
 
 ANNOUNCE_DEBUG_FILE = STATE_DIR / "announce-debug.json"
 ANNOUNCE_DEBUG_LIMIT = 100
+CONTACT_CACHE_SCAN_INTERVAL = 60
+
+CONTACT_DISCOVERY_DIAGNOSTICS = {
+    "live_announces": 0,
+    "cache_scans": 0,
+    "cache_candidates": 0,
+    "cache_matches": 0,
+    "last_cache_scan": 0,
+    "last_error": "",
+}
 
 
 def record_announce_debug(
@@ -828,6 +838,8 @@ def remember_lxmf_contact(
     destination_hash,
     announced_identity,
     app_data,
+    seen_at=None,
+    discovery_source="announce",
 ):
     try:
         if isinstance(destination_hash, bytes):
@@ -858,7 +870,11 @@ def remember_lxmf_contact(
         if not display_name:
             return
 
-        now = int(time.time())
+        try:
+            now = int(seen_at or time.time())
+        except Exception:
+            now = int(time.time())
+
         contacts = _read_contacts()
 
         existing = None
@@ -876,8 +892,14 @@ def remember_lxmf_contact(
             contacts.append(existing)
 
         existing["display_name"] = display_name
-        existing["last_seen"] = now
+        existing["last_seen"] = max(
+            int(existing.get("last_seen") or 0),
+            now,
+        )
         existing["source"] = "lxmf_announce"
+        existing["discovery_source"] = str(
+            discovery_source or "announce"
+        )
 
         if announced_identity is not None:
             try:
@@ -906,6 +928,103 @@ def remember_lxmf_contact(
             "LXMF CONTACT ERROR:",
             str(exc),
         )
+
+
+
+def scan_cached_lxmf_contacts():
+    """
+    Recover LXMF delivery destinations already present in Reticulum's
+    known-destination cache. This closes the gap where the add-on starts
+    after peers have announced: the UI can still show those peers without
+    waiting for another announce.
+    """
+    CONTACT_DISCOVERY_DIAGNOSTICS["cache_scans"] += 1
+    CONTACT_DISCOVERY_DIAGNOSTICS["last_cache_scan"] = int(time.time())
+    CONTACT_DISCOVERY_DIAGNOSTICS["last_error"] = ""
+
+    matches = 0
+    candidates = 0
+
+    try:
+        lock = getattr(
+            RNS.Identity,
+            "known_destinations_lock",
+            None,
+        )
+
+        if lock is not None:
+            with lock:
+                known = dict(
+                    getattr(
+                        RNS.Identity,
+                        "known_destinations",
+                        {},
+                    )
+                )
+        else:
+            known = dict(
+                getattr(
+                    RNS.Identity,
+                    "known_destinations",
+                    {},
+                )
+            )
+
+        candidates = len(known)
+        CONTACT_DISCOVERY_DIAGNOSTICS["cache_candidates"] = candidates
+
+        for destination_hash, entry in known.items():
+            try:
+                if not isinstance(destination_hash, bytes):
+                    continue
+
+                if not isinstance(entry, (list, tuple)):
+                    continue
+
+                if len(entry) < 4:
+                    continue
+
+                announced_at = int(float(entry[0] or 0))
+                app_data = entry[3]
+
+                if app_data is None:
+                    continue
+
+                announced_identity = RNS.Identity.recall(
+                    destination_hash
+                )
+
+                if announced_identity is None:
+                    continue
+
+                expected_hash = (
+                    RNS.Destination.hash_from_name_and_identity(
+                        "lxmf.delivery",
+                        announced_identity,
+                    )
+                )
+
+                if expected_hash != destination_hash:
+                    continue
+
+                remember_lxmf_contact(
+                    destination_hash,
+                    announced_identity,
+                    app_data,
+                    seen_at=announced_at,
+                    discovery_source="known_destinations_cache",
+                )
+                matches += 1
+
+            except Exception:
+                continue
+
+        CONTACT_DISCOVERY_DIAGNOSTICS["cache_matches"] = matches
+
+    except Exception as exc:
+        CONTACT_DISCOVERY_DIAGNOSTICS["last_error"] = str(exc)
+
+    return matches
 
 
 class LXMFPropagationDiscoveryHandler:
@@ -1070,20 +1189,19 @@ RNS.Transport.register_announce_handler(
 
 
 class LXMFAnnounceHandler:
-    # Intentionally no aspect_filter here.
-    #
-    # RNS 1.5.4 will therefore pass announces to this
-    # handler regardless of aspect. We only persist
-    # announces that contain usable application data.
-    #
-    # This avoids depending on an assumed LXMF aspect
-    # while keeping discovery passive.
+    # Match the canonical LXMF delivery destination exactly.
+    # receive_path_responses also lets discovery learn from valid
+    # path-response announces, not only unsolicited broadcasts.
+    aspect_filter = "lxmf.delivery"
+    receive_path_responses = True
     def received_announce(
         self,
         destination_hash,
         announced_identity,
         app_data,
     ):
+        CONTACT_DISCOVERY_DIAGNOSTICS["live_announces"] += 1
+
         record_announce_debug(
             destination_hash,
             announced_identity,
@@ -1667,9 +1785,50 @@ last_propagation_sync = 0
 last_propagation_selection = 0
 last_propagation_probe = 0
 last_propagation_cache_scan = 0
+last_contact_cache_scan = 0
+
+# Recover valid LXMF peers that Reticulum already knew before this
+# process registered its announce handler.
+scan_cached_lxmf_contacts()
 
 while running:
     now = int(time.time())
+
+    if (
+        last_contact_cache_scan == 0
+        or now - last_contact_cache_scan
+        >= CONTACT_CACHE_SCAN_INTERVAL
+    ):
+        try:
+            state["lxmf_contact_cache_matches"] = (
+                scan_cached_lxmf_contacts()
+            )
+            state["lxmf_contact_cache_candidates"] = int(
+                CONTACT_DISCOVERY_DIAGNOSTICS.get(
+                    "cache_candidates"
+                ) or 0
+            )
+            state["lxmf_contact_cache_scans"] = int(
+                CONTACT_DISCOVERY_DIAGNOSTICS.get(
+                    "cache_scans"
+                ) or 0
+            )
+            state["lxmf_contact_live_announces"] = int(
+                CONTACT_DISCOVERY_DIAGNOSTICS.get(
+                    "live_announces"
+                ) or 0
+            )
+            state["lxmf_contact_cache_error"] = str(
+                CONTACT_DISCOVERY_DIAGNOSTICS.get(
+                    "last_error"
+                ) or ""
+            )
+        except Exception as exc:
+            state["lxmf_contact_cache_error"] = str(exc)
+
+        last_contact_cache_scan = now
+        state["updated"] = now
+        write_state(state)
 
     if (
         PROPAGATION_ENABLED
