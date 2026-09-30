@@ -8,6 +8,9 @@
 
   const $ = id => document.getElementById(id);
 
+  const ANNOUNCE_COOLDOWN_SECONDS = 60;
+  let announceCooldownTimer = null;
+
   const state = {
     contacts: [],
     activeTab: "chats"
@@ -1650,6 +1653,18 @@
           data?.lxmf_last_announce || 0
         );
 
+      const nowSeconds =
+        Math.floor(Date.now() / 1000);
+
+      const announceRetryAfter =
+        lastAnnounce
+          ? Math.max(
+              0,
+              ANNOUNCE_COOLDOWN_SECONDS -
+              (nowSeconds - lastAnnounce)
+            )
+          : 0;
+
       let announceText =
         "Noch kein LXMF-Announce";
 
@@ -1719,6 +1734,7 @@
             id="m99-announce"
             type="button"
             class="m99-announce"
+            ${announceRetryAfter > 0 ? "disabled" : ""}
           >
             Jetzt announcen
           </button>
@@ -1732,6 +1748,12 @@
       `;
 
       bindProfileActions();
+
+      if (announceRetryAfter > 0) {
+        startAnnounceCooldown(
+          announceRetryAfter
+        );
+      }
 
     } catch (error) {
       panel.innerHTML = `
@@ -1835,9 +1857,123 @@
     }
   }
 
+  function formatCooldown(seconds) {
+    const safeSeconds =
+      Math.max(
+        0,
+        Math.ceil(Number(seconds) || 0)
+      );
+
+    const minutes =
+      Math.floor(safeSeconds / 60);
+
+    const rest =
+      String(safeSeconds % 60)
+        .padStart(2, "0");
+
+    return minutes + ":" + rest;
+  }
+
+  function startAnnounceCooldown(seconds) {
+    let remaining =
+      Math.max(
+        0,
+        Math.ceil(Number(seconds) || 0)
+      );
+
+    if (announceCooldownTimer) {
+      clearInterval(
+        announceCooldownTimer
+      );
+
+      announceCooldownTimer = null;
+    }
+
+    const render = () => {
+      const currentButton =
+        $("m99-announce");
+
+      const currentStatus =
+        $("m99-announce-status");
+
+      if (!currentButton) {
+        if (announceCooldownTimer) {
+          clearInterval(
+            announceCooldownTimer
+          );
+
+          announceCooldownTimer = null;
+        }
+
+        return;
+      }
+
+      if (remaining <= 0) {
+        currentButton.disabled = false;
+        currentButton.textContent =
+          "Jetzt announcen";
+
+        if (
+          currentStatus &&
+          currentStatus.textContent.startsWith(
+            "Nächster Announce in "
+          )
+        ) {
+          currentStatus.textContent =
+            "Announce wieder möglich.";
+        }
+
+        if (announceCooldownTimer) {
+          clearInterval(
+            announceCooldownTimer
+          );
+
+          announceCooldownTimer = null;
+        }
+
+        return;
+      }
+
+      currentButton.disabled = true;
+      currentButton.textContent =
+        "Cooldown " +
+        formatCooldown(remaining);
+
+      if (currentStatus) {
+        currentStatus.textContent =
+          "Nächster Announce in " +
+          formatCooldown(remaining) +
+          " min";
+      }
+    };
+
+    render();
+
+    if (remaining <= 0) {
+      return;
+    }
+
+    announceCooldownTimer =
+      setInterval(() => {
+        remaining -= 1;
+        render();
+      }, 1000);
+  }
+
   async function sendAnnounce() {
     const status =
       $("m99-announce-status");
+
+    const button =
+      $("m99-announce");
+
+    if (button?.disabled) {
+      return;
+    }
+
+    if (button) {
+      button.disabled = true;
+    }
 
     if (status) {
       status.textContent =
@@ -1857,6 +1993,17 @@
       const data =
         await response.json();
 
+      if (
+        !data?.ok &&
+        Number(data?.retry_after) > 0
+      ) {
+        startAnnounceCooldown(
+          Number(data.retry_after)
+        );
+
+        return;
+      }
+
       if (!response.ok || !data.ok) {
         throw new Error(
           data?.error ||
@@ -1869,12 +2016,20 @@
           "Announce angefordert.";
       }
 
+      startAnnounceCooldown(
+        ANNOUNCE_COOLDOWN_SECONDS
+      );
+
       setTimeout(
         loadIdentity,
         1500
       );
 
     } catch (error) {
+      if (button) {
+        button.disabled = false;
+      }
+
       if (status) {
         status.textContent =
           "Announce fehlgeschlagen: " +
