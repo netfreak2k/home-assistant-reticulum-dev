@@ -2922,6 +2922,64 @@ code {
     </div>
   </section>
 
+  <section class="n2k-propagation-card" id="n2k-propagation-card">
+    <div class="n2k-propagation-head">
+      <div>
+        <div class="n2k-propagation-title">Store &amp; Forward</div>
+        <div class="n2k-propagation-sub">LXMF Propagation · Direktpfad bleibt bevorzugt</div>
+      </div>
+      <span id="n2k-propagation-state" class="n2k-propagation-state">AUS</span>
+    </div>
+
+    <label class="n2k-propagation-toggle">
+      <input id="n2k-propagation-enabled" type="checkbox">
+      <span>Propagation verwenden, wenn kein Direktpfad verfügbar ist</span>
+    </label>
+
+    <label class="n2k-propagation-label" for="n2k-propagation-node">
+      Propagation Node Destination
+    </label>
+    <input
+      id="n2k-propagation-node"
+      class="n2k-propagation-input"
+      type="text"
+      inputmode="text"
+      autocomplete="off"
+      autocapitalize="none"
+      spellcheck="false"
+      maxlength="32"
+      placeholder="32-stelliger Hex-Destination-Hash">
+
+    <div class="n2k-propagation-row">
+      <label class="n2k-propagation-toggle compact">
+        <input id="n2k-propagation-auto-sync" type="checkbox" checked>
+        <span>Geparkte Nachrichten automatisch abrufen</span>
+      </label>
+
+      <select id="n2k-propagation-interval" class="n2k-propagation-select" aria-label="Abrufintervall">
+        <option value="300">alle 5 Min.</option>
+        <option value="900" selected>alle 15 Min.</option>
+        <option value="1800">alle 30 Min.</option>
+        <option value="3600">stündlich</option>
+      </select>
+    </div>
+
+    <div class="n2k-propagation-runtime">
+      <span>Runtime</span>
+      <strong id="n2k-propagation-runtime">nicht aktiv</strong>
+      <span>Letzter Abruf</span>
+      <strong id="n2k-propagation-last-sync">—</strong>
+    </div>
+
+    <button id="n2k-propagation-save" class="n2k-propagation-save" type="button">
+      Speichern
+    </button>
+
+    <div id="n2k-propagation-note" class="n2k-propagation-note">
+      Nach dem Speichern ist ein Add-on-Neustart erforderlich.
+    </div>
+  </section>
+
   <div class="n2k-selftest-card">
 
     <div class="n2k-selftest-head">
@@ -10170,6 +10228,145 @@ if (
 
 
 
+<script id="n2k-propagation-js-1210">
+(function(){
+  function $(id){return document.getElementById(id);}
+
+  function stamp(ts){
+    ts=Number(ts||0);
+    if(!ts) return "—";
+    try{
+      return new Date(ts*1000).toLocaleString();
+    }catch(e){
+      return "—";
+    }
+  }
+
+  function setRuntime(data){
+    var state=$("n2k-propagation-state");
+    var runtime=$("n2k-propagation-runtime");
+    var last=$("n2k-propagation-last-sync");
+    var note=$("n2k-propagation-note");
+
+    if(state){
+      state.className="n2k-propagation-state"+(data.enabled?" on":"");
+      state.textContent=data.enabled?"AKTIVIERT":"AUS";
+    }
+
+    if(runtime){
+      runtime.textContent=data.runtime_enabled
+        ? ((data.sync_result||"BEREIT")+(data.runtime_node?" · "+data.runtime_node.slice(0,8)+"…":""))
+        : "nicht aktiv";
+    }
+
+    if(last) last.textContent=stamp(data.last_sync);
+
+    if(note && data.error){
+      note.textContent="Runtime-Hinweis: "+data.error;
+    }
+  }
+
+  async function load(){
+    try{
+      var response=await fetch("api/propagation?ts="+Date.now(),{cache:"no-store"});
+      var data=await response.json();
+
+      if(!response.ok||!data.ok){
+        throw new Error(data.error||"Propagation Status nicht verfügbar");
+      }
+
+      var enabled=$("n2k-propagation-enabled");
+      var node=$("n2k-propagation-node");
+      var auto=$("n2k-propagation-auto-sync");
+      var interval=$("n2k-propagation-interval");
+
+      if(enabled) enabled.checked=!!data.enabled;
+      if(node) node.value=String(data.node||"");
+      if(auto) auto.checked=data.auto_sync!==false;
+      if(interval){
+        var value=String(data.sync_interval||900);
+        if(!Array.from(interval.options).some(function(o){return o.value===value;})){
+          value="900";
+        }
+        interval.value=value;
+      }
+
+      setRuntime(data);
+
+    }catch(e){
+      var note=$("n2k-propagation-note");
+      if(note) note.textContent="Status nicht erreichbar: "+(e.message||"Fehler");
+    }
+  }
+
+  async function save(){
+    var button=$("n2k-propagation-save");
+    var enabled=!!$("n2k-propagation-enabled")?.checked;
+    var node=String($("n2k-propagation-node")?.value||"").trim().toLowerCase();
+    var auto=!!$("n2k-propagation-auto-sync")?.checked;
+    var interval=Number($("n2k-propagation-interval")?.value||900);
+
+    if(enabled && !/^[0-9a-f]{32}$/.test(node)){
+      alert("Bitte einen gültigen 32-stelligen LXMF Propagation Node Hash eintragen.");
+      return;
+    }
+
+    if(button){
+      button.disabled=true;
+      button.textContent="Speichere…";
+    }
+
+    try{
+      var response=await fetch("api/propagation",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          enabled:enabled,
+          node:node,
+          auto_sync:auto,
+          sync_interval:interval
+        }),
+        cache:"no-store"
+      });
+
+      var data=await response.json();
+
+      if(!response.ok||!data.ok){
+        throw new Error(data.error||"Speichern fehlgeschlagen");
+      }
+
+      alert(
+        "Store & Forward gespeichert.\n\n"+
+        "Direktpfade bleiben bevorzugt. "+
+        "Bitte das Add-on jetzt neu starten."
+      );
+
+      await load();
+
+    }catch(e){
+      alert("Store & Forward konnte nicht gespeichert werden: "+(e.message||"Fehler"));
+    }finally{
+      if(button){
+        button.disabled=false;
+        button.textContent="Speichern";
+      }
+    }
+  }
+
+  function boot(){
+    $("n2k-propagation-save")?.addEventListener("click",save);
+    load();
+    setInterval(load,30000);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
+
 <script id="n2k-resilience-js-1200">
 (function(){
   function $(id){return document.getElementById(id);}
@@ -12581,6 +12778,154 @@ if (
 }
 
 
+
+/* ==================================================
+   1.21.0-beta1 · STORE & FORWARD
+   ================================================== */
+
+.n2k-propagation-card{
+  margin:10px 0 14px;
+  padding:14px;
+  border:1px solid rgba(103,174,255,.12);
+  border-radius:14px;
+  background:rgba(103,174,255,.025);
+}
+
+.n2k-propagation-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.n2k-propagation-title{
+  color:rgba(239,244,246,.95);
+  font-size:15px;
+  font-weight:780;
+}
+
+.n2k-propagation-sub{
+  margin-top:3px;
+  color:rgba(183,198,207,.58);
+  font-size:10px;
+}
+
+.n2k-propagation-state{
+  padding:5px 8px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  color:rgba(205,219,226,.72);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.06em;
+}
+
+.n2k-propagation-state.on{
+  border-color:rgba(103,174,255,.24);
+  color:rgba(143,196,255,.95);
+}
+
+.n2k-propagation-toggle{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-top:12px;
+  color:rgba(224,232,236,.82);
+  font-size:10px;
+  line-height:1.4;
+}
+
+.n2k-propagation-toggle.compact{
+  margin-top:0;
+}
+
+.n2k-propagation-toggle input{
+  width:17px;
+  height:17px;
+  accent-color:#71d9b0;
+}
+
+.n2k-propagation-label{
+  display:block;
+  margin-top:12px;
+  color:rgba(172,190,199,.62);
+  font-size:9px;
+  font-weight:700;
+}
+
+.n2k-propagation-input,
+.n2k-propagation-select{
+  width:100%;
+  min-height:40px;
+  margin-top:6px;
+  padding:8px 10px;
+  box-sizing:border-box;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;
+  background:rgba(255,255,255,.025);
+  color:rgba(233,240,243,.9);
+  font:inherit;
+  font-size:11px;
+}
+
+.n2k-propagation-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 130px;
+  gap:10px;
+  align-items:center;
+  margin-top:10px;
+}
+
+.n2k-propagation-runtime{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:4px 10px;
+  margin-top:10px;
+  padding:9px 10px;
+  border:1px solid rgba(255,255,255,.045);
+  border-radius:10px;
+  background:rgba(255,255,255,.018);
+  font-size:9px;
+}
+
+.n2k-propagation-runtime span{
+  color:rgba(172,190,199,.5);
+}
+
+.n2k-propagation-runtime strong{
+  color:rgba(230,237,240,.82);
+  overflow-wrap:anywhere;
+}
+
+.n2k-propagation-save{
+  width:100%;
+  min-height:40px;
+  margin-top:10px;
+  border:1px solid rgba(103,174,255,.20);
+  border-radius:10px;
+  background:rgba(103,174,255,.07);
+  color:rgba(176,213,255,.94);
+  font:inherit;
+  font-size:10px;
+  font-weight:750;
+}
+
+.n2k-propagation-note{
+  margin-top:8px;
+  color:rgba(180,195,203,.52);
+  font-size:9px;
+  line-height:1.4;
+}
+
+@media(max-width:900px){
+  .n2k-propagation-card{
+    margin:10px 12px 14px !important;
+  }
+
+  .n2k-propagation-row{
+    grid-template-columns:1fr;
+  }
+}
 
 /* ==================================================
    1.20.0-beta1 · RESILIENCE CORE
