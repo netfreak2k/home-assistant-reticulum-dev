@@ -3369,6 +3369,10 @@ def get_messenger_nearby(since=0):
         )
     )
 
+    node_state = get_node_identity_status()
+    if not isinstance(node_state, dict):
+        node_state = {}
+
     return {
         "ok": True,
         "passive": True,
@@ -3380,6 +3384,32 @@ def get_messenger_nearby(since=0):
         "cached_count": cached_count,
         "contacts": nearby,
         "network_ok": bool(network.get("ok")),
+        "rns_path_count": int(
+            network.get("path_count") or 0
+        ),
+        "rns_interfaces_up": int(
+            network.get("interfaces_up") or 0
+        ),
+        "lxmf_cache_candidates": int(
+            node_state.get(
+                "lxmf_contact_cache_candidates"
+            ) or 0
+        ),
+        "lxmf_cache_matches": int(
+            node_state.get(
+                "lxmf_contact_cache_matches"
+            ) or 0
+        ),
+        "lxmf_live_announces_total": int(
+            node_state.get(
+                "lxmf_contact_live_announces"
+            ) or 0
+        ),
+        "lxmf_cache_error": str(
+            node_state.get(
+                "lxmf_contact_cache_error"
+            ) or ""
+        ),
         "note": (
             "Nearby means LXMF announces heard on configured "
             "Reticulum interfaces. Live entries were heard during "
