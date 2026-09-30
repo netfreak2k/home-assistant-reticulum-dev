@@ -2486,6 +2486,48 @@ def get_propagation_config():
             )
             or 0
         ),
+        "announce_active": int(
+            state.get(
+                "lxmf_propagation_announce_active",
+                0,
+            )
+            or 0
+        ),
+        "announce_persisted": int(
+            state.get(
+                "lxmf_propagation_announce_persisted",
+                0,
+            )
+            or 0
+        ),
+        "announce_bad_hash": int(
+            state.get(
+                "lxmf_propagation_announce_bad_hash",
+                0,
+            )
+            or 0
+        ),
+        "handler_errors": int(
+            state.get(
+                "lxmf_propagation_handler_errors",
+                0,
+            )
+            or 0
+        ),
+        "last_candidate": str(
+            state.get(
+                "lxmf_propagation_last_candidate",
+                "",
+            )
+            or ""
+        ),
+        "last_stage": str(
+            state.get(
+                "lxmf_propagation_last_stage",
+                "",
+            )
+            or ""
+        ),
         "last_announce": int(
             state.get(
                 "lxmf_propagation_last_announce",
@@ -2565,10 +2607,17 @@ def get_propagation_candidates():
         invalid_count = 0
         total_seen = 0
         newest_seen = 0
+        raw_count = len(value)
+        raw_preview = []
 
         for item in value:
             if not isinstance(item, dict):
                 invalid_count += 1
+                if len(raw_preview) < 5:
+                    raw_preview.append({
+                        "status": "invalid_record",
+                        "reason": "Eintrag ist kein Objekt",
+                    })
                 continue
 
             peer = str(
@@ -2584,6 +2633,12 @@ def get_propagation_candidates():
                 peer,
             ):
                 invalid_count += 1
+                if len(raw_preview) < 5:
+                    raw_preview.append({
+                        "destination_hash": peer,
+                        "status": "rejected",
+                        "reason": "destination_hash_not_32_hex",
+                    })
                 continue
 
             total_seen += 1
@@ -2591,7 +2646,24 @@ def get_propagation_candidates():
 
             if not seen or now - seen > 86400:
                 stale_count += 1
+                if len(raw_preview) < 5:
+                    raw_preview.append({
+                        "destination_hash": peer,
+                        "status": "rejected",
+                        "reason": "stale_or_missing_last_seen",
+                        "last_seen": seen,
+                    })
                 continue
+
+            if len(raw_preview) < 5:
+                raw_preview.append({
+                    "destination_hash": peer,
+                    "status": "candidate",
+                    "reason": "accepted",
+                    "last_seen": seen,
+                    "active": item.get("active") is True,
+                    "hops": int(item.get("hops") or 0),
+                })
 
             candidates.append({
                 "destination_hash": peer,
@@ -2632,6 +2704,8 @@ def get_propagation_candidates():
             "ok": True,
             "count": len(candidates),
             "candidates": candidates,
+            "raw_count": raw_count,
+            "raw_preview": raw_preview,
             "total_seen": total_seen,
             "stale_count": stale_count,
             "invalid_count": invalid_count,
@@ -2642,6 +2716,12 @@ def get_propagation_candidates():
             "announce_valid": runtime.get("announce_valid", 0),
             "announce_invalid": runtime.get("announce_invalid", 0),
             "announce_inactive": runtime.get("announce_inactive", 0),
+            "announce_active": runtime.get("announce_active", 0),
+            "announce_persisted": runtime.get("announce_persisted", 0),
+            "announce_bad_hash": runtime.get("announce_bad_hash", 0),
+            "handler_errors": runtime.get("handler_errors", 0),
+            "last_candidate": runtime.get("last_candidate", ""),
+            "last_stage": runtime.get("last_stage", ""),
             "last_announce": runtime.get("last_announce", 0),
             "cache_scans": runtime.get("cache_scans", 0),
             "cache_matches": runtime.get("cache_matches", 0),
@@ -2658,6 +2738,8 @@ def get_propagation_candidates():
             "ok": False,
             "count": 0,
             "candidates": [],
+            "raw_count": 0,
+            "raw_preview": [],
             "total_seen": 0,
             "stale_count": 0,
             "invalid_count": 0,
