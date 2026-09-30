@@ -7,7 +7,29 @@ and LXMF messaging.
 
 ## Development status
 
-This repository contains development builds and may be unstable.
+**1.14.0-dev · Beta Candidate**
+
+The core Reticulum/LXMF gateway and messenger workflow has passed the
+remote beta acceptance test.
+
+Feature development is temporarily frozen while stability and hardware
+reconnect behaviour are validated.
+
+### Verified
+
+- Add-on restart
+- Persistent Reticulum identity
+- Persistent contacts
+- Reticulum stack availability
+- LXMF send
+- Delivery status
+- Retry workflow
+- Integrated system self-test
+
+### Pending on-site verification
+
+- Physical RNode / USB disconnect and reconnect test
+
 
 ## Core functions
 
