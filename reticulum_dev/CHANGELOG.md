@@ -1,3 +1,9 @@
+## 1.21.7-beta1
+
+- Store & Forward settings now trigger an automatic add-on restart after saving, so the node process immediately receives the new propagation environment.
+- Mobile UI reports the restart and reloads automatically instead of leaving the scanner in the misleading “aktiviert / runtime nicht aktiv” state.
+- The manual restart fallback remains available when Supervisor self-restart cannot be scheduled.
+
 ## 1.21.6-beta1
 
 - Store & Forward scanner now exposes its full discovery pipeline: valid → active → persisted → eligible.
