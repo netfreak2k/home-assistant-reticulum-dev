@@ -2455,7 +2455,9 @@ def get_propagation_candidates():
     now = int(time.time())
 
     try:
-        if path.exists():
+        file_exists = path.exists()
+
+        if file_exists:
             value = json.loads(
                 path.read_text(
                     encoding="utf-8"
@@ -2468,9 +2470,14 @@ def get_propagation_candidates():
             value = []
 
         candidates = []
+        stale_count = 0
+        invalid_count = 0
+        total_seen = 0
+        newest_seen = 0
 
         for item in value:
             if not isinstance(item, dict):
+                invalid_count += 1
                 continue
 
             peer = str(
@@ -2485,9 +2492,14 @@ def get_propagation_candidates():
                 r"[0-9a-f]{32}",
                 peer,
             ):
+                invalid_count += 1
                 continue
 
+            total_seen += 1
+            newest_seen = max(newest_seen, seen)
+
             if not seen or now - seen > 1800:
+                stale_count += 1
                 continue
 
             candidates.append({
@@ -2512,10 +2524,27 @@ def get_propagation_candidates():
             )
         )
 
+        if candidates:
+            diagnostic = "reachable_candidates"
+        elif stale_count:
+            diagnostic = "only_stale_candidates"
+        elif total_seen:
+            diagnostic = "no_recent_candidates"
+        elif file_exists:
+            diagnostic = "no_announces_recorded"
+        else:
+            diagnostic = "discovery_file_missing"
+
         return {
             "ok": True,
             "count": len(candidates),
             "candidates": candidates,
+            "total_seen": total_seen,
+            "stale_count": stale_count,
+            "invalid_count": invalid_count,
+            "newest_seen": newest_seen,
+            "file_exists": file_exists,
+            "diagnostic": diagnostic,
         }
 
     except Exception as exc:
@@ -2523,6 +2552,12 @@ def get_propagation_candidates():
             "ok": False,
             "count": 0,
             "candidates": [],
+            "total_seen": 0,
+            "stale_count": 0,
+            "invalid_count": 0,
+            "newest_seen": 0,
+            "file_exists": path.exists(),
+            "diagnostic": "read_error",
             "error": str(exc),
         }
 
