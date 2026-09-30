@@ -2402,6 +2402,17 @@ code {
       <div>TX Power <b id="rnode-config-txpower">—</b></div>
       <div>SF <b id="rnode-config-sf">—</b></div>
       <div>CR <b id="rnode-config-cr">—</b></div>
+
+      <hr style="margin:12px 0;opacity:.16">
+
+      <div><b>Live-Telemetrie</b></div>
+      <div>Status <b id="rnode-live-status">—</b></div>
+      <div>Datenrate <b id="rnode-live-rate">—</b></div>
+      <div>Noise Floor <b id="rnode-live-noise">—</b></div>
+      <div>RX <b id="rnode-live-rx">—</b></div>
+      <div>TX <b id="rnode-live-tx">—</b></div>
+      <div>Airtime <b id="rnode-live-airtime">—</b></div>
+      <div>Channel Load <b id="rnode-live-channel">—</b></div>
     </section>
 
     <section class="card" style="grid-column:1/-1">
@@ -7336,9 +7347,110 @@ async function refreshRNodeConfig() {
     document.getElementById("rnode-config-cr").textContent =
       d.rnode_codingrate;
 
+    const live = d.live || null;
+
+    const setLive = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent =
+        value === null ||
+        value === undefined ||
+        value === ""
+          ? "—"
+          : String(value);
+    };
+
+    if (live) {
+      const liveStatus =
+        String(live.status || "—").toUpperCase();
+
+      setLive(
+        "rnode-live-status",
+        liveStatus
+      );
+
+      setLive(
+        "rnode-live-rate",
+        live.rate || "—"
+      );
+
+      setLive(
+        "rnode-live-noise",
+        live.noise_floor_dbm !== null &&
+        live.noise_floor_dbm !== undefined
+          ? live.noise_floor_dbm + " dBm"
+          : (live.noise_floor_text || "—")
+      );
+
+      setLive(
+        "rnode-live-rx",
+        (live.rx || "0 B") +
+        (live.rx_rate
+          ? " · " + live.rx_rate
+          : "")
+      );
+
+      setLive(
+        "rnode-live-tx",
+        (live.tx || "0 B") +
+        (live.tx_rate
+          ? " · " + live.tx_rate
+          : "")
+      );
+
+      setLive(
+        "rnode-live-airtime",
+        live.airtime_15s_percent !== null &&
+        live.airtime_15s_percent !== undefined
+          ? live.airtime_15s_percent +
+            "% (15s) · " +
+            live.airtime_1h_percent +
+            "% (1h)"
+          : "—"
+      );
+
+      setLive(
+        "rnode-live-channel",
+        live.channel_load_15s_percent !== null &&
+        live.channel_load_15s_percent !== undefined
+          ? live.channel_load_15s_percent +
+            "% (15s) · " +
+            live.channel_load_1h_percent +
+            "% (1h)"
+          : "—"
+      );
+
+      document.getElementById(
+        "rnode-config-status"
+      ).textContent =
+        d.rnode_interface
+          ? "AKTIV · " + liveStatus
+          : "AUS";
+    } else {
+      setLive(
+        "rnode-live-status",
+        d.rnode_interface
+          ? "KEIN LIVE-INTERFACE"
+          : "AUS"
+      );
+      setLive("rnode-live-rate", "—");
+      setLive("rnode-live-noise", "—");
+      setLive("rnode-live-rx", "—");
+      setLive("rnode-live-tx", "—");
+      setLive("rnode-live-airtime", "—");
+      setLive("rnode-live-channel", "—");
+    }
+
   } catch (e) {
     document.getElementById("rnode-config-status").textContent =
       "API nicht erreichbar";
+
+    const liveStatus =
+      document.getElementById("rnode-live-status");
+
+    if (liveStatus) {
+      liveStatus.textContent =
+        "API nicht erreichbar";
+    }
   }
 }
 
