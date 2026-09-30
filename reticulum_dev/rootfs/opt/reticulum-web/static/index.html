@@ -1701,17 +1701,57 @@ html, body {
   <div class="m100-settings-head">
     <div>
       <div class="m100-settings-title">
-        Mein Messenger
+        N2K RNS Gateway
       </div>
 
       <div class="m100-settings-sub">
-        Reticulum · LXMF
+        Reticulum · LXMF · Home Assistant
       </div>
     </div>
 
     <span class="m100-beta-badge">
-      1.00 BETA
+      DEV
     </span>
+  </div>
+
+  <div class="n2k-about-card">
+
+    <div class="n2k-about-title">
+      About
+    </div>
+
+    <div class="n2k-about-row">
+      <span>Projekt</span>
+      <strong>N2K RNS Gateway DEV</strong>
+    </div>
+
+    <div class="n2k-about-row">
+      <span>Entwickler</span>
+      <strong>Netfreak2k</strong>
+    </div>
+
+    <div class="n2k-about-row">
+      <span>Funktion</span>
+      <strong>Reticulum / LXMF Gateway</strong>
+    </div>
+
+    <div class="n2k-about-text">
+      N2K RNS Gateway verbindet Home Assistant mit dem
+      Reticulum Network Stack und LXMF Messaging.
+    </div>
+
+    <div class="n2k-about-notice">
+      Reticulum und LXMF sind unabhängige Drittprojekte.
+      Die jeweiligen Copyright- und Lizenzbedingungen
+      gelten unverändert.
+    </div>
+
+    <div class="n2k-about-links">
+      <span>Lizenzinformationen:</span>
+      <code>LICENSE</code>
+      <code>THIRD_PARTY_NOTICES.md</code>
+    </div>
+
   </div>
 
 </div>
@@ -10096,6 +10136,165 @@ refreshLXMFInbox();
 
   background:
     white;
+}
+
+
+
+/* ==================================================
+   1.11.0 · ABOUT / LEGAL
+   ================================================== */
+
+.n2k-about-card {
+
+  margin:
+    14px;
+
+  padding:
+    15px;
+
+  border:
+    1px solid rgba(255,255,255,.065);
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(255,255,255,.018);
+}
+
+.n2k-about-title {
+
+  margin-bottom:
+    12px;
+
+  color:
+    rgba(240,246,248,.95);
+
+  font-size:
+    14px;
+
+  font-weight:
+    750;
+}
+
+.n2k-about-row {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    12px;
+
+  padding:
+    8px 0;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.04);
+
+  font-size:
+    11px;
+}
+
+.n2k-about-row span {
+
+  color:
+    rgba(185,201,210,.58);
+}
+
+.n2k-about-row strong {
+
+  color:
+    rgba(233,241,244,.90);
+
+  font-weight:
+    650;
+
+  text-align:
+    right;
+}
+
+.n2k-about-text {
+
+  margin-top:
+    14px;
+
+  color:
+    rgba(214,225,230,.72);
+
+  font-size:
+    11px;
+
+  line-height:
+    1.55;
+}
+
+.n2k-about-notice {
+
+  margin-top:
+    12px;
+
+  padding:
+    10px;
+
+  border-left:
+    2px solid rgba(115,217,255,.45);
+
+  background:
+    rgba(115,217,255,.025);
+
+  color:
+    rgba(194,211,219,.72);
+
+  font-size:
+    10px;
+
+  line-height:
+    1.55;
+}
+
+.n2k-about-links {
+
+  display:
+    flex;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    6px;
+
+  margin-top:
+    13px;
+
+  color:
+    rgba(170,188,198,.58);
+
+  font-size:
+    10px;
+}
+
+.n2k-about-links code {
+
+  padding:
+    2px 5px;
+
+  border:
+    1px solid rgba(255,255,255,.06);
+
+  border-radius:
+    4px;
+
+  background:
+    rgba(255,255,255,.025);
+
+  color:
+    rgba(215,228,233,.78);
 }
 
 </style>

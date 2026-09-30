@@ -1,7 +1,7 @@
-name: "Reticulum DEV"
-version: "1.10.2-dev"
+name: "N2K RNS Gateway DEV"
+version: "1.11.0-dev"
 slug: "reticulum_dev"
-description: "Run a Reticulum Network Stack node directly on Home Assistant."
+description: "Connect Home Assistant to the Reticulum Network Stack and LXMF messaging."
 startup: "application"
 boot: "auto"
 init: false
@@ -9,7 +9,7 @@ init: false
 ingress: true
 ingress_port: 8100
 panel_icon: "mdi:radio-tower"
-panel_title: "Reticulum DEV"
+panel_title: "N2K RNS Gateway"
 
 arch:
   - amd64
