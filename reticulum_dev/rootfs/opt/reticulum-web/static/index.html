@@ -2460,6 +2460,168 @@ code {
 })();
 </script>
 
+
+<style id="n2k-mobile-safe-touch-1166">
+@media (max-width:700px){
+  html,body{
+    position:static !important;
+    inset:auto !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:100% !important;
+    max-height:none !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    touch-action:auto !important;
+    overscroll-behavior:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+
+  .wrap{
+    position:relative !important;
+    display:block !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:100vh !important;
+    max-height:none !important;
+    overflow:visible !important;
+    padding:0 10px 82px !important;
+  }
+
+  #messenger-app.messenger-app{
+    display:block !important;
+    height:auto !important;
+    min-height:260px !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+
+  #messenger-chat-list.messenger-chat-list,
+  #msg-contacts-view,
+  #msg-settings-view{
+    height:auto !important;
+    min-height:220px !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+
+  #n2k-mobile-bottom-nav{
+    position:sticky !important;
+    left:auto !important;
+    right:auto !important;
+    bottom:0 !important;
+    z-index:50 !important;
+    display:grid !important;
+    grid-template-columns:repeat(3,1fr) !important;
+    min-height:68px !important;
+    margin:0 -10px !important;
+    padding:6px 10px calc(6px + env(safe-area-inset-bottom)) !important;
+    border-top:1px solid rgba(255,255,255,.10) !important;
+    background:rgba(10,14,16,.98) !important;
+    pointer-events:auto !important;
+    touch-action:auto !important;
+  }
+
+  .n2k-safe-navbtn{
+    appearance:none !important;
+    -webkit-appearance:none !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:3px !important;
+    min-height:56px !important;
+    border:0 !important;
+    border-radius:8px !important;
+    background:transparent !important;
+    color:rgba(211,214,215,.72) !important;
+    font:inherit !important;
+    font-size:12px !important;
+    pointer-events:auto !important;
+    touch-action:auto !important;
+    cursor:pointer !important;
+    -webkit-tap-highlight-color:rgba(240,189,108,.16) !important;
+  }
+
+  .n2k-safe-navbtn.active{
+    color:#f0bd6c !important;
+    background:rgba(240,189,108,.05) !important;
+  }
+
+  #n2k-safe-gear{
+    pointer-events:auto !important;
+    touch-action:auto !important;
+    cursor:pointer !important;
+  }
+}
+</style>
+
+
+<script id="n2k-mobile-safe-touch-js-1166">
+(function(){
+  function byId(id){return document.getElementById(id);}
+
+  function show(el,on,display){
+    if(!el)return;
+    el.hidden=!on;
+    el.style.setProperty("display",on?(display||"block"):"none","important");
+  }
+
+  function activate(name){
+    var chats=byId("messenger-chat-list");
+    var contacts=byId("msg-contacts-view");
+    var settings=byId("msg-settings-view");
+    var search=document.querySelector(".messenger-search-wrap");
+    var convo=document.querySelector(".messenger-conversation");
+
+    if(convo) convo.style.setProperty("display","none","important");
+
+    show(chats,name==="chats","block");
+    show(search,name==="chats","block");
+    show(contacts,name==="contacts","block");
+    show(settings,name==="settings","block");
+
+    document.querySelectorAll(".n2k-safe-navbtn").forEach(function(btn){
+      btn.classList.toggle("active",btn.getAttribute("data-safe-tab")===name);
+    });
+
+    document.querySelectorAll(".msg-tab[data-msg-tab]").forEach(function(btn){
+      btn.classList.toggle("active",btn.getAttribute("data-msg-tab")===name);
+    });
+
+    try{
+      var core=window.reticulumMessenger097;
+      if(core && name==="contacts" && typeof core.loadContacts==="function"){
+        core.loadContacts();
+      }
+    }catch(e){
+      console.warn("[N2K safe mobile]",e);
+    }
+  }
+
+  function bind(el){
+    if(!el)return;
+    var name=el.getAttribute("data-safe-tab");
+    ["click","pointerdown","touchstart"].forEach(function(type){
+      el.addEventListener(type,function(){
+        activate(name);
+      },{passive:true});
+    });
+  }
+
+  function boot(){
+    document.querySelectorAll("[data-safe-tab]").forEach(bind);
+    activate("chats");
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
+
 </head>
 
 <body>
@@ -2467,7 +2629,7 @@ code {
 
   <div id="n2k-mobile-topbar" class="n2k-mobile-topbar" aria-hidden="true">
     <div class="n2k-mobile-home"><span class="n2k-home-icon">⌂</span><span>Home Assistant</span></div>
-    <button id="n2k-mobile-gear" class="n2k-mobile-gear" type="button" aria-label="Status öffnen" onclick="n2kMobileOpenTab('settings')">⚙</button>
+    <button id="n2k-safe-gear" class="n2k-mobile-gear" type="button" aria-label="Status öffnen" data-safe-tab="settings">⚙</button>
   </div>
 
   <header class="n2k-main-header">
@@ -3200,9 +3362,9 @@ code {
   </div>
 
   <nav id="n2k-mobile-bottom-nav" class="n2k-mobile-bottom-nav" aria-label="Mobile Navigation">
-    <button type="button" class="n2k-bottom-tab active" data-n2k-tab="chats" onclick="n2kMobileOpenTab('chats')"><span class="n2k-bottom-icon">●</span><span>Chats</span></button>
-    <button type="button" class="n2k-bottom-tab" data-n2k-tab="contacts" onclick="n2kMobileOpenTab('contacts')"><span class="n2k-bottom-icon">◎</span><span>Kontakte</span></button>
-    <button type="button" class="n2k-bottom-tab" data-n2k-tab="settings" onclick="n2kMobileOpenTab('settings')"><span class="n2k-bottom-icon">⌁</span><span>Status</span></button>
+    <button type="button" class="n2k-safe-navbtn active" data-safe-tab="chats"><span class="n2k-bottom-icon">●</span><span>Chats</span></button>
+    <button type="button" class="n2k-safe-navbtn" data-safe-tab="contacts"><span class="n2k-bottom-icon">◎</span><span>Kontakte</span></button>
+    <button type="button" class="n2k-safe-navbtn" data-safe-tab="settings"><span class="n2k-bottom-icon">⌁</span><span>Status</span></button>
   </nav>
 
 </div>
