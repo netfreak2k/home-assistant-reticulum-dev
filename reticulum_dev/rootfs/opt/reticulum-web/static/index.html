@@ -3043,11 +3043,12 @@ code {
         </div>
       </details>
 
-      <details class="n2k-help-item" data-help="update aktualisieren repository github version backup rollback sichern">
+      <details class="n2k-help-item" data-help="update aktualisieren repository github version backup restore rollback sichern identity kontakte einstellungen">
         <summary>7 · Update, Backup &amp; Rollback</summary>
         <div class="n2k-help-body">
-          <p>Vor größeren Updates Konfiguration, Identity und Kontakt-Export sichern. Nach einem Update Add-on starten, Oberfläche öffnen und den Systemcheck ausführen.</p>
-          <p><strong>PASS:</strong> RNS/LXMF starten, Identity bleibt erhalten, Kontakte sind vorhanden, Chat und QR-Code funktionieren. Bei einem Fehler nicht weiter aktualisieren, sondern Diagnose sichern und auf die letzte funktionierende Version zurückgehen.</p>
+          <p>Unter Status → Resilience Core kann „Gateway sichern“ ein lokales Backup von Identity, Kontakten und unterstützten Add-on-Einstellungen herunterladen. Nachrichteninhalte sind absichtlich nicht enthalten.</p>
+          <p>„Backup wiederherstellen“ ersetzt die gespeicherte Identity und Kontakte kontrolliert. Danach ist ein manueller Add-on-Neustart erforderlich. Vor größeren Updates zuerst ein Gateway-Backup erstellen.</p>
+          <p><strong>PASS:</strong> RNS/LXMF starten, Identity bleibt erhalten, Kontakte sind vorhanden, Chat, QR, Scanner, Fotos und Emojis funktionieren. Bei einem Fehler Diagnose sichern und auf die letzte funktionierende Version zurückgehen.</p>
         </div>
       </details>
 
@@ -3073,6 +3074,14 @@ code {
           <p>Im Chat öffnet das Kamera-Symbol die Bildauswahl. Das Foto wird ausschließlich lokal im Browser auf maximal etwa 320 Pixel Kantenlänge und ungefähr 18 KB JPEG komprimiert.</p>
           <p>Danach erscheint eine Vorschau mit Größe. Erst „Foto senden“ übergibt das Bild an LXMF. Über langsame LoRa-/RNode-Strecken kann die Zustellung deutlich länger dauern als bei Textnachrichten.</p>
           <p><strong>Wichtig:</strong> Es wird nicht das Originalfoto übertragen. Die Funktion ist für kleine Mesh-Schnappschüsse gedacht.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="notfallmodus resilience offline stromausfall kernfunktionen status">
+        <summary>11 · Resilience / Notfallmodus</summary>
+        <div class="n2k-help-body">
+          <p>Der Notfallmodus reduziert die Statusansicht auf die für den Betrieb wichtigen Bereiche. Chats, Kontakte, Announce, Scanner und Systemcheck bleiben verfügbar; ausführliche Hilfe und About werden vorübergehend ausgeblendet.</p>
+          <p>Der Modus ändert keine Reticulum- oder RNode-Konfiguration. Er ist nur eine reduzierte Bedienoberfläche und kann jederzeit wieder beendet werden.</p>
         </div>
       </details>
 
