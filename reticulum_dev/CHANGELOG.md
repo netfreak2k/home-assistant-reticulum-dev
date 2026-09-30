@@ -1,3 +1,9 @@
+## 1.18.9-beta1
+
+- Fixed mobile Status view not loading the Messenger profile panel.
+- **Jetzt announcen** is now visible again under Status → Mein Messenger on mobile.
+- Reused the existing LXMF announce endpoint; no protocol or radio behaviour changed.
+
 ## 1.18.8-beta1
 
 - Added a 30-second passive **Umgebungsscanner** under Contacts.
