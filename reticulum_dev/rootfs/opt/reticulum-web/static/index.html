@@ -7832,7 +7832,9 @@ async function refresh() {
 detectRNode();
 refreshRNodeConfig();
 refreshHardware();
+refresh();
 
+setInterval(refresh, 10000);
 setInterval(refreshHardware, 60000);
 
 
