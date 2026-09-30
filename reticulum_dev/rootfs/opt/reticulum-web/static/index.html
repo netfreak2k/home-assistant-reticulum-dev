@@ -10365,7 +10365,10 @@ if (
       }
 
       var items=Array.isArray(data.candidates)?data.candidates:[];
-      count.textContent=items.length+" Server gefunden";
+      var activeItems=items.filter(function(item){return item&&item.active===true;});
+      var inactiveItems=items.filter(function(item){return !item||item.active!==true;});
+      count.textContent=
+        items.length+" bekannt · "+activeItems.length+" aktiv";
 
       var scannerState=$("n2k-propagation-scanner-state");
       var lastScan=$("n2k-propagation-last-scan");
@@ -10394,8 +10397,8 @@ if (
 
       if(!items.length){
         list.innerHTML='<div class="n2k-propagation-candidate">'+
-          '<span>Keine erreichbaren LXMF Propagation Nodes</span>'+
-          '<span>0 Server · Scanner aktiv</span>'+
+          '<span>Noch keine LXMF Propagation Nodes bekannt</span>'+
+          '<span>0 bekannt · 0 aktiv</span>'+
         '</div>';
 
         if(selected){
@@ -10425,7 +10428,7 @@ if (
             "Scanner: "+valid+" gültig → "+
             activeSeen+" aktiv → "+
             persisted+" gespeichert → "+
-            items.length+" geeignet.";
+            items.length+" bekannt.";
 
           if(rawCount){
             diagnosticText+=" Datei: "+rawCount+" Einträge.";
@@ -10464,7 +10467,7 @@ if (
       list.innerHTML=items.slice(0,5).map(function(item){
         return '<div class="n2k-propagation-candidate">'+
           '<span>'+
-            (item.active?"● ":"○ ")+
+            (item.active?"● aktiv · ":"○ bekannt · inaktiv · ")+
             String(item.destination_hash||"").slice(0,12)+'…'+
           '</span>'+
           '<span>'+
@@ -10475,9 +10478,15 @@ if (
       }).join("");
 
       if(note){
-        note.textContent=
-          items.length+" erreichbare(r) Propagation Node(s) gefunden. "+
-          "Direktpfade bleiben bevorzugt.";
+        if(activeItems.length){
+          note.textContent=
+            items.length+" bekannt · "+activeItems.length+" aktiv. "+
+            "Automatisch ausgewählt werden nur aktive Nodes; Direktpfade bleiben bevorzugt.";
+        }else{
+          note.textContent=
+            items.length+" Propagation Node(s) bekannt, derzeit aber keiner aktiv. "+
+            "Bekannte Nodes bleiben gespeichert und werden weiter geprüft.";
+        }
       }
 
     }catch(e){
