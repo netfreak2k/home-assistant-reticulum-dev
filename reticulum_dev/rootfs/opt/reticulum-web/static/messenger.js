@@ -8,9 +8,6 @@
 
   const $ = id => document.getElementById(id);
 
-  const ANNOUNCE_COOLDOWN_SECONDS = 60;
-  let announceCooldownTimer = null;
-
   const state = {
     contacts: [],
     activeTab: "chats"
@@ -1585,6 +1582,9 @@
   "use strict";
 
   const $ = id => document.getElementById(id);
+
+  const ANNOUNCE_COOLDOWN_SECONDS = 60;
+  let announceCooldownTimer = null;
 
   function shortHash(value) {
     const v = String(value || "");
