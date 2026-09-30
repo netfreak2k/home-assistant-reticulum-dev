@@ -3057,6 +3057,11 @@ code {
           id="m110-qr-image"
           alt="Reticulum Kontakt QR">
         <div
+          id="m110-qr-svg"
+          class="m110-qr-svg"
+          aria-label="Reticulum Kontakt QR">
+        </div>
+        <div
           id="m110-qr-status"
           class="m110-qr-status">
           QR wird geladen…
@@ -5729,6 +5734,11 @@ async function openM110QrModal(
       "m110-qr-status"
     );
 
+  const svgHolder =
+    document.getElementById(
+      "m110-qr-svg"
+    );
+
   if (!modal || !image) {
     return;
   }
@@ -5757,6 +5767,11 @@ async function openM110QrModal(
   image.style.display =
     "none";
 
+  if (svgHolder) {
+    svgHolder.innerHTML = "";
+    svgHolder.style.display = "none";
+  }
+
   if (status) {
     status.style.display =
       "flex";
@@ -5784,39 +5799,47 @@ async function openM110QrModal(
       "&t=" +
       Date.now();
 
+    const response =
+      await fetch(
+        url,
+        { cache: "no-store" }
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        "HTTP " + response.status
+      );
+    }
+
+    const svgText =
+      (await response.text()).trim();
+
+    if (
+      !svgText.includes("<svg") ||
+      !svgText.includes("</svg>")
+    ) {
+      throw new Error(
+        "Ungültige QR-SVG-Antwort"
+      );
+    }
+
     /*
-     * Home Assistant Ingress can block or mishandle blob:
-     * object URLs inside its embedded Web UI. Load the SVG
-     * directly through the relative Ingress URL instead.
+     * Render the trusted locally generated SVG directly in
+     * the modal. This avoids blob:/data: image restrictions
+     * and Home Assistant Ingress image-loading edge cases.
      */
-    image.onload =
-      () => {
+    if (!svgHolder) {
+      throw new Error(
+        "QR-SVG-Container fehlt"
+      );
+    }
 
-        image.style.display =
-          "block";
+    svgHolder.innerHTML = svgText;
+    svgHolder.style.display = "block";
 
-        if (status) {
-          status.style.display =
-            "none";
-        }
-      };
-
-    image.onerror =
-      () => {
-
-        image.style.display =
-          "none";
-
-        if (status) {
-          status.style.display =
-            "flex";
-
-          status.textContent =
-            "QR konnte nicht dargestellt werden";
-        }
-      };
-
-    image.src = url;
+    if (status) {
+      status.style.display = "none";
+    }
   } catch (error) {
 
     image.style.display =
@@ -14133,6 +14156,21 @@ body {
       animation:none !important;
     }
   }
+}
+
+.m110-qr-svg {
+  position: relative;
+  z-index: 3;
+  display: none;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+}
+
+.m110-qr-svg svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 </style>
 
