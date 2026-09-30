@@ -1780,10 +1780,492 @@ code {
 }
 </style>
 
+
+<style id="n2k-mobile-app-shell-1160">
+/* ==================================================
+   1.16.0 · MOBILE APP SHELL
+   Matches the approved phone reference much more closely.
+   Desktop diagnostics remain intact outside compact HA/phone widths.
+   ================================================== */
+
+.n2k-mobile-topbar,
+.n2k-mobile-status-strip,
+.n2k-mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  html, body {
+    background: #0b1014 !important;
+  }
+
+  body {
+    padding: 0 !important;
+  }
+
+  .wrap {
+    width: 100% !important;
+    max-width: 760px !important;
+    min-height: 100vh;
+    margin: 0 auto !important;
+    padding: 0 14px 88px !important;
+    background:
+      radial-gradient(circle at 50% -8%, rgba(255,194,102,.055), transparent 26%),
+      linear-gradient(180deg, #10171c 0%, #0b1014 46%, #080c0f 100%);
+  }
+
+  /* Phone-like Home Assistant app bar */
+  .n2k-mobile-topbar {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 58px;
+    padding: 10px 8px 4px;
+    color: rgba(232,236,238,.82);
+  }
+
+  .n2k-mobile-home {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 500;
+  }
+
+  .n2k-home-icon {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(255,255,255,.045);
+    color: rgba(228,233,235,.72);
+    font-size: 22px;
+  }
+
+  .n2k-mobile-gear {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: rgba(228,233,235,.72);
+    font-size: 25px;
+    cursor: pointer;
+  }
+
+  /* Reorder header to date -> clock -> product title */
+  .n2k-main-header {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    min-height: 0 !important;
+    padding: 8px 0 12px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+
+  .n2k-header-right {
+    order: 1;
+    display: block !important;
+    width: 100%;
+  }
+
+  .n2k-brand {
+    order: 2;
+    align-items: center;
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .n2k-brand-kicker,
+  .n2k-main-header .sub,
+  .n2k-main-header #node-status {
+    display: none !important;
+  }
+
+  .n2k-main-header h1 {
+    font-size: clamp(29px, 7.2vw, 42px) !important;
+    line-height: 1.1 !important;
+    font-weight: 780 !important;
+    letter-spacing: .01em !important;
+    color: rgba(245,245,242,.96) !important;
+    text-shadow: 0 2px 9px rgba(0,0,0,.30);
+  }
+
+  .n2k-main-header h1::after {
+    content: " DEV";
+  }
+
+  .n2k-clock {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .n2k-clock-date {
+    order: 1;
+    width: min(470px, 92%);
+    margin: 0 auto 16px !important;
+    padding: 10px 14px !important;
+    border: 1px solid rgba(255,255,255,.11);
+    border-radius: 9px;
+    background: linear-gradient(180deg, #262725, #181918);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.06),
+      0 8px 18px rgba(0,0,0,.24);
+    color: #eadcc9 !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+    font-size: clamp(15px, 3.9vw, 22px) !important;
+    font-weight: 600 !important;
+    letter-spacing: .07em !important;
+    text-align: center;
+  }
+
+  .n2k-clock-time {
+    order: 2;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    width: 100%;
+  }
+
+  .n2k-flap {
+    width: clamp(90px, 25vw, 128px) !important;
+    height: clamp(112px, 30vw, 150px) !important;
+    border: 1px solid rgba(255,255,255,.11) !important;
+    border-radius: 9px !important;
+    background:
+      linear-gradient(180deg, #2c2d2a 0%, #1e1f1d 49.3%, #0f100f 50%, #1a1b19 100%) !important;
+    color: #f0dfc7 !important;
+    font-size: clamp(70px, 20vw, 104px) !important;
+    font-weight: 620 !important;
+    line-height: 1 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.07),
+      0 10px 22px rgba(0,0,0,.38) !important;
+  }
+
+  .n2k-clock-separator {
+    font-size: clamp(44px, 12vw, 65px) !important;
+    color: #e3d1ba !important;
+    transform: translateY(-2px) !important;
+  }
+
+  /* Hide seconds to match the approved phone design */
+  #n2k-second,
+  #n2k-second + .n2k-clock-separator,
+  .n2k-flap-small {
+    display: none !important;
+  }
+
+  /* second separator is before seconds in current DOM */
+  .n2k-clock-time .n2k-clock-separator:nth-of-type(2) {
+    display: none !important;
+  }
+
+  /* Compact three-state strip */
+  .n2k-mobile-status-strip {
+    display: grid !important;
+    grid-template-columns: 1fr 1px 1fr 1px 1fr;
+    align-items: center;
+    width: 100%;
+    min-height: 58px;
+    margin: 4px 0 14px;
+    padding: 0 16px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(31,38,42,.84), rgba(17,22,25,.92));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 8px 18px rgba(0,0,0,.18);
+  }
+
+  .n2k-mobile-status-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    color: rgba(236,238,238,.88);
+    font-size: 16px;
+    font-weight: 650;
+  }
+
+  .n2k-mobile-status-item i {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #6fd77a;
+    box-shadow: 0 0 0 3px rgba(111,215,122,.05);
+  }
+
+  .n2k-mobile-status-item i.warn { background: #e1b45d; }
+  .n2k-mobile-status-item i.off { background: #8b9093; }
+
+  .n2k-mobile-status-divider {
+    width: 1px;
+    height: 30px;
+    background: rgba(255,255,255,.13);
+  }
+
+  /* Technical dashboard disappears in compact app mode */
+  .node-hero,
+  .n2k-tech-panel,
+  .grid,
+  #reticulum-network,
+  #reticulum-identity,
+  .wrap > details,
+  .wrap > hr {
+    display: none !important;
+  }
+
+  /* Messenger becomes the main app surface */
+  #messenger-app.messenger-app {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(255,255,255,.095) !important;
+    border-radius: 14px 14px 0 0 !important;
+    background: linear-gradient(180deg, rgba(26,31,34,.96), rgba(13,17,19,.97)) !important;
+    box-shadow: 0 16px 34px rgba(0,0,0,.22) !important;
+  }
+
+  #messenger-app .messenger-status {
+    display: none !important;
+  }
+
+  #messenger-app .msg-tabs {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: repeat(3,1fr);
+    gap: 0 !important;
+    padding: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,.075) !important;
+    background: rgba(255,255,255,.01) !important;
+  }
+
+  #messenger-app .msg-tab {
+    position: relative;
+    min-height: 66px !important;
+    border: 0 !important;
+    border-right: 1px solid rgba(255,255,255,.055) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: rgba(213,217,219,.72) !important;
+    font-size: 15px !important;
+    font-weight: 560 !important;
+  }
+
+  #messenger-app .msg-tab:last-child {
+    border-right: 0 !important;
+  }
+
+  #messenger-app .msg-tab.active {
+    color: #f0bd6c !important;
+    background: linear-gradient(180deg, rgba(240,189,108,.03), transparent) !important;
+  }
+
+  #messenger-app .msg-tab.active::after {
+    content: "";
+    position: absolute;
+    left: 14%;
+    right: 14%;
+    bottom: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: #f0bd6c;
+    box-shadow: 0 0 10px rgba(240,189,108,.35);
+  }
+
+  #messenger-app .msg-tab-icon {
+    margin-right: 6px;
+    font-size: 17px;
+  }
+
+  .messenger-search-wrap {
+    padding: 10px 12px 4px !important;
+    background: transparent !important;
+  }
+
+  .messenger-search {
+    min-height: 42px;
+    border-radius: 10px !important;
+    border-color: rgba(255,255,255,.075) !important;
+    background: rgba(255,255,255,.025) !important;
+  }
+
+  #messenger-chat-list.messenger-chat-list {
+    padding: 0 12px 8px !important;
+  }
+
+  #messenger-chat-list .messenger-contact {
+    min-height: 82px !important;
+    padding: 12px 4px !important;
+    border-bottom: 1px solid rgba(255,255,255,.08) !important;
+    background: transparent !important;
+  }
+
+  #messenger-chat-list .messenger-contact-avatar {
+    width: 56px !important;
+    height: 56px !important;
+    flex: 0 0 56px !important;
+    border: 1px solid rgba(255,255,255,.22) !important;
+    background: linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.025)) !important;
+    color: rgba(242,243,240,.88) !important;
+    font-size: 18px !important;
+  }
+
+  #messenger-chat-list .messenger-contact-name {
+    font-size: 17px !important;
+    font-weight: 720 !important;
+    color: rgba(245,245,242,.96) !important;
+  }
+
+  #messenger-chat-list .messenger-contact-preview {
+    margin-top: 5px !important;
+    color: rgba(204,207,208,.70) !important;
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+  }
+
+  #messenger-chat-list .messenger-contact-time {
+    color: rgba(201,204,205,.62) !important;
+    font-size: 12px !important;
+  }
+
+  .messenger-unread {
+    background: #6fd36f !important;
+    color: #eff7ef !important;
+  }
+
+  /* Settings/status content looks like a real app page */
+  #msg-settings-view,
+  #msg-contacts-view {
+    background: transparent !important;
+  }
+
+  .m100-settings-head,
+  .m110-contact-head {
+    padding: 16px 14px 10px !important;
+  }
+
+  .n2k-selftest-card,
+  .n2k-about-card {
+    margin: 10px 12px !important;
+  }
+
+  /* Bottom iOS-like app nav */
+  .n2k-mobile-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: grid !important;
+    grid-template-columns: repeat(3,1fr);
+    min-height: 74px;
+    padding: 6px max(12px, env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-right));
+    border-top: 1px solid rgba(255,255,255,.095);
+    background: rgba(10,14,16,.96);
+    backdrop-filter: blur(18px);
+  }
+
+  .n2k-bottom-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 0;
+    background: transparent;
+    color: rgba(211,214,215,.70);
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .n2k-bottom-tab.active {
+    color: #f0bd6c;
+  }
+
+  .n2k-bottom-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  /* Conversation view */
+  .lxmf-chat.messenger-conversation {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+  }
+
+  .lxmf-chat-header {
+    min-height: 66px !important;
+  }
+
+  #lxmf-inbox.lxmf-chat-messages {
+    height: calc(100vh - 330px) !important;
+    min-height: 320px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .wrap {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .n2k-mobile-home {
+    font-size: 15px;
+  }
+
+  .n2k-clock-date {
+    font-size: 13px !important;
+  }
+
+  .n2k-main-header h1 {
+    font-size: 27px !important;
+  }
+
+  .n2k-mobile-status-item {
+    gap: 7px;
+    font-size: 14px;
+  }
+
+  .n2k-mobile-status-item i {
+    width: 11px;
+    height: 11px;
+  }
+
+  #messenger-app .msg-tab {
+    min-height: 60px !important;
+    font-size: 13px !important;
+  }
+}
+</style>
+
 </head>
 
 <body>
 <div class="wrap">
+
+  <div id="n2k-mobile-topbar" class="n2k-mobile-topbar" aria-hidden="true">
+    <div class="n2k-mobile-home"><span class="n2k-home-icon">⌂</span><span>Home Assistant</span></div>
+    <button id="n2k-mobile-gear" class="n2k-mobile-gear" type="button" aria-label="Status öffnen">⚙</button>
+  </div>
 
   <header class="n2k-main-header">
 
@@ -1857,6 +2339,14 @@ code {
     </div>
 
   </header>
+
+  <div id="n2k-mobile-status-strip" class="n2k-mobile-status-strip" aria-hidden="true">
+    <div class="n2k-mobile-status-item"><span>RNS</span><i id="n2k-mobile-rns-dot"></i></div>
+    <div class="n2k-mobile-status-divider"></div>
+    <div class="n2k-mobile-status-item"><span>LXMF</span><i id="n2k-mobile-lxmf-dot"></i></div>
+    <div class="n2k-mobile-status-divider"></div>
+    <div class="n2k-mobile-status-item"><span>NODE</span><i id="n2k-mobile-node-dot"></i></div>
+  </div>
 
   <section class="node-hero">
     <div class="node-hero-top">
@@ -2313,7 +2803,7 @@ code {
             class="msg-tab"
             data-msg-tab="settings">
       <span class="msg-tab-icon">⚙</span>
-      <span>Einstellungen</span>
+      <span>Status</span>
     </button>
   </nav>
 
@@ -2505,6 +2995,12 @@ code {
       Chats werden geladen…
     </div>
   </div>
+
+  <nav id="n2k-mobile-bottom-nav" class="n2k-mobile-bottom-nav" aria-label="Mobile Navigation">
+    <button type="button" class="n2k-bottom-tab active" data-n2k-tab="chats"><span class="n2k-bottom-icon">●</span><span>Chats</span></button>
+    <button type="button" class="n2k-bottom-tab" data-n2k-tab="contacts"><span class="n2k-bottom-icon">◎</span><span>Kontakte</span></button>
+    <button type="button" class="n2k-bottom-tab" data-n2k-tab="settings"><span class="n2k-bottom-icon">⌁</span><span>Status</span></button>
+  </nav>
 
 </div>
 
@@ -9384,6 +9880,86 @@ refreshLXMFInbox();
 
 
 <script src="static/messenger.js"></script>
+
+<script id="n2k-mobile-shell-js-1160">
+(function () {
+  function setDot(id, state) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove("warn", "off");
+    if (state === "warn") el.classList.add("warn");
+    if (state === "off") el.classList.add("off");
+  }
+
+  function textOf(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.textContent || "").trim().toUpperCase() : "";
+  }
+
+  function refreshMobileIndicators() {
+    var rns = textOf("hero-rns") + " " + textOf("hero-node-state");
+    var lxmf = textOf("lxmf-status");
+    var node = textOf("node-status");
+
+    setDot("n2k-mobile-rns-dot",
+      /OFF|FEHLER|ERROR/.test(rns) ? "off" :
+      /WAIT|START|PRÜF|LOADING/.test(rns) ? "warn" : "ok");
+
+    setDot("n2k-mobile-lxmf-dot",
+      /OFF|FEHLER|ERROR/.test(lxmf) ? "off" :
+      /WAIT|START|PRÜF|LOADING/.test(lxmf) ? "warn" : "ok");
+
+    setDot("n2k-mobile-node-dot",
+      /OFF|FEHLER|ERROR/.test(node) ? "off" :
+      /WAIT|START|PRÜF|LOADING/.test(node) ? "warn" : "ok");
+  }
+
+  function activateTab(name) {
+    var tab = document.querySelector('.msg-tab[data-msg-tab="' + name + '"]');
+    if (tab) tab.click();
+
+    document.querySelectorAll(".n2k-bottom-tab").forEach(function (btn) {
+      btn.classList.toggle("active", btn.getAttribute("data-n2k-tab") === name);
+    });
+  }
+
+  document.addEventListener("click", function (event) {
+    var bottom = event.target.closest(".n2k-bottom-tab");
+    if (bottom) {
+      activateTab(bottom.getAttribute("data-n2k-tab"));
+      return;
+    }
+
+    var topTab = event.target.closest(".msg-tab[data-msg-tab]");
+    if (topTab) {
+      var name = topTab.getAttribute("data-msg-tab");
+      document.querySelectorAll(".n2k-bottom-tab").forEach(function (btn) {
+        btn.classList.toggle("active", btn.getAttribute("data-n2k-tab") === name);
+      });
+    }
+
+    if (event.target.closest("#n2k-mobile-gear")) {
+      activateTab("settings");
+    }
+  });
+
+  function updateMobileDateLabel() {
+    var target = document.getElementById("n2k-clock-date");
+    if (!target) return;
+    var now = new Date();
+    var weekdays = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+    var dd = String(now.getDate()).padStart(2,"0");
+    var mm = String(now.getMonth()+1).padStart(2,"0");
+    target.textContent = weekdays[now.getDay()] + " · " + dd + "." + mm + "." + now.getFullYear();
+  }
+
+  refreshMobileIndicators();
+  updateMobileDateLabel();
+  setInterval(refreshMobileIndicators, 2000);
+  setInterval(updateMobileDateLabel, 30000);
+})();
+</script>
+
 </body>
 </html>
 
