@@ -13,6 +13,7 @@ import urllib.request
 import urllib.parse
 import io
 import re
+import base64
 
 import qrcode
 import qrcode.image.svg
@@ -2116,6 +2117,276 @@ def messenger_qr_svg(destination_hash, display_name=""):
     return svg.encode("utf-8"), uri
 
 
+N2K_BACKUP_OPTION_KEYS = (
+    "messenger_name",
+    "auto_interface",
+    "internet_bootstrap",
+    "tcp_interface",
+    "tcp_host",
+    "tcp_port",
+    "rnode_interface",
+    "rnode_port",
+    "rnode_frequency",
+    "rnode_bandwidth",
+    "rnode_txpower",
+    "rnode_spreadingfactor",
+    "rnode_codingrate",
+    "transport",
+    "loglevel",
+)
+
+
+def get_n2k_backup():
+    """
+    Export the persistent gateway identity, contacts and supported
+    add-on options. Message history is intentionally excluded.
+    """
+    state_dir = Path(
+        "/config/reticulum/homeassistant-node"
+    )
+    identity_file = state_dir / "identity"
+    contacts_file = state_dir / "contacts.json"
+
+    if not identity_file.exists():
+        return {
+            "ok": False,
+            "error": "Persistente Identity nicht gefunden",
+        }
+
+    try:
+        identity_raw = identity_file.read_bytes()
+
+        if not identity_raw:
+            raise ValueError("Identity-Datei ist leer")
+
+        contacts = []
+
+        if contacts_file.exists():
+            try:
+                value = json.loads(
+                    contacts_file.read_text(
+                        encoding="utf-8"
+                    )
+                )
+
+                if isinstance(value, list):
+                    contacts = value
+
+            except Exception:
+                contacts = []
+
+        try:
+            current_options = get_addon_options()
+        except Exception:
+            current_options = {}
+
+        options = {
+            key: current_options.get(key)
+            for key in N2K_BACKUP_OPTION_KEYS
+            if key in current_options
+        }
+
+        return {
+            "ok": True,
+            "format": "n2k-rns-gateway-backup",
+            "version": 1,
+            "created_at": int(time.time()),
+            "product": "N2K RNS Gateway",
+            "contains": {
+                "identity": True,
+                "contacts": len(contacts),
+                "settings": len(options),
+                "messages": False,
+            },
+            "identity_b64": base64.b64encode(
+                identity_raw
+            ).decode("ascii"),
+            "contacts": contacts,
+            "options": options,
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": str(exc),
+        }
+
+
+def restore_n2k_backup(payload):
+    """
+    Restore persistent identity, contacts and supported add-on options.
+    The running Reticulum/LXMF process is not switched live; a manual
+    add-on restart is required after a successful restore.
+    """
+    if not isinstance(payload, dict):
+        return {
+            "ok": False,
+            "error": "Ungültiges Backup",
+        }
+
+    if payload.get("format") != "n2k-rns-gateway-backup":
+        return {
+            "ok": False,
+            "error": "Unbekanntes Backup-Format",
+        }
+
+    if int(payload.get("version") or 0) != 1:
+        return {
+            "ok": False,
+            "error": "Nicht unterstützte Backup-Version",
+        }
+
+    identity_b64 = str(
+        payload.get("identity_b64") or ""
+    ).strip()
+
+    if not identity_b64:
+        return {
+            "ok": False,
+            "error": "Backup enthält keine Identity",
+        }
+
+    try:
+        identity_raw = base64.b64decode(
+            identity_b64,
+            validate=True,
+        )
+    except Exception:
+        return {
+            "ok": False,
+            "error": "Identity im Backup ist beschädigt",
+        }
+
+    if not identity_raw or len(identity_raw) > 16384:
+        return {
+            "ok": False,
+            "error": "Ungültige Identity-Größe",
+        }
+
+    contacts = payload.get("contacts") or []
+
+    if not isinstance(contacts, list):
+        return {
+            "ok": False,
+            "error": "Kontaktliste im Backup ist ungültig",
+        }
+
+    clean_contacts = []
+
+    for item in contacts[:500]:
+        if not isinstance(item, dict):
+            continue
+
+        peer = str(
+            item.get("destination_hash") or ""
+        ).strip().lower()
+
+        if not re.fullmatch(r"[0-9a-f]{32}", peer):
+            continue
+
+        clean = dict(item)
+        clean["destination_hash"] = peer
+
+        if "display_name" in clean:
+            clean["display_name"] = str(
+                clean.get("display_name") or ""
+            )[:80]
+
+        clean_contacts.append(clean)
+
+    options = payload.get("options") or {}
+
+    if not isinstance(options, dict):
+        options = {}
+
+    clean_options = {
+        key: options.get(key)
+        for key in N2K_BACKUP_OPTION_KEYS
+        if key in options
+    }
+
+    state_dir = Path(
+        "/config/reticulum/homeassistant-node"
+    )
+    identity_file = state_dir / "identity"
+    contacts_file = state_dir / "contacts.json"
+
+    state_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # Write identity and contacts atomically.
+    identity_tmp = state_dir / "identity.restore.tmp"
+    identity_tmp.write_bytes(identity_raw)
+    os.replace(identity_tmp, identity_file)
+
+    contacts_tmp = state_dir / "contacts.restore.tmp"
+    contacts_tmp.write_text(
+        json.dumps(
+            clean_contacts,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    os.replace(contacts_tmp, contacts_file)
+
+    options_restored = 0
+
+    if clean_options:
+        token = os.environ.get(
+            "SUPERVISOR_TOKEN"
+        )
+
+        if not token:
+            return {
+                "ok": False,
+                "error": (
+                    "Identity/Kontakte wiederhergestellt, "
+                    "aber Supervisor-Token fehlt. Add-on neu starten."
+                ),
+                "restart_required": True,
+            }
+
+        current = get_addon_options()
+        merged = dict(current)
+        merged.update(clean_options)
+
+        body = json.dumps({
+            "options": merged
+        }).encode("utf-8")
+
+        request = urllib.request.Request(
+            "http://supervisor/addons/self/options",
+            data=body,
+            method="POST",
+            headers={
+                "Authorization": "Bearer " + token,
+                "Content-Type": "application/json",
+            },
+        )
+
+        with urllib.request.urlopen(
+            request,
+            timeout=5,
+        ) as response:
+            response.read()
+
+        options_restored = len(clean_options)
+
+    return {
+        "ok": True,
+        "restart_required": True,
+        "contacts_restored": len(clean_contacts),
+        "options_restored": options_restored,
+        "message": (
+            "Backup wiederhergestellt. "
+            "Add-on jetzt neu starten."
+        ),
+    }
+
+
 def get_messenger_contacts():
     path = Path(
         "/config/reticulum/homeassistant-node/"
@@ -3010,6 +3281,42 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(request_lxmf_announce())
             return
 
+        if path.endswith("/api/backup/restore"):
+            try:
+                length = int(
+                    self.headers.get(
+                        "Content-Length",
+                        "0",
+                    )
+                )
+
+                if length <= 0 or length > 1024 * 1024:
+                    raise ValueError(
+                        "Ungültige Backup-Größe"
+                    )
+
+                raw = self.rfile.read(length)
+                payload = json.loads(
+                    raw.decode("utf-8")
+                )
+
+                result = restore_n2k_backup(
+                    payload
+                )
+
+                self.send_json(
+                    result,
+                    200 if result.get("ok") else 400,
+                )
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc),
+                }, 400)
+
+            return
+
         if path.endswith("/api/messenger/contact"):
             try:
                 length = int(
@@ -3320,6 +3627,15 @@ class Handler(BaseHTTPRequestHandler):
                     "error": str(exc),
                 }, 400)
 
+            return
+
+        if path.endswith("/api/backup"):
+            result = get_n2k_backup()
+
+            self.send_json(
+                result,
+                200 if result.get("ok") else 500,
+            )
             return
 
         if path.endswith("/api/messenger/contacts"):
