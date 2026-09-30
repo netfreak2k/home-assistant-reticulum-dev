@@ -13671,3 +13671,424 @@ body {
   window.n2kMobileSetView=setView;
 })();
 </script>
+
+
+<style id="n2k-mobile-native-clean-1184">
+/* ==================================================
+   1.18.4-dev · N2K MOBILE NATIVE CLEAN
+   Cross-platform smartphone UI (iOS + Android)
+   Original N2K styling; system fonts/icons only.
+   ================================================== */
+
+@media (max-width:900px){
+  :root{
+    --n2km-bg:#0b0f13;
+    --n2km-surface:rgba(27,31,36,.92);
+    --n2km-surface-2:rgba(34,39,44,.78);
+    --n2km-line:rgba(255,255,255,.085);
+    --n2km-line-soft:rgba(255,255,255,.055);
+    --n2km-text:rgba(248,249,250,.96);
+    --n2km-muted:rgba(190,198,204,.62);
+    --n2km-accent:#71d9b0;
+    --n2km-warm:#efbd72;
+    --n2km-radius-xl:22px;
+    --n2km-radius-lg:18px;
+    --n2km-radius-md:14px;
+  }
+
+  html,body{
+    background:var(--n2km-bg) !important;
+  }
+
+  body{
+    color:var(--n2km-text) !important;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    padding-bottom:calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .wrap{
+    width:100% !important;
+    max-width:none !important;
+  }
+
+  /* Compact original N2K identity card */
+  #n2k-global-brand{
+    margin:8px 8px 10px !important;
+    padding:11px 13px 10px !important;
+    border:1px solid var(--n2km-line) !important;
+    border-radius:var(--n2km-radius-lg) !important;
+    background:var(--n2km-surface) !important;
+    box-shadow:0 10px 28px rgba(0,0,0,.16) !important;
+  }
+
+  .n2k-global-title{
+    font-size:19px !important;
+    line-height:1.1 !important;
+    font-weight:760 !important;
+    letter-spacing:-.015em !important;
+  }
+
+  .n2k-global-sub{
+    margin-top:3px !important;
+    font-size:9px !important;
+    line-height:1.25 !important;
+    letter-spacing:.11em !important;
+    color:var(--n2km-muted) !important;
+    opacity:1 !important;
+  }
+
+  .n2k-global-version{
+    margin-top:5px !important;
+    font-size:10px !important;
+    color:var(--n2km-muted) !important;
+    opacity:.78 !important;
+  }
+
+  #m101-live{
+    margin-top:7px !important;
+    gap:7px !important;
+    flex-wrap:nowrap !important;
+    min-width:0 !important;
+    font-size:11px !important;
+    line-height:1.2 !important;
+    color:rgba(226,231,234,.86) !important;
+    opacity:1 !important;
+  }
+
+  .m101-dot{
+    width:7px !important;
+    height:7px !important;
+    flex:0 0 7px !important;
+  }
+
+  .m101-time{
+    width:auto !important;
+    min-width:0 !important;
+    margin-left:auto !important;
+    font-size:9px !important;
+    color:var(--n2km-muted) !important;
+    opacity:.8 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  /* Main app title/date: quiet hierarchy instead of dashboard chrome */
+  .n2k-main-header{
+    gap:6px !important;
+    margin:0 8px 8px !important;
+    padding:2px 0 0 !important;
+  }
+
+  .n2k-main-header h1{
+    font-size:23px !important;
+    line-height:1.15 !important;
+    font-weight:760 !important;
+    letter-spacing:-.025em !important;
+  }
+
+  .n2k-clock-date{
+    width:min(370px,96%) !important;
+    padding:8px 12px !important;
+    border:1px solid var(--n2km-line-soft) !important;
+    border-radius:12px !important;
+    background:rgba(18,22,26,.82) !important;
+    box-shadow:none !important;
+    color:rgba(218,224,228,.72) !important;
+    font-size:11px !important;
+  }
+
+  /* Connection indicators become one calm segmented card */
+  .n2k-mobile-real-state{
+    min-height:48px !important;
+    margin:0 8px 10px !important;
+    padding:4px !important;
+    border:1px solid var(--n2km-line) !important;
+    border-radius:var(--n2km-radius-lg) !important;
+    background:var(--n2km-surface) !important;
+    box-shadow:0 8px 24px rgba(0,0,0,.10) !important;
+  }
+
+  .n2k-mobile-real-state span{
+    min-height:38px !important;
+    border-radius:12px !important;
+    color:rgba(239,242,244,.90) !important;
+    font-size:12px !important;
+    font-weight:700 !important;
+    letter-spacing:.015em !important;
+  }
+
+  .n2k-mobile-real-state i{
+    width:8px !important;
+    height:8px !important;
+    box-shadow:0 0 0 3px rgba(111,215,122,.08) !important;
+  }
+
+  /* App surface */
+  .n2k-mobile-real-stage{
+    margin:0 8px !important;
+    border:1px solid var(--n2km-line) !important;
+    border-radius:var(--n2km-radius-xl) !important;
+    background:rgba(16,20,24,.96) !important;
+    box-shadow:0 16px 42px rgba(0,0,0,.18) !important;
+    overflow:hidden !important;
+  }
+
+  #n2k-mobile-real-content{
+    background:transparent !important;
+  }
+
+  /* Search/input controls */
+  #n2k-mobile-real-content .messenger-search-wrap{
+    padding:12px 12px 6px !important;
+  }
+
+  #n2k-mobile-real-content .messenger-search,
+  #lxmf-chat-content,
+  #m99-name{
+    min-height:44px !important;
+    border:1px solid var(--n2km-line) !important;
+    border-radius:14px !important;
+    background:rgba(255,255,255,.055) !important;
+    color:var(--n2km-text) !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.025) !important;
+  }
+
+  #n2k-mobile-real-content .messenger-search:focus,
+  #lxmf-chat-content:focus,
+  #m99-name:focus{
+    border-color:rgba(113,217,176,.34) !important;
+    outline:none !important;
+  }
+
+  /* Contacts / chat rows: less boxes, more native-list rhythm */
+  #n2k-mobile-real-content #messenger-chat-list{
+    padding:4px 12px 14px !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact{
+    min-height:68px !important;
+    margin:0 !important;
+    padding:10px 8px !important;
+    border:0 !important;
+    border-bottom:1px solid var(--n2km-line-soft) !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact:last-child{
+    border-bottom:0 !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact:active{
+    background:rgba(255,255,255,.045) !important;
+  }
+
+  .messenger-contact-avatar{
+    width:46px !important;
+    height:46px !important;
+    flex:0 0 46px !important;
+    border:1px solid rgba(113,217,176,.14) !important;
+    border-radius:50% !important;
+    background:linear-gradient(145deg,rgba(58,104,119,.34),rgba(22,38,46,.78)) !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05) !important;
+  }
+
+  .messenger-contact-name{
+    font-size:16px !important;
+    font-weight:700 !important;
+    letter-spacing:-.01em !important;
+  }
+
+  .messenger-contact-preview{
+    margin-top:3px !important;
+    color:var(--n2km-muted) !important;
+    font-size:12px !important;
+  }
+
+  /* Contacts/settings sections */
+  .m110-contact-head,
+  .m100-settings-head{
+    padding:18px 14px 10px !important;
+  }
+
+  .m110-contact-head h2,
+  .m100-settings-title{
+    font-size:22px !important;
+    font-weight:760 !important;
+    letter-spacing:-.025em !important;
+  }
+
+  #msg-contacts-view .m110-contact-tools,
+  #msg-contacts-view .m110-contact-actions{
+    gap:8px !important;
+  }
+
+  #msg-contacts-view button,
+  #msg-settings-view button,
+  .m99-card button{
+    min-height:42px !important;
+    border:1px solid var(--n2km-line) !important;
+    border-radius:13px !important;
+    background:rgba(255,255,255,.045) !important;
+    color:rgba(239,243,245,.9) !important;
+    box-shadow:none !important;
+  }
+
+  #msg-contacts-view button:active,
+  #msg-settings-view button:active,
+  .m99-card button:active{
+    transform:scale(.985);
+    background:rgba(255,255,255,.075) !important;
+  }
+
+  #msg-contacts-view .m110-add-contact,
+  #msg-contacts-view [data-action="add"],
+  #m99-save,
+  .m99-announce{
+    border-color:rgba(113,217,176,.22) !important;
+    background:rgba(113,217,176,.09) !important;
+    color:var(--n2km-accent) !important;
+  }
+
+  .m99-card,
+  .n2k-selftest-card,
+  .n2k-about-card{
+    margin:10px 12px !important;
+    padding:14px !important;
+    border:1px solid var(--n2km-line) !important;
+    border-radius:var(--n2km-radius-lg) !important;
+    background:var(--n2km-surface-2) !important;
+    box-shadow:none !important;
+  }
+
+  /* Chat: rounded bubbles without imitating any platform asset */
+  #n2k-mobile-real-content .lxmf-chat.messenger-conversation{
+    background:#0e1318 !important;
+  }
+
+  .lxmf-chat .lxmf-chat-header{
+    padding:11px 12px !important;
+    border-bottom:1px solid var(--n2km-line-soft) !important;
+    background:rgba(20,25,30,.94) !important;
+  }
+
+  .lxmf-chat-avatar{
+    border-radius:50% !important;
+  }
+
+  #lxmf-inbox .lxmf-message-row .lxmf-bubble{
+    max-width:86% !important;
+    padding:9px 12px 8px !important;
+    border:1px solid var(--n2km-line-soft) !important;
+    border-radius:18px !important;
+    box-shadow:none !important;
+  }
+
+  #lxmf-inbox .lxmf-message-row.theirs .lxmf-bubble{
+    border-left:1px solid var(--n2km-line-soft) !important;
+    border-bottom-left-radius:7px !important;
+    background:rgba(255,255,255,.055) !important;
+  }
+
+  #lxmf-inbox .lxmf-message-row.mine .lxmf-bubble{
+    border-right:1px solid rgba(113,217,176,.12) !important;
+    border-bottom-right-radius:7px !important;
+    background:rgba(113,217,176,.12) !important;
+  }
+
+  .lxmf-chat .lxmf-chat-compose{
+    padding:9px 10px calc(9px + env(safe-area-inset-bottom)) !important;
+    border-top:1px solid var(--n2km-line-soft) !important;
+    background:rgba(16,20,24,.88) !important;
+  }
+
+  #lxmf-chat-send{
+    width:44px !important;
+    height:44px !important;
+    min-width:44px !important;
+    border:0 !important;
+    border-radius:50% !important;
+    background:rgba(113,217,176,.18) !important;
+    color:var(--n2km-accent) !important;
+    box-shadow:none !important;
+  }
+
+  .messenger-back{
+    width:38px !important;
+    height:38px !important;
+    border:0 !important;
+    border-radius:50% !important;
+    background:rgba(255,255,255,.055) !important;
+  }
+
+  /* Bottom navigation: platform-neutral translucent tab bar */
+  .n2k-mobile-real-nav{
+    min-height:72px !important;
+    padding:6px 10px calc(7px + env(safe-area-inset-bottom)) !important;
+    border-top:1px solid var(--n2km-line) !important;
+    background:rgba(10,14,17,.94) !important;
+    box-shadow:0 -12px 30px rgba(0,0,0,.18) !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+
+  @supports ((backdrop-filter:blur(12px)) or (-webkit-backdrop-filter:blur(12px))){
+    .n2k-mobile-real-nav{
+      background:rgba(10,14,17,.78) !important;
+      backdrop-filter:blur(18px) saturate(125%) !important;
+      -webkit-backdrop-filter:blur(18px) saturate(125%) !important;
+    }
+  }
+
+  .n2k-mobile-real-nav button{
+    min-height:54px !important;
+    gap:4px !important;
+    border-radius:14px !important;
+    color:rgba(188,197,203,.72) !important;
+    transition:background .16s ease,color .16s ease,transform .12s ease;
+  }
+
+  .n2k-mobile-real-nav button b{
+    font-size:18px !important;
+    font-weight:500 !important;
+    line-height:1 !important;
+  }
+
+  .n2k-mobile-real-nav button small{
+    font-size:11px !important;
+    font-weight:650 !important;
+    letter-spacing:.01em !important;
+  }
+
+  .n2k-mobile-real-nav button.active{
+    color:var(--n2km-warm) !important;
+    background:rgba(239,189,114,.07) !important;
+  }
+
+  .n2k-mobile-real-nav button:active{
+    transform:scale(.97);
+  }
+
+  /* Touch targets and motion */
+  button,
+  [role="button"]{
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,
+    *::before,
+    *::after{
+      scroll-behavior:auto !important;
+      transition:none !important;
+      animation:none !important;
+    }
+  }
+}
+</style>
+
