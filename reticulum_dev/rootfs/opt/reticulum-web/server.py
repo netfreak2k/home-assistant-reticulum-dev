@@ -1669,6 +1669,60 @@ def get_n2k_selftest():
 
 
     # -------------------------------------------------
+    # UI feature bundle integrity
+    # -------------------------------------------------
+
+    try:
+        index_text = (
+            STATIC_DIR / "index.html"
+        ).read_text(
+            encoding="utf-8"
+        )
+
+        messenger_text = (
+            STATIC_DIR / "messenger.js"
+        ).read_text(
+            encoding="utf-8"
+        )
+
+        feature_markers = {
+            "scanner": "n2k-nearby-start",
+            "announce": "m99-announce",
+            "photo": "n2k-photo-pick",
+            "emoji": "n2k-emoji-toggle",
+            "resilience": "n2k-resilience-card",
+        }
+
+        missing = [
+            name
+            for name, value in feature_markers.items()
+            if (
+                value not in index_text
+                and value not in messenger_text
+            )
+        ]
+
+        add_check(
+            "ui_bundle",
+            "Messenger Feature Bundle",
+            not missing,
+            (
+                "Scanner · Announce · Foto · Emoji · Resilience"
+                if not missing
+                else "Fehlt: " + ", ".join(missing)
+            ),
+        )
+
+    except Exception as exc:
+        add_check(
+            "ui_bundle",
+            "Messenger Feature Bundle",
+            False,
+            str(exc),
+        )
+
+
+    # -------------------------------------------------
     # Reticulum network
     # -------------------------------------------------
 
@@ -2374,12 +2428,18 @@ def restore_n2k_backup(payload):
 
         if not token:
             return {
-                "ok": False,
-                "error": (
-                    "Identity/Kontakte wiederhergestellt, "
-                    "aber Supervisor-Token fehlt. Add-on neu starten."
-                ),
+                "ok": True,
                 "restart_required": True,
+                "contacts_restored": len(clean_contacts),
+                "options_restored": 0,
+                "warning": (
+                    "Identity und Kontakte wurden wiederhergestellt, "
+                    "Einstellungen aber nicht: Supervisor-Token fehlt."
+                ),
+                "message": (
+                    "Teilwiederherstellung abgeschlossen. "
+                    "Add-on jetzt neu starten."
+                ),
             }
 
         current = get_addon_options()
