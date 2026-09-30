@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.18.6-beta1 — Public Beta Baseline
+
+### Status
+
+Public beta baseline after successful validation.
+
+PASS:
+
+- Home Assistant add-on installation
+- clean installation on a second Home Assistant system
+- add-on restart
+- persistent Reticulum identity
+- Reticulum node online
+- LXMF send and delivery state
+- contacts and local aliases
+- QR contact generation through Home Assistant Ingress
+- update workflow
+- MCP server connectivity
+- integrated self-test
+- diagnostics export
+- documentation and licensing review
+- backup / rollback baseline
+
+### QR fix
+
+The contact QR endpoint now uses POST + JSON through Home Assistant Ingress and
+renders the locally generated SVG inline in the UI. This avoids the previous
+blank QR field / HTTP 400 failure.
+
+### Development policy
+
+Feature freeze remains active for beta stabilization. New work should be
+limited to bug fixes, compatibility fixes, diagnostics and documentation.
+
 ## 1.14.4-dev — Beta Tester Onboarding
 
 ### Documentation
