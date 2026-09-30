@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>Reticulum</title>
+<title>N2K RNS Gateway</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -1167,20 +1167,85 @@ html, body {
 <body>
 <div class="wrap">
 
-  <header>
-    <div>
-      <h1>Reticulum</h1>
-      <div class="sub">Home Assistant Network Stack</div>
+  <header class="n2k-main-header">
+
+    <div class="n2k-brand">
+
+      <div class="n2k-brand-kicker">
+        NETFREAK2K
+      </div>
+
+      <h1>
+        N2K RNS Gateway
+      </h1>
+
+      <div class="sub">
+        Reticulum · LXMF · Home Assistant
+      </div>
+
     </div>
-    <div id="node-status" class="status">LOADING</div>
+
+    <div class="n2k-header-right">
+
+      <div
+        id="n2k-clock"
+        class="n2k-clock"
+        aria-label="Aktuelle Uhrzeit">
+
+        <div
+          id="n2k-clock-date"
+          class="n2k-clock-date">
+          --.--.----
+        </div>
+
+        <div class="n2k-clock-time">
+
+          <span
+            id="n2k-hour"
+            class="n2k-flap">
+            --
+          </span>
+
+          <span class="n2k-clock-separator">
+            :
+          </span>
+
+          <span
+            id="n2k-minute"
+            class="n2k-flap">
+            --
+          </span>
+
+          <span class="n2k-clock-separator">
+            :
+          </span>
+
+          <span
+            id="n2k-second"
+            class="n2k-flap n2k-flap-small">
+            --
+          </span>
+
+        </div>
+
+      </div>
+
+      <div
+        id="node-status"
+        class="status">
+        LOADING
+      </div>
+
+    </div>
+
   </header>
 
   <section class="node-hero">
     <div class="node-hero-top">
       <div>
-        <div class="node-title">HOME ASSISTANT RETICULUM NODE</div>
+        <div class="node-title">RNS NODE STATUS</div>
         <div class="node-subtitle">
-          Dieser Home-Assistant-Pi ist die Reticulum-Instanz.
+          Lokale Reticulum-Instanz für Home Assistant.
           RNode-Hardware ist optional.
         </div>
       </div>
@@ -5800,6 +5865,87 @@ async function detectRNode() {
   }
 }
 
+
+function updateN2KClock() {
+
+  const now =
+    new Date();
+
+  const hour =
+    document.getElementById(
+      "n2k-hour"
+    );
+
+  const minute =
+    document.getElementById(
+      "n2k-minute"
+    );
+
+  const second =
+    document.getElementById(
+      "n2k-second"
+    );
+
+  const date =
+    document.getElementById(
+      "n2k-clock-date"
+    );
+
+  const two =
+    value =>
+      String(value).padStart(
+        2,
+        "0"
+      );
+
+  if (hour) {
+    hour.textContent =
+      two(now.getHours());
+  }
+
+  if (minute) {
+    minute.textContent =
+      two(now.getMinutes());
+  }
+
+  if (second) {
+    second.textContent =
+      two(now.getSeconds());
+  }
+
+  if (date) {
+
+    const weekday =
+      now.toLocaleDateString(
+        "de-DE",
+        {
+          weekday:
+            "short"
+        }
+      )
+      .replace(".", "")
+      .toUpperCase();
+
+    date.textContent =
+      weekday +
+      " · " +
+      two(now.getDate()) +
+      "." +
+      two(now.getMonth() + 1) +
+      "." +
+      now.getFullYear();
+  }
+}
+
+
+updateN2KClock();
+
+setInterval(
+  updateN2KClock,
+  1000
+);
+
+
 async function refreshRNodeConfig() {
   try {
     const r = await fetch("api/rnode/config", {cache:"no-store"});
@@ -10295,6 +10441,493 @@ refreshLXMFInbox();
 
   color:
     rgba(215,228,233,.78);
+}
+
+
+
+/* ==================================================
+   1.12.0 · RETRO MODERN HEADER / FLIP CLOCK
+   ================================================== */
+
+body {
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(120,40,35,.10),
+      transparent 34%
+    ),
+    #0d1217 !important;
+}
+
+
+.n2k-main-header {
+
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    space-between !important;
+
+  gap:
+    18px !important;
+
+  padding:
+    4px 0 18px !important;
+
+  margin-bottom:
+    18px !important;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.05);
+}
+
+
+.n2k-brand {
+
+  min-width:
+    0;
+}
+
+
+.n2k-brand-kicker {
+
+  margin-bottom:
+    4px;
+
+  color:
+    rgba(102,227,180,.70);
+
+  font-size:
+    9px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .22em;
+}
+
+
+.n2k-main-header h1 {
+
+  margin:
+    0 !important;
+
+  color:
+    rgba(241,246,248,.96);
+
+  font-size:
+    clamp(24px,3vw,34px) !important;
+
+  line-height:
+    1.05;
+
+  font-weight:
+    760;
+
+  letter-spacing:
+    -.025em;
+}
+
+
+.n2k-main-header .sub {
+
+  margin-top:
+    6px;
+
+  color:
+    rgba(165,182,192,.62);
+
+  font-size:
+    12px;
+
+  letter-spacing:
+    .03em;
+}
+
+
+.n2k-header-right {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    13px;
+
+  flex:
+    0 0 auto;
+}
+
+
+/* ---------- CLOCK ---------- */
+
+.n2k-clock {
+
+  min-width:
+    235px;
+
+  padding:
+    8px 10px 9px;
+
+  border:
+    1px solid rgba(255,255,255,.07);
+
+  border-radius:
+    8px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(18,22,25,.98),
+      rgba(8,11,13,.98)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 5px 18px rgba(0,0,0,.20);
+}
+
+
+.n2k-clock-date {
+
+  margin-bottom:
+    5px;
+
+  color:
+    rgba(190,204,211,.48);
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    .11em;
+
+  text-align:
+    center;
+}
+
+
+.n2k-clock-time {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    5px;
+}
+
+
+.n2k-flap {
+
+  position:
+    relative;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  width:
+    55px;
+
+  height:
+    44px;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid rgba(255,255,255,.09);
+
+  border-radius:
+    5px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #22282c 0%,
+      #191e21 49%,
+      #111517 50%,
+      #171c1f 100%
+    );
+
+  color:
+    rgba(238,242,243,.94);
+
+  font-family:
+    "DejaVu Sans Mono",
+    ui-monospace,
+    monospace;
+
+  font-size:
+    26px;
+
+  font-weight:
+    500;
+
+  line-height:
+    1;
+
+  letter-spacing:
+    .02em;
+
+  text-shadow:
+    0 1px 2px rgba(0,0,0,.8);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 2px 6px rgba(0,0,0,.25);
+}
+
+
+.n2k-flap::after {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    0;
+
+  right:
+    0;
+
+  top:
+    50%;
+
+  height:
+    1px;
+
+  background:
+    rgba(0,0,0,.78);
+
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.025);
+}
+
+
+.n2k-flap-small {
+
+  width:
+    44px;
+
+  color:
+    rgba(191,204,210,.76);
+
+  font-size:
+    20px;
+}
+
+
+.n2k-clock-separator {
+
+  color:
+    rgba(170,184,191,.45);
+
+  font-family:
+    ui-monospace,
+    monospace;
+
+  font-size:
+    22px;
+
+  font-weight:
+    600;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* ---------- STATUS ---------- */
+
+.n2k-main-header .status {
+
+  padding:
+    8px 11px !important;
+
+  border:
+    1px solid rgba(255,255,255,.07);
+
+  border-radius:
+    6px !important;
+
+  background:
+    rgba(255,255,255,.025) !important;
+
+  font-size:
+    10px;
+
+  letter-spacing:
+    .05em;
+}
+
+
+/* ---------- HERO FLATTER ---------- */
+
+.node-hero {
+
+  border-radius:
+    10px !important;
+
+  background:
+    rgba(255,255,255,.025) !important;
+
+  border-color:
+    rgba(255,255,255,.065) !important;
+
+  box-shadow:
+    none !important;
+}
+
+
+.node-path {
+
+  border-radius:
+    7px !important;
+
+  background:
+    rgba(8,12,15,.52) !important;
+
+  border-color:
+    rgba(255,255,255,.055) !important;
+}
+
+
+.node-path-label {
+
+  color:
+    rgba(163,179,188,.52) !important;
+
+  font-size:
+    10px !important;
+
+  letter-spacing:
+    .10em !important;
+}
+
+
+.node-path-state {
+
+  font-size:
+    14px !important;
+}
+
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 760px) {
+
+  body {
+
+    padding:
+      14px !important;
+  }
+
+  .n2k-main-header {
+
+    align-items:
+      stretch !important;
+
+    flex-direction:
+      column !important;
+  }
+
+  .n2k-header-right {
+
+    width:
+      100%;
+
+    justify-content:
+      space-between;
+  }
+
+  .n2k-clock {
+
+    min-width:
+      0;
+
+    flex:
+      1 1 auto;
+  }
+
+  .n2k-flap {
+
+    width:
+      48px;
+
+    height:
+      40px;
+
+    font-size:
+      23px;
+  }
+
+  .n2k-flap-small {
+
+    width:
+      40px;
+
+    font-size:
+      18px;
+  }
+
+  .n2k-main-header .status {
+
+    align-self:
+      center;
+  }
+}
+
+
+@media (max-width: 420px) {
+
+  .n2k-header-right {
+
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+  }
+
+  .n2k-main-header .status {
+
+    align-self:
+      stretch;
+
+    text-align:
+      center;
+  }
 }
 
 </style>
