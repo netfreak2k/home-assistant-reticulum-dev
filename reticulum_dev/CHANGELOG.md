@@ -1,3 +1,10 @@
+## 1.18.7-beta1
+
+- Added an in-app **Hilfe & Handbuch** section under Status.
+- Added offline searchable system documentation for installation, Identity/Announce, contacts/QR, LXMF chat, RNode/USB, network interfaces, updates/backups, diagnostics and privacy.
+- Added an integrated FAQ and troubleshooting guidance.
+- Help content ships locally with the add-on and does not require an external documentation site.
+
 ## 1.18.6-beta1
 
 - Public beta baseline.
