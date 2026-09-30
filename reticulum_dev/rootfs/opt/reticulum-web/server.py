@@ -2458,6 +2458,76 @@ def get_propagation_config():
             )
             or ""
         ),
+        "announce_total": int(
+            state.get(
+                "lxmf_propagation_announce_total",
+                0,
+            )
+            or 0
+        ),
+        "announce_valid": int(
+            state.get(
+                "lxmf_propagation_announce_valid",
+                0,
+            )
+            or 0
+        ),
+        "announce_invalid": int(
+            state.get(
+                "lxmf_propagation_announce_invalid",
+                0,
+            )
+            or 0
+        ),
+        "announce_inactive": int(
+            state.get(
+                "lxmf_propagation_announce_inactive",
+                0,
+            )
+            or 0
+        ),
+        "last_announce": int(
+            state.get(
+                "lxmf_propagation_last_announce",
+                0,
+            )
+            or 0
+        ),
+        "cache_scans": int(
+            state.get(
+                "lxmf_propagation_cache_scans",
+                0,
+            )
+            or 0
+        ),
+        "cache_matches": int(
+            state.get(
+                "lxmf_propagation_cache_matches",
+                0,
+            )
+            or 0
+        ),
+        "last_cache_scan": int(
+            state.get(
+                "lxmf_propagation_last_cache_scan",
+                0,
+            )
+            or 0
+        ),
+        "cache_error": str(
+            state.get(
+                "lxmf_propagation_cache_error",
+                "",
+            )
+            or ""
+        ),
+        "discovery_error": str(
+            state.get(
+                "lxmf_propagation_discovery_error",
+                "",
+            )
+            or ""
+        ),
         "error": str(
             state.get(
                 "lxmf_propagation_error",
@@ -2556,6 +2626,8 @@ def get_propagation_candidates():
         else:
             diagnostic = "discovery_file_missing"
 
+        runtime = get_propagation_config()
+
         return {
             "ok": True,
             "count": len(candidates),
@@ -2566,6 +2638,19 @@ def get_propagation_candidates():
             "newest_seen": newest_seen,
             "file_exists": file_exists,
             "diagnostic": diagnostic,
+            "announce_total": runtime.get("announce_total", 0),
+            "announce_valid": runtime.get("announce_valid", 0),
+            "announce_invalid": runtime.get("announce_invalid", 0),
+            "announce_inactive": runtime.get("announce_inactive", 0),
+            "last_announce": runtime.get("last_announce", 0),
+            "cache_scans": runtime.get("cache_scans", 0),
+            "cache_matches": runtime.get("cache_matches", 0),
+            "last_cache_scan": runtime.get("last_cache_scan", 0),
+            "probe_requests": runtime.get("probe_requests", 0),
+            "last_probe": runtime.get("last_probe", 0),
+            "probe_error": runtime.get("probe_error", ""),
+            "cache_error": runtime.get("cache_error", ""),
+            "discovery_error": runtime.get("discovery_error", ""),
         }
 
     except Exception as exc:
