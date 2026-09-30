@@ -2243,11 +2243,11 @@ code {
       </div>
 
       <h1>
-        N2K RNS Gateway
+        N2K RNS Gateway DEV
       </h1>
 
       <div class="sub">
-        Reticulum · LXMF · Home Assistant
+        RNS · LXMF · NODE
       </div>
 
     </div>
@@ -2262,37 +2262,7 @@ code {
         <div
           id="n2k-clock-date"
           class="n2k-clock-date">
-          --.--.----
-        </div>
-
-        <div class="n2k-clock-time">
-
-          <span
-            id="n2k-hour"
-            class="n2k-flap">
-            --
-          </span>
-
-          <span class="n2k-clock-separator">
-            :
-          </span>
-
-          <span
-            id="n2k-minute"
-            class="n2k-flap">
-            --
-          </span>
-
-          <span class="n2k-clock-separator">
-            :
-          </span>
-
-          <span
-            id="n2k-second"
-            class="n2k-flap n2k-flap-small">
-            --
-          </span>
-
+          -- · --.--.---- · --:--:--
         </div>
 
       </div>
@@ -7299,73 +7269,35 @@ async function detectRNode() {
 
 function updateN2KClock() {
 
-  const now =
-    new Date();
+  const now = new Date();
+  const date = document.getElementById(
+    "n2k-clock-date"
+  );
 
-  const hour =
-    document.getElementById(
-      "n2k-hour"
-    );
+  if (!date) return;
 
-  const minute =
-    document.getElementById(
-      "n2k-minute"
-    );
+  const two = value =>
+    String(value).padStart(2, "0");
 
-  const second =
-    document.getElementById(
-      "n2k-second"
-    );
+  const weekdays = [
+    "So", "Mo", "Di", "Mi",
+    "Do", "Fr", "Sa"
+  ];
 
-  const date =
-    document.getElementById(
-      "n2k-clock-date"
-    );
-
-  const two =
-    value =>
-      String(value).padStart(
-        2,
-        "0"
-      );
-
-  if (hour) {
-    hour.textContent =
-      two(now.getHours());
-  }
-
-  if (minute) {
-    minute.textContent =
-      two(now.getMinutes());
-  }
-
-  if (second) {
-    second.textContent =
-      two(now.getSeconds());
-  }
-
-  if (date) {
-
-    const weekday =
-      now.toLocaleDateString(
-        "de-DE",
-        {
-          weekday:
-            "short"
-        }
-      )
-      .replace(".", "")
-      .toUpperCase();
-
-    date.textContent =
-      weekday +
-      " · " +
-      two(now.getDate()) +
-      "." +
-      two(now.getMonth() + 1) +
-      "." +
-      now.getFullYear();
-  }
+  date.textContent =
+    weekdays[now.getDay()] +
+    " · " +
+    two(now.getDate()) +
+    "." +
+    two(now.getMonth() + 1) +
+    "." +
+    now.getFullYear() +
+    " · " +
+    two(now.getHours()) +
+    ":" +
+    two(now.getMinutes()) +
+    ":" +
+    two(now.getSeconds());
 }
 
 
@@ -7375,7 +7307,6 @@ setInterval(
   updateN2KClock,
   1000
 );
-
 
 async function refreshRNodeConfig() {
   try {
@@ -13523,6 +13454,72 @@ body {
   /* Hide helper/title blocks outside the new stage. */
   #n2k-mobile-chat-entry{
     display:none !important;
+  }
+}
+
+/* ==================================================
+   1.18.2-dev · COMPACT LIVE DATE/TIME HEADER
+   ================================================== */
+.n2k-clock {
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.n2k-clock-time,
+.n2k-flap,
+.n2k-flap-small,
+.n2k-clock-separator,
+#n2k-hour,
+#n2k-minute,
+#n2k-second {
+  display: none !important;
+}
+
+.n2k-clock-date {
+  width: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 7px 11px !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  border-radius: 7px !important;
+  background: rgba(8,11,13,.72) !important;
+  color: rgba(215,228,233,.78) !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+}
+
+@media (max-width: 700px) {
+  .n2k-main-header {
+    flex-direction: column-reverse !important;
+    align-items: center !important;
+    gap: 7px !important;
+    padding-top: 4px !important;
+  }
+
+  .n2k-header-right {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .n2k-clock-date {
+    width: min(360px,92%) !important;
+    margin: 0 auto !important;
+  }
+
+  .n2k-brand {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .n2k-main-header h1 {
+    margin-top: 0 !important;
   }
 }
 </style>
