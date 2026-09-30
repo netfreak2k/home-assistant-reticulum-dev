@@ -1680,19 +1680,43 @@ def get_n2k_selftest():
                 propagation.get("node") or ""
             ).strip().lower()
 
-            configured = bool(
-                re.fullmatch(
-                    r"[0-9a-f]{32}",
-                    node_hash,
+            auto_discovery = bool(
+                propagation.get(
+                    "auto_discovery",
+                    True,
+                )
+            )
+
+            runtime_node = str(
+                propagation.get(
+                    "runtime_node",
+                    "",
+                )
+                or ""
+            ).strip().lower()
+
+            configured = (
+                auto_discovery
+                or bool(
+                    re.fullmatch(
+                        r"[0-9a-f]{32}",
+                        node_hash,
+                    )
                 )
             )
 
             runtime_ok = (
                 propagation.get("runtime_enabled") is True
-                and str(
-                    propagation.get("runtime_node") or ""
-                ).strip().lower()
-                == node_hash
+                and bool(
+                    re.fullmatch(
+                        r"[0-9a-f]{32}",
+                        runtime_node,
+                    )
+                )
+                and (
+                    auto_discovery
+                    or runtime_node == node_hash
+                )
             )
 
             add_check(
@@ -1700,15 +1724,23 @@ def get_n2k_selftest():
                 "LXMF Store & Forward",
                 configured and runtime_ok,
                 (
-                    "Aktiv · "
-                    + node_hash[:8]
+                    (
+                        "Auto · "
+                        if auto_discovery
+                        else "Manuell · "
+                    )
+                    + runtime_node[:8]
                     + "… · Sync "
                     + (
                         propagation.get("sync_result")
                         or "bereit"
                     )
                     if configured and runtime_ok
-                    else "Konfiguration gespeichert · Add-on-Neustart prüfen"
+                    else (
+                        "Automatische Suche aktiv · noch kein Node gewählt"
+                        if auto_discovery
+                        else "Konfiguration gespeichert · Add-on-Neustart prüfen"
+                    )
                 ),
             )
 
