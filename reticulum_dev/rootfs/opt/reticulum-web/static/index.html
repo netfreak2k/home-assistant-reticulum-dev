@@ -2830,6 +2830,33 @@ code {
 
     </div>
 
+    <section class="n2k-nearby-card" id="n2k-nearby-card">
+      <div class="n2k-nearby-head">
+        <div>
+          <div class="n2k-nearby-title">Umgebungsscanner</div>
+          <div class="n2k-nearby-sub">LXMF-Announces auf deinen aktiven Reticulum-Interfaces</div>
+        </div>
+        <button id="n2k-nearby-start" class="n2k-nearby-start" type="button">Scannen</button>
+      </div>
+
+      <div class="n2k-nearby-status" id="n2k-nearby-status">
+        Bereit · passiver Scan · keine zusätzliche Funkübertragung
+      </div>
+
+      <div class="n2k-nearby-progress" id="n2k-nearby-progress" hidden>
+        <span id="n2k-nearby-progress-bar"></span>
+      </div>
+
+      <div class="n2k-nearby-results" id="n2k-nearby-results">
+        <div class="n2k-nearby-empty">Noch kein Scan durchgeführt.</div>
+      </div>
+
+      <div class="n2k-nearby-note">
+        „In der Umgebung“ bedeutet hier: während des Scans über das Reticulum-Netz gesehen.
+        Das ist keine Entfernungsmessung in Metern.
+      </div>
+    </section>
+
     <div id="msg-contact-list"></div>
 
   </div>
@@ -9970,6 +9997,139 @@ refreshLXMFInbox();
 
 
 
+<script id="n2k-nearby-js-1188">
+(function(){
+  var scanTimer=null;
+  var pollTimer=null;
+  var scanStarted=0;
+  var duration=30;
+
+  function el(id){ return document.getElementById(id); }
+
+  function apiUrl(path){
+    var base=window.location.pathname.replace(/\/$/,"");
+    if(/\/api\//.test(base)) return path;
+    return base + path;
+  }
+
+  function esc(v){
+    return String(v==null?"":v)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function ageText(sec){
+    if(sec==null) return "gerade gesehen";
+    sec=Math.max(0,Number(sec)||0);
+    if(sec<5) return "gerade eben";
+    if(sec<60) return "vor "+Math.round(sec)+" s";
+    return "vor "+Math.round(sec/60)+" min";
+  }
+
+  function render(data){
+    var box=el("n2k-nearby-results");
+    if(!box) return;
+    var items=Array.isArray(data&&data.contacts)?data.contacts:[];
+    if(!items.length){
+      box.innerHTML='<div class="n2k-nearby-empty">Noch keine LXMF-Announces während dieses Scans empfangen.</div>';
+      return;
+    }
+
+    box.innerHTML=items.map(function(item){
+      var hash=String(item.destination_hash||"");
+      var name=String(item.display_name||"").trim() || (hash.slice(0,10)+"…");
+      var meta=[ageText(item.age_seconds)];
+      if(item.hops!==null && item.hops!==undefined && item.hops!==""){
+        meta.push(String(item.hops)+" Hop"+(Number(item.hops)===1?"":"s"));
+      }else if(item.path_known){
+        meta.push("Pfad bekannt");
+      }
+      if(item.interface) meta.push(String(item.interface));
+      return '<div class="n2k-nearby-row">'+
+        '<div><div class="n2k-nearby-name">'+esc(name)+'</div>'+
+        '<div class="n2k-nearby-meta">'+esc(meta.join(" · "))+'<br>'+esc(hash)+'</div></div>'+
+        '<button type="button" class="n2k-nearby-open" data-peer="'+esc(hash)+'">Chat</button>'+
+        '</div>';
+    }).join("");
+
+    box.querySelectorAll(".n2k-nearby-open").forEach(function(btn){
+      btn.addEventListener("click",function(){
+        var peer=btn.dataset.peer||"";
+        if(typeof window.openMessengerConversation==="function"){
+          window.openMessengerConversation(peer);
+        }
+      });
+    });
+  }
+
+  async function poll(){
+    if(!scanStarted) return;
+    try{
+      var res=await fetch(apiUrl("/api/messenger/nearby?since="+encodeURIComponent(scanStarted)),{
+        cache:"no-store"
+      });
+      var data=await res.json();
+      if(data&&data.ok) render(data);
+    }catch(e){
+      var status=el("n2k-nearby-status");
+      if(status) status.textContent="Scanner: API momentan nicht erreichbar";
+    }
+  }
+
+  function finish(){
+    if(scanTimer){clearInterval(scanTimer);scanTimer=null;}
+    if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
+    var button=el("n2k-nearby-start");
+    var status=el("n2k-nearby-status");
+    var progress=el("n2k-nearby-progress");
+    var bar=el("n2k-nearby-progress-bar");
+    if(button){button.disabled=false;button.textContent="Erneut scannen";}
+    if(status) status.textContent="Scan beendet · Ergebnisse zeigen während der letzten 30 s empfangene Announces";
+    if(bar) bar.style.width="100%";
+    setTimeout(function(){if(progress) progress.hidden=true;},700);
+    poll();
+  }
+
+  function start(){
+    if(scanTimer||pollTimer) return;
+    scanStarted=Math.floor(Date.now()/1000);
+    var startMs=Date.now();
+    var button=el("n2k-nearby-start");
+    var status=el("n2k-nearby-status");
+    var progress=el("n2k-nearby-progress");
+    var bar=el("n2k-nearby-progress-bar");
+    var box=el("n2k-nearby-results");
+
+    if(button){button.disabled=true;button.textContent="Scan läuft…";}
+    if(progress) progress.hidden=false;
+    if(bar) bar.style.width="0%";
+    if(box) box.innerHTML='<div class="n2k-nearby-empty">Lausche auf LXMF-Announces…</div>';
+
+    poll();
+    pollTimer=setInterval(poll,2000);
+    scanTimer=setInterval(function(){
+      var elapsed=(Date.now()-startMs)/1000;
+      var left=Math.max(0,Math.ceil(duration-elapsed));
+      if(status) status.textContent="Scan läuft · noch "+left+" s · passiv";
+      if(bar) bar.style.width=Math.min(100,(elapsed/duration)*100)+"%";
+      if(elapsed>=duration) finish();
+    },250);
+  }
+
+  function boot(){
+    var button=el("n2k-nearby-start");
+    if(button&&!button.dataset.bound){
+      button.dataset.bound="1";
+      button.addEventListener("click",start);
+    }
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{boot();}
+})();
+</script>
+
 <script id="n2k-help-js-1187">
 (function(){
   function norm(v){
@@ -12007,6 +12167,147 @@ refreshLXMFInbox();
 }
 
 
+
+/* ==================================================
+   1.18.8-beta1 · PASSIVE LXMF NEARBY SCANNER
+   ================================================== */
+
+.n2k-nearby-card{
+  margin:12px 0 14px;
+  padding:13px;
+  border:1px solid rgba(255,255,255,.065);
+  border-radius:12px;
+  background:rgba(255,255,255,.018);
+}
+
+.n2k-nearby-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.n2k-nearby-title{
+  color:rgba(239,244,246,.94);
+  font-size:14px;
+  font-weight:760;
+}
+
+.n2k-nearby-sub{
+  margin-top:3px;
+  color:rgba(183,198,207,.58);
+  font-size:10px;
+  line-height:1.4;
+}
+
+.n2k-nearby-start{
+  flex:0 0 auto;
+  min-width:82px;
+  min-height:38px;
+  padding:8px 12px;
+  border:1px solid rgba(113,217,176,.22);
+  border-radius:11px;
+  background:rgba(113,217,176,.08);
+  color:#71d9b0;
+  font:inherit;
+  font-size:12px;
+  font-weight:750;
+  cursor:pointer;
+}
+
+.n2k-nearby-start[disabled]{
+  opacity:.55;
+  cursor:default;
+}
+
+.n2k-nearby-status{
+  margin-top:11px;
+  color:rgba(195,208,214,.68);
+  font-size:10px;
+}
+
+.n2k-nearby-progress{
+  height:3px;
+  margin-top:9px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.05);
+}
+
+.n2k-nearby-progress span{
+  display:block;
+  width:0%;
+  height:100%;
+  border-radius:999px;
+  background:#71d9b0;
+  transition:width .25s linear;
+}
+
+.n2k-nearby-results{
+  margin-top:10px;
+}
+
+.n2k-nearby-empty{
+  padding:14px 6px;
+  color:rgba(183,198,207,.52);
+  font-size:11px;
+  text-align:center;
+}
+
+.n2k-nearby-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:11px 2px;
+  border-top:1px solid rgba(255,255,255,.05);
+}
+
+.n2k-nearby-row:first-child{border-top:0;}
+
+.n2k-nearby-name{
+  overflow:hidden;
+  color:rgba(236,242,244,.92);
+  font-size:13px;
+  font-weight:720;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.n2k-nearby-meta{
+  margin-top:3px;
+  color:rgba(181,196,205,.58);
+  font-size:10px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+
+.n2k-nearby-open{
+  min-height:36px;
+  padding:7px 10px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  background:rgba(255,255,255,.035);
+  color:rgba(236,242,244,.88);
+  font:inherit;
+  font-size:11px;
+  cursor:pointer;
+}
+
+.n2k-nearby-note{
+  margin-top:9px;
+  padding-top:9px;
+  border-top:1px solid rgba(255,255,255,.045);
+  color:rgba(170,187,196,.48);
+  font-size:9px;
+  line-height:1.45;
+}
+
+@media(max-width:900px){
+  .n2k-nearby-card{margin:10px 12px 14px !important;}
+  .n2k-nearby-start{min-height:42px;}
+  .n2k-nearby-open{min-height:40px;}
+}
 
 /* ==================================================
    1.18.7-beta1 · LOCAL HELP / HANDBOOK / FAQ
