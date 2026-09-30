@@ -10333,25 +10333,76 @@ if (
   async function loadCandidates(){
     var list=$("n2k-propagation-candidates");
     var count=$("n2k-propagation-candidate-count");
+    var selected=$("n2k-propagation-selected");
+    var note=$("n2k-propagation-note");
     if(!list||!count) return;
 
     try{
       var response=await fetch("api/propagation/candidates?ts="+Date.now(),{cache:"no-store"});
       var data=await response.json();
-      var items=data.ok&&Array.isArray(data.candidates)?data.candidates:[];
 
-      count.textContent=items.length+" Node"+(items.length===1?"":"s");
+      if(!response.ok||!data.ok){
+        throw new Error(data.error||"Propagation-Scanner nicht erreichbar");
+      }
+
+      var items=Array.isArray(data.candidates)?data.candidates:[];
+      count.textContent=items.length+" Server gefunden";
+
+      if(!items.length){
+        list.innerHTML='<div class="n2k-propagation-candidate">'+
+          '<span>Keine erreichbaren LXMF Propagation Nodes</span>'+
+          '<span>0 Server · Scanner aktiv</span>'+
+        '</div>';
+
+        if(selected){
+          selected.textContent="Kein Propagation Node ausgewählt.";
+        }
+
+        if(note){
+          if(data.diagnostic==="only_stale_candidates"){
+            note.textContent=
+              "Scanner läuft: "+Number(data.stale_count||0)+
+              " ältere Propagation-Announce(s) vorhanden, aber seit mehr als 30 Minuten nicht mehr gesehen.";
+          }else if(data.diagnostic==="no_announces_recorded"){
+            note.textContent=
+              "Scanner läuft, aber bisher wurde kein lxmf.propagation-Announce empfangen.";
+          }else if(data.diagnostic==="discovery_file_missing"){
+            note.textContent=
+              "Noch keine Propagation-Discovery-Daten vorhanden. Nach Add-on-Neustart und empfangenen Announces erneut prüfen.";
+          }else{
+            note.textContent=
+              "Scanner läuft, aktuell ist kein erreichbarer LXMF Propagation Node bekannt.";
+          }
+        }
+
+        return;
+      }
 
       list.innerHTML=items.slice(0,5).map(function(item){
         return '<div class="n2k-propagation-candidate">'+
-          '<span>'+String(item.destination_hash||"").slice(0,8)+'…</span>'+
-          '<span>'+Number(item.hops||0)+' Hop(s) · vor '+age(item.age_seconds)+'</span>'+
+          '<span>'+
+            (item.active?"● ":"○ ")+
+            String(item.destination_hash||"").slice(0,12)+'…'+
+          '</span>'+
+          '<span>'+
+            Number(item.hops||0)+' Hop(s) · vor '+age(item.age_seconds)+
+            (Number(item.stamp_cost||0)>0?" · Stamp "+Number(item.stamp_cost):"")+
+          '</span>'+
         '</div>';
       }).join("");
 
+      if(note){
+        note.textContent=
+          items.length+" erreichbare(r) Propagation Node(s) gefunden. "+
+          "Direktpfade bleiben bevorzugt.";
+      }
+
     }catch(e){
-      count.textContent="—";
-      list.innerHTML="";
+      count.textContent="Scanner Fehler";
+      list.innerHTML='<div class="n2k-propagation-candidate">'+
+        '<span>Propagation-Scanner nicht verfügbar</span>'+
+        '<span>'+String(e.message||"Fehler")+'</span>'+
+      '</div>';
     }
   }
 
