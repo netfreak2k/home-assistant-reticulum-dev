@@ -16,6 +16,7 @@ IDENTITY_FILE = STATE_DIR / "identity"
 STATE_FILE = STATE_DIR / "state.json"
 ANNOUNCE_REQUEST = STATE_DIR / "announce.request"
 LXMF_ANNOUNCE_REQUEST = STATE_DIR / "lxmf-announce.request"
+NEARBY_SCAN_REQUEST = STATE_DIR / "nearby-scan.request"
 ANNOUNCE_COOLDOWN = 60
 
 # Automatic LXMF presence announcement.
@@ -1027,6 +1028,66 @@ def scan_cached_lxmf_contacts():
     return matches
 
 
+def probe_known_lxmf_contacts(limit=64):
+    """
+    Actively request paths for locally known LXMF delivery destinations.
+
+    Path responses are accepted by LXMFAnnounceHandler
+    (receive_path_responses=True), so reachable peers can refresh their
+    announce data and become visible as live scanner hits.
+    """
+    requested = 0
+    skipped = 0
+
+    try:
+        own_hash = lxmf_destination.hash.hex()
+    except Exception:
+        own_hash = ""
+
+    for item in _read_contacts():
+        if requested >= max(1, int(limit or 64)):
+            break
+
+        if not isinstance(item, dict):
+            skipped += 1
+            continue
+
+        peer = str(
+            item.get("destination_hash") or ""
+        ).strip().lower()
+
+        if (
+            len(peer) != 32
+            or peer == own_hash
+        ):
+            skipped += 1
+            continue
+
+        try:
+            peer_bytes = bytes.fromhex(peer)
+
+            RNS.Transport.request_path(
+                peer_bytes
+            )
+
+            requested += 1
+
+        except Exception:
+            skipped += 1
+
+    CONTACT_DISCOVERY_DIAGNOSTICS[
+        "last_probe_requested"
+    ] = requested
+    CONTACT_DISCOVERY_DIAGNOSTICS[
+        "last_probe_skipped"
+    ] = skipped
+    CONTACT_DISCOVERY_DIAGNOSTICS[
+        "last_probe_at"
+    ] = int(time.time())
+
+    return requested
+
+
 class LXMFPropagationDiscoveryHandler:
     aspect_filter = "lxmf.propagation"
 
@@ -1793,6 +1854,41 @@ scan_cached_lxmf_contacts()
 
 while running:
     now = int(time.time())
+
+    if NEARBY_SCAN_REQUEST.exists():
+        try:
+            request = json.loads(
+                NEARBY_SCAN_REQUEST.read_text() or "{}"
+            )
+        except Exception:
+            request = {}
+
+        try:
+            NEARBY_SCAN_REQUEST.unlink()
+        except FileNotFoundError:
+            pass
+
+        try:
+            cache_matches = scan_cached_lxmf_contacts()
+            probe_requests = probe_known_lxmf_contacts()
+
+            state["lxmf_nearby_scan_requested_at"] = int(
+                request.get("requested_at", now) or now
+            )
+            state["lxmf_nearby_scan_probe_requests"] = int(
+                probe_requests
+            )
+            state["lxmf_nearby_scan_cache_matches"] = int(
+                cache_matches
+            )
+            state["lxmf_nearby_scan_error"] = None
+            state["updated"] = now
+            write_state(state)
+
+        except Exception as exc:
+            state["lxmf_nearby_scan_error"] = str(exc)
+            state["updated"] = now
+            write_state(state)
 
     if (
         last_contact_cache_scan == 0
