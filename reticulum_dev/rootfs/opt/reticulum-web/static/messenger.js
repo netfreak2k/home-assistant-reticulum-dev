@@ -474,6 +474,7 @@
   const $ = id => document.getElementById(id);
 
   let activePeer = "";
+  let lastConversationSignature = "";
 
   function esc(v) {
     return String(v ?? "")
@@ -547,6 +548,27 @@
           ? chat.messages
           : [];
 
+      const signature =
+        JSON.stringify(
+          messages.map(message => [
+            message.message_id || "",
+            message.timestamp || 0,
+            message.direction || "",
+            message.delivery_status || "",
+            message.delivery_updated_at || 0,
+            message.content || ""
+          ])
+        );
+
+      if (
+        signature === lastConversationSignature &&
+        box.childElementCount > 0
+      ) {
+        return;
+      }
+
+      lastConversationSignature = signature;
+
       if (!messages.length) {
         box.innerHTML =
           '<div class="m97-empty">' +
@@ -607,10 +629,16 @@
 
   window.openMessengerConversation =
     function(peer) {
-      activePeer =
+      const nextPeer =
         String(peer || "").trim();
 
-      if (!activePeer) return;
+      if (!nextPeer) return;
+
+      if (nextPeer !== activePeer) {
+        lastConversationSignature = "";
+      }
+
+      activePeer = nextPeer;
 
       const hidden =
         $("lxmf-chat-destination");
