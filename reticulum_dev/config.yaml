@@ -44,6 +44,7 @@ options:
   rnode_codingrate: 5
   transport: false
   propagation_enabled: false
+  propagation_auto_discovery: true
   propagation_node: ""
   propagation_auto_sync: true
   propagation_sync_interval: 900
@@ -65,6 +66,7 @@ schema:
   rnode_codingrate: "int(5,8)"
   transport: "bool"
   propagation_enabled: "bool"
+  propagation_auto_discovery: "bool"
   propagation_node: "str?"
   propagation_auto_sync: "bool"
   propagation_sync_interval: "int(300,86400)"
