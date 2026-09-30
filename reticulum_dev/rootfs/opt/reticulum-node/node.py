@@ -164,7 +164,13 @@ PROPAGATION_DIAGNOSTICS = {
     "announce_valid": 0,
     "announce_invalid": 0,
     "announce_inactive": 0,
+    "announce_active": 0,
+    "announce_persisted": 0,
+    "announce_bad_hash": 0,
+    "handler_errors": 0,
     "last_announce": 0,
+    "last_candidate": "",
+    "last_stage": "idle",
     "last_error": "",
     "cache_scans": 0,
     "cache_matches": 0,
@@ -931,7 +937,11 @@ class LXMFPropagationDiscoveryHandler:
 
             if not active:
                 PROPAGATION_DIAGNOSTICS["announce_inactive"] += 1
+                PROPAGATION_DIAGNOSTICS["last_stage"] = "inactive"
                 return
+
+            PROPAGATION_DIAGNOSTICS["announce_active"] += 1
+            PROPAGATION_DIAGNOSTICS["last_stage"] = "active"
 
             if isinstance(
                 destination_hash,
@@ -947,7 +957,16 @@ class LXMFPropagationDiscoveryHandler:
                     peer
                 )
 
+            PROPAGATION_DIAGNOSTICS["last_candidate"] = peer
+
             if len(peer) != 32:
+                PROPAGATION_DIAGNOSTICS["announce_bad_hash"] += 1
+                PROPAGATION_DIAGNOSTICS["last_stage"] = "bad_hash"
+                PROPAGATION_DIAGNOSTICS["last_error"] = (
+                    "Propagation announce destination hash has "
+                    + str(len(peer))
+                    + " hex characters, expected 32"
+                )
                 return
 
             try:
@@ -989,13 +1008,23 @@ class LXMFPropagationDiscoveryHandler:
                 "stamp_cost": stamp_cost,
             })
 
+            PROPAGATION_DIAGNOSTICS["last_stage"] = "persisting"
+
             _write_propagation_nodes(
                 nodes
             )
 
+            PROPAGATION_DIAGNOSTICS["announce_persisted"] += 1
+            PROPAGATION_DIAGNOSTICS["last_stage"] = "persisted"
+            PROPAGATION_DIAGNOSTICS["last_error"] = ""
+
             select_best_propagation_node()
 
+            PROPAGATION_DIAGNOSTICS["last_stage"] = "selected"
+
         except Exception as exc:
+            PROPAGATION_DIAGNOSTICS["handler_errors"] += 1
+            PROPAGATION_DIAGNOSTICS["last_stage"] = "handler_error"
             PROPAGATION_DIAGNOSTICS["last_error"] = str(exc)
             RNS.log(
                 "LXMF propagation discovery error: "
@@ -1648,6 +1677,24 @@ while running:
         )
         state["lxmf_propagation_announce_inactive"] = int(
             PROPAGATION_DIAGNOSTICS.get("announce_inactive") or 0
+        )
+        state["lxmf_propagation_announce_active"] = int(
+            PROPAGATION_DIAGNOSTICS.get("announce_active") or 0
+        )
+        state["lxmf_propagation_announce_persisted"] = int(
+            PROPAGATION_DIAGNOSTICS.get("announce_persisted") or 0
+        )
+        state["lxmf_propagation_announce_bad_hash"] = int(
+            PROPAGATION_DIAGNOSTICS.get("announce_bad_hash") or 0
+        )
+        state["lxmf_propagation_handler_errors"] = int(
+            PROPAGATION_DIAGNOSTICS.get("handler_errors") or 0
+        )
+        state["lxmf_propagation_last_candidate"] = str(
+            PROPAGATION_DIAGNOSTICS.get("last_candidate") or ""
+        )
+        state["lxmf_propagation_last_stage"] = str(
+            PROPAGATION_DIAGNOSTICS.get("last_stage") or ""
         )
         state["lxmf_propagation_last_announce"] = int(
             PROPAGATION_DIAGNOSTICS.get("last_announce") or 0
