@@ -10892,7 +10892,7 @@ if (
   var duration=30;
   var lastData=null;
   var expanded=false;
-  var previewLimit=3;
+  var previewLimit=2;
 
   function el(id){ return document.getElementById(id); }
 
@@ -10916,22 +10916,40 @@ if (
     var box=el("n2k-nearby-results");
     if(!box) return;
 
-    var items=Array.isArray(data&&data.contacts)?data.contacts:[];
+    var allItems=Array.isArray(data&&data.contacts)?data.contacts:[];
     var live=Number(data&&data.live_count||0);
     var cached=Number(data&&data.cached_count||0);
     var rnsPaths=Number(data&&data.rns_path_count||0);
     var cacheMatches=Number(data&&data.lxmf_cache_matches||0);
 
-    if(!items.length){
-      box.innerHTML='<div class="n2k-nearby-empty">Keine LXMF-Announces aus den letzten 24 Stunden bekannt.</div>';
+    // Scanner-Ergebnisse und normales Kontaktbuch bleiben bewusst getrennt.
+    // Bereits bekannte 24-h-Cache-Kontakte stehen unten im normalen Kontaktbuch.
+    var items=scanStarted
+      ? allItems.filter(function(item){ return item&&item.seen_during_scan===true; })
+      : [];
+
+    var status=el("n2k-nearby-status");
+
+    if(scanTimer){
+      box.innerHTML='<div class="n2k-nearby-empty">Suche nach neuen LXMF-Announces…</div>';
       return;
     }
 
-    // Keep the contacts view compact: live peers first, then the freshest cached peers.
+    if(!scanStarted){
+      box.innerHTML='<div class="n2k-nearby-empty">Noch kein Scan ausgeführt.</div>';
+      if(status){
+        status.textContent=
+          "Bereit · "+cached+" LXMF bekannt · "+rnsPaths+" RNS-Ziele";
+      }
+      return;
+    }
+
+    if(!items.length){
+      box.innerHTML='<div class="n2k-nearby-empty">Keine neuen LXMF-Announces während dieses Scans.</div>';
+      return;
+    }
+
     items=items.slice().sort(function(a,b){
-      var al=a&&a.seen_during_scan===true ? 1 : 0;
-      var bl=b&&b.seen_during_scan===true ? 1 : 0;
-      if(al!==bl) return bl-al;
       return Number(a&&a.age_seconds||0)-Number(b&&b.age_seconds||0);
     });
 
@@ -10940,11 +10958,7 @@ if (
     var html=visible.map(function(item){
       var hash=String(item.destination_hash||"");
       var name=String(item.display_name||"").trim() || (hash.slice(0,10)+"…");
-      var isLive=item.seen_during_scan===true;
-      var meta=[
-        isLive ? "● live" : "○ bekannt",
-        ageText(item.age_seconds)
-      ];
+      var meta=["● live",ageText(item.age_seconds)];
 
       if(item.hops!==null && item.hops!==undefined && item.hops!==""){
         var hops=Number(item.hops);
@@ -10966,17 +10980,16 @@ if (
 
     if(items.length>previewLimit){
       html += '<button type="button" class="n2k-nearby-more" id="n2k-nearby-more">'+
-        (expanded ? 'Weniger anzeigen' : 'Alle anzeigen ('+items.length+')')+
+        (expanded ? 'Weniger anzeigen' : 'Alle live anzeigen ('+items.length+')')+
         '</button>';
     }
 
     box.innerHTML=html;
 
-    var status=el("n2k-nearby-status");
-    if(status && !scanTimer){
+    if(status){
       status.textContent=
-        items.length+" Kontakte gefunden · "+
-        live+" live · "+
+        "Scan beendet · "+live+" live · "+
+        cached+" LXMF bekannt · "+
         rnsPaths+" RNS-Ziele"+
         (cacheMatches ? " · "+cacheMatches+" Cache-Treffer" : "");
     }
@@ -11076,7 +11089,12 @@ if (
     if(bar) bar.style.width="0%";
 
     if(status){
-      status.textContent="Scan läuft · 30 s · Cache bleibt sichtbar";
+      status.textContent="Scan läuft · 30 s · neue Treffer erscheinen nach Scanende";
+    }
+
+    var results=el("n2k-nearby-results");
+    if(results){
+      results.innerHTML='<div class="n2k-nearby-empty">Suche nach neuen LXMF-Announces…</div>';
     }
 
     poll();
@@ -13187,7 +13205,7 @@ if (
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
+  gap:9px;
 }
 
 .n2k-propagation-title{
@@ -13746,7 +13764,7 @@ body.n2k-resilience-mode #n2k-resilience-card{
 
 .n2k-nearby-card{
   margin:12px 0 14px;
-  padding:13px;
+  padding:10px;
   border:1px solid rgba(255,255,255,.065);
   border-radius:12px;
   background:rgba(255,255,255,.018);
@@ -13793,7 +13811,7 @@ body.n2k-resilience-mode #n2k-resilience-card{
 }
 
 .n2k-nearby-status{
-  margin-top:11px;
+  margin-top:7px;
   color:rgba(195,208,214,.68);
   font-size:10px;
 }
@@ -13816,11 +13834,11 @@ body.n2k-resilience-mode #n2k-resilience-card{
 }
 
 .n2k-nearby-results{
-  margin-top:10px;
+  margin-top:6px;
 }
 
 .n2k-nearby-empty{
-  padding:14px 6px;
+  padding:7px 4px;
   color:rgba(183,198,207,.52);
   font-size:11px;
   text-align:center;
@@ -13831,7 +13849,7 @@ body.n2k-resilience-mode #n2k-resilience-card{
   grid-template-columns:minmax(0,1fr) auto;
   gap:10px;
   align-items:center;
-  padding:11px 2px;
+  padding:8px 2px;
   border-top:1px solid rgba(255,255,255,.05);
 }
 
@@ -13893,7 +13911,7 @@ body.n2k-resilience-mode #n2k-resilience-card{
 
 @media(max-width:900px){
   .n2k-nearby-card{
-    padding:11px !important;
+    padding:9px !important;
   }
   .n2k-nearby-sub{
     max-width:210px;
@@ -13907,9 +13925,9 @@ body.n2k-resilience-mode #n2k-resilience-card{
 }
 
 @media(max-width:900px){
-  .n2k-nearby-card{margin:10px 12px 14px !important;}
-  .n2k-nearby-start{min-height:42px;}
-  .n2k-nearby-open{min-height:40px;}
+  .n2k-nearby-card{margin:7px 12px 10px !important;}
+  .n2k-nearby-start{min-height:38px;}
+  .n2k-nearby-open{min-height:36px;}
 }
 
 /* ==================================================
