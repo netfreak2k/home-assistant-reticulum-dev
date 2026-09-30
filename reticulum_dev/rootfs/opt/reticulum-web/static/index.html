@@ -2882,6 +2882,46 @@ code {
   </div>
 
 
+  <section class="n2k-resilience-card" id="n2k-resilience-card">
+    <div class="n2k-resilience-head">
+      <div>
+        <div class="n2k-resilience-title">Resilience Core</div>
+        <div class="n2k-resilience-sub">Lokale Kommunikation · Status · Sicherung</div>
+      </div>
+      <span id="n2k-resilience-state" class="n2k-resilience-state">PRÜFE…</span>
+    </div>
+
+    <div class="n2k-resilience-grid">
+      <div class="n2k-resilience-stat">
+        <span>RNS</span>
+        <strong id="n2k-resilience-rns">—</strong>
+      </div>
+      <div class="n2k-resilience-stat">
+        <span>LXMF</span>
+        <strong id="n2k-resilience-lxmf">—</strong>
+      </div>
+      <div class="n2k-resilience-stat">
+        <span>Interfaces</span>
+        <strong id="n2k-resilience-interfaces">—</strong>
+      </div>
+      <div class="n2k-resilience-stat">
+        <span>Pfade</span>
+        <strong id="n2k-resilience-paths">—</strong>
+      </div>
+    </div>
+
+    <div class="n2k-resilience-actions">
+      <button id="n2k-resilience-mode" type="button">Notfallmodus aktivieren</button>
+      <button id="n2k-backup-export" type="button">Gateway sichern</button>
+      <button id="n2k-backup-restore" type="button">Backup wiederherstellen</button>
+      <input id="n2k-backup-file" type="file" accept="application/json,.json" hidden>
+    </div>
+
+    <div id="n2k-resilience-note" class="n2k-resilience-note">
+      Normalbetrieb · alle Funktionen sichtbar
+    </div>
+  </section>
+
   <div class="n2k-selftest-card">
 
     <div class="n2k-selftest-head">
@@ -10069,6 +10109,192 @@ refreshLXMFInbox();
 
 
 
+<script id="n2k-resilience-js-1200">
+(function(){
+  function $(id){return document.getElementById(id);}
+
+  function setText(id,value){
+    var node=$(id);
+    if(node) node.textContent=String(value==null?"—":value);
+  }
+
+  async function refreshResilience(){
+    var badge=$("n2k-resilience-state");
+
+    try{
+      var results=await Promise.all([
+        fetch("api/status?ts="+Date.now(),{cache:"no-store"}),
+        fetch("api/node/identity?ts="+Date.now(),{cache:"no-store"}),
+        fetch("api/network?ts="+Date.now(),{cache:"no-store"})
+      ]);
+
+      var status=await results[0].json();
+      var identity=await results[1].json();
+      var network=await results[2].json();
+
+      var interfaces=Array.isArray(status.interfaces)?status.interfaces:[];
+      var up=interfaces.filter(function(item){
+        var state=String(item&&item.status||"").toLowerCase();
+        return state==="up"||state==="online"||state==="connected";
+      }).length;
+
+      var rns=!!status.online;
+      var lxmf=!!(identity&&identity.lxmf_destination_hash);
+
+      setText("n2k-resilience-rns",rns?"BEREIT":"OFFLINE");
+      setText("n2k-resilience-lxmf",lxmf?"BEREIT":"NICHT BEREIT");
+      setText("n2k-resilience-interfaces",up+"/"+interfaces.length+" aktiv");
+      setText("n2k-resilience-paths",Number(network.path_count||0));
+
+      if(badge){
+        badge.className="n2k-resilience-state "+(rns&&lxmf?"ok":"warn");
+        badge.textContent=rns&&lxmf?"BEREIT":"EINGESCHRÄNKT";
+      }
+    }catch(e){
+      if(badge){
+        badge.className="n2k-resilience-state warn";
+        badge.textContent="OFFLINE";
+      }
+      setText("n2k-resilience-rns","OFFLINE");
+      setText("n2k-resilience-lxmf","—");
+      setText("n2k-resilience-interfaces","—");
+      setText("n2k-resilience-paths","—");
+    }
+  }
+
+  function applyMode(enabled){
+    document.body.classList.toggle("n2k-resilience-mode",!!enabled);
+    localStorage.setItem("n2k-resilience-mode",enabled?"1":"0");
+
+    var button=$("n2k-resilience-mode");
+    var note=$("n2k-resilience-note");
+
+    if(button){
+      button.textContent=enabled?"Notfallmodus beenden":"Notfallmodus aktivieren";
+    }
+
+    if(note){
+      note.textContent=enabled
+        ?"Notfallmodus · Hilfe/About ausgeblendet · Kernfunktionen bleiben aktiv"
+        :"Normalbetrieb · alle Funktionen sichtbar";
+    }
+  }
+
+  async function exportBackup(){
+    var button=$("n2k-backup-export");
+    if(button){button.disabled=true;button.textContent="Sichere…";}
+
+    try{
+      var response=await fetch("api/backup?ts="+Date.now(),{cache:"no-store"});
+      var data=await response.json();
+
+      if(!response.ok||!data.ok){
+        throw new Error(data.error||"Backup fehlgeschlagen");
+      }
+
+      var stamp=new Date().toISOString().replaceAll(":","-").replace("T","_").slice(0,19);
+      var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a");
+      a.href=url;
+      a.download="n2k-rns-gateway-backup-"+stamp+".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      var note=$("n2k-resilience-note");
+      if(note) note.textContent="Backup erstellt · Identity + Kontakte + Einstellungen";
+    }catch(e){
+      alert("Backup fehlgeschlagen: "+(e.message||"Unbekannter Fehler"));
+    }finally{
+      if(button){button.disabled=false;button.textContent="Gateway sichern";}
+    }
+  }
+
+  async function restoreBackup(file){
+    if(!file) return;
+
+    var ok=confirm(
+      "Backup wirklich wiederherstellen?\n\n"+
+      "Identity, Kontakte und gespeicherte Einstellungen werden ersetzt. "+
+      "Danach muss das Add-on über Home Assistant neu gestartet werden."
+    );
+
+    if(!ok) return;
+
+    try{
+      if(file.size>1024*1024){
+        throw new Error("Backup-Datei ist zu groß");
+      }
+
+      var data=JSON.parse(await file.text());
+
+      if(data.format!=="n2k-rns-gateway-backup"){
+        throw new Error("Das ist kein N2K Gateway Backup");
+      }
+
+      var response=await fetch("api/backup/restore",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(data),
+        cache:"no-store"
+      });
+
+      var result=await response.json();
+
+      if(!response.ok||!result.ok){
+        throw new Error(result.error||"Restore fehlgeschlagen");
+      }
+
+      alert(
+        "Wiederherstellung abgeschlossen.\n\n"+
+        result.contacts_restored+" Kontakte · "+
+        result.options_restored+" Einstellungen.\n\n"+
+        "Jetzt das Add-on in Home Assistant neu starten."
+      );
+
+      var note=$("n2k-resilience-note");
+      if(note) note.textContent="Restore PASS · Add-on-Neustart erforderlich";
+
+    }catch(e){
+      alert("Restore fehlgeschlagen: "+(e.message||"Unbekannter Fehler"));
+    }finally{
+      var input=$("n2k-backup-file");
+      if(input) input.value="";
+    }
+  }
+
+  function boot(){
+    var mode=localStorage.getItem("n2k-resilience-mode")==="1";
+    applyMode(mode);
+
+    $("n2k-resilience-mode")?.addEventListener("click",function(){
+      applyMode(!document.body.classList.contains("n2k-resilience-mode"));
+    });
+
+    $("n2k-backup-export")?.addEventListener("click",exportBackup);
+
+    var restore=$("n2k-backup-restore");
+    var file=$("n2k-backup-file");
+
+    restore?.addEventListener("click",function(){file?.click();});
+    file?.addEventListener("change",function(){
+      restoreBackup(file.files&&file.files[0]);
+    });
+
+    refreshResilience();
+    setInterval(refreshResilience,15000);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
+
 <script id="n2k-emoji-js-1191">
 (function(){
   function $(id){return document.getElementById(id);}
@@ -12293,6 +12519,159 @@ refreshLXMFInbox();
 }
 
 
+
+/* ==================================================
+   1.20.0-beta1 · RESILIENCE CORE
+   ================================================== */
+
+.n2k-resilience-card{
+  margin:10px 0 14px;
+  padding:14px;
+  border:1px solid rgba(113,217,176,.12);
+  border-radius:14px;
+  background:rgba(113,217,176,.025);
+}
+
+.n2k-resilience-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.n2k-resilience-title{
+  color:rgba(239,244,246,.95);
+  font-size:15px;
+  font-weight:780;
+}
+
+.n2k-resilience-sub{
+  margin-top:3px;
+  color:rgba(183,198,207,.58);
+  font-size:10px;
+}
+
+.n2k-resilience-state{
+  flex:0 0 auto;
+  padding:5px 8px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  color:rgba(205,219,226,.72);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.06em;
+}
+
+.n2k-resilience-state.ok{
+  border-color:rgba(113,217,176,.22);
+  color:#71d9b0;
+}
+
+.n2k-resilience-state.warn{
+  border-color:rgba(255,194,102,.22);
+  color:rgba(255,194,102,.9);
+}
+
+.n2k-resilience-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin-top:12px;
+}
+
+.n2k-resilience-stat{
+  min-width:0;
+  padding:9px 8px;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:10px;
+  background:rgba(255,255,255,.018);
+}
+
+.n2k-resilience-stat span{
+  display:block;
+  color:rgba(172,190,199,.5);
+  font-size:9px;
+}
+
+.n2k-resilience-stat strong{
+  display:block;
+  margin-top:4px;
+  overflow:hidden;
+  color:rgba(237,243,245,.91);
+  font-size:11px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.n2k-resilience-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:11px;
+}
+
+.n2k-resilience-actions button{
+  min-height:38px;
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  color:rgba(231,238,241,.85);
+  font:inherit;
+  font-size:10px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+#n2k-resilience-mode{
+  border-color:rgba(255,194,102,.17);
+  color:rgba(255,211,145,.9);
+}
+
+.n2k-resilience-note{
+  margin-top:9px;
+  color:rgba(180,195,203,.52);
+  font-size:9px;
+  line-height:1.4;
+}
+
+body.n2k-resilience-mode .n2k-help-card,
+body.n2k-resilience-mode .n2k-about-card{
+  display:none !important;
+}
+
+body.n2k-resilience-mode .n2k-selftest-results{
+  max-height:150px;
+  overflow:auto;
+}
+
+body.n2k-resilience-mode #n2k-resilience-card{
+  border-color:rgba(255,194,102,.24);
+  background:rgba(255,194,102,.035);
+}
+
+@media(max-width:900px){
+  .n2k-resilience-card{
+    margin:10px 12px 14px !important;
+  }
+
+  .n2k-resilience-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .n2k-resilience-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+
+  .n2k-resilience-actions button{
+    min-height:42px;
+  }
+
+  #n2k-resilience-mode{
+    grid-column:1 / -1;
+  }
+}
 
 /* ==================================================
    1.19.1-beta1 · EMOJI PICKER
