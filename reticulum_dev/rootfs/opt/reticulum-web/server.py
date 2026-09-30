@@ -3250,11 +3250,14 @@ def get_messenger_contacts():
 
 def get_messenger_nearby(since=0):
     """
-    Return recently heard LXMF announce contacts and enrich them
-    with the current Reticulum path table where available.
+    Return LXMF announce contacts discovered by the always-on
+    announce handler and enrich them with the current Reticulum
+    path table where available.
 
-    This is a passive scanner: it does not transmit, request paths
-    or alter Reticulum/RNode configuration.
+    The scanner itself is passive. The node keeps collecting valid
+    LXMF announces in contacts.json continuously, so a 30-second UI
+    scan no longer loses peers just because they did not re-announce
+    inside that exact window.
     """
     try:
         since = max(0, int(since or 0))
@@ -3282,16 +3285,36 @@ def get_messenger_nearby(since=0):
             path_map[destination] = item
 
     now = int(time.time())
+    cache_ttl = 24 * 60 * 60
     nearby = []
+    live_count = 0
+    cached_count = 0
 
     for item in contacts:
         if not isinstance(item, dict):
             continue
 
+        # The nearby scanner must only expose contacts that were
+        # actually learned from LXMF announces. Manually imported or
+        # manually created contacts belong in the normal contact list.
+        source = str(
+            item.get("source") or ""
+        ).strip()
+
+        if source != "lxmf_announce":
+            continue
+
         last_seen = int(item.get("last_seen") or 0)
 
-        # Scanner results are announces heard during this scan.
-        if since and last_seen < since:
+        if not last_seen:
+            continue
+
+        age_seconds = max(0, now - last_seen)
+
+        # Keep a useful rolling cache, like propagation discovery.
+        # Older contacts remain in the normal contact list but are not
+        # presented as "nearby".
+        if age_seconds > cache_ttl:
             continue
 
         peer = str(
@@ -3302,6 +3325,14 @@ def get_messenger_nearby(since=0):
             continue
 
         path_info = path_map.get(peer) or {}
+        seen_during_scan = bool(
+            since and last_seen >= since
+        )
+
+        if seen_during_scan:
+            live_count += 1
+        else:
+            cached_count += 1
 
         nearby.append({
             "destination_hash": peer,
@@ -3312,13 +3343,8 @@ def get_messenger_nearby(since=0):
                 item.get("identity_hash") or ""
             ).strip(),
             "last_seen": last_seen,
-            "age_seconds": (
-                max(0, now - last_seen)
-                if last_seen else None
-            ),
-            "source": str(
-                item.get("source") or ""
-            ).strip(),
+            "age_seconds": age_seconds,
+            "source": source,
             "hops": path_info.get("hops"),
             "interface": str(
                 path_info.get("interface") or ""
@@ -3328,13 +3354,19 @@ def get_messenger_nearby(since=0):
             ).strip(),
             "expires": path_info.get("expires"),
             "path_known": bool(path_info),
+            "seen_during_scan": seen_during_scan,
+            "discovery_state": (
+                "live"
+                if seen_during_scan
+                else "cached"
+            ),
         })
 
     nearby.sort(
-        key=lambda item: int(
-            item.get("last_seen") or 0
-        ),
-        reverse=True,
+        key=lambda item: (
+            0 if item.get("seen_during_scan") else 1,
+            -int(item.get("last_seen") or 0),
+        )
     )
 
     return {
@@ -3342,15 +3374,18 @@ def get_messenger_nearby(since=0):
         "passive": True,
         "since": since,
         "timestamp": now,
+        "cache_ttl_seconds": cache_ttl,
         "count": len(nearby),
+        "live_count": live_count,
+        "cached_count": cached_count,
         "contacts": nearby,
         "network_ok": bool(network.get("ok")),
         "note": (
-            "Nearby means recently announced/reachable on the "
-            "configured Reticulum interfaces, not physical distance."
+            "Nearby means LXMF announces heard on configured "
+            "Reticulum interfaces. Live entries were heard during "
+            "this scan; cached entries were heard within 24 hours."
         ),
     }
-
 
 def set_messenger_contact_alias(peer_hash, name):
     peer_hash = str(peer_hash or "").strip()
