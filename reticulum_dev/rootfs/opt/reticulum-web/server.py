@@ -3248,7 +3248,7 @@ def get_messenger_contacts():
 
 
 
-def get_messenger_nearby(since=0):
+def get_messenger_nearby(since=0, probe=False):
     """
     Return LXMF announce contacts discovered by the always-on
     announce handler and enrich them with the current Reticulum
@@ -3263,6 +3263,30 @@ def get_messenger_nearby(since=0):
         since = max(0, int(since or 0))
     except Exception:
         since = 0
+
+    probe_queued = False
+    if probe:
+        try:
+            request_file = Path(
+                "/config/reticulum/homeassistant-node/"
+                "nearby-scan.request"
+            )
+            request_file.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+            tmp = request_file.with_suffix(".tmp")
+            tmp.write_text(
+                json.dumps({
+                    "requested_at": int(time.time()),
+                    "source": "messenger-nearby",
+                }),
+                encoding="utf-8",
+            )
+            tmp.replace(request_file)
+            probe_queued = True
+        except Exception:
+            probe_queued = False
 
     contacts_result = get_messenger_contacts()
     contacts = contacts_result.get("contacts", [])
@@ -3375,7 +3399,8 @@ def get_messenger_nearby(since=0):
 
     return {
         "ok": True,
-        "passive": True,
+        "passive": False if probe else True,
+        "probe_queued": probe_queued,
         "since": since,
         "timestamp": now,
         "cache_ttl_seconds": cache_ttl,
@@ -4546,9 +4571,20 @@ class Handler(BaseHTTPRequestHandler):
                     params.get("since")
                     or ["0"]
                 )[0]
+                probe = str(
+                    (
+                        params.get("probe")
+                        or ["0"]
+                    )[0]
+                ).strip().lower() in (
+                    "1", "true", "yes", "on"
+                )
 
                 self.send_json(
-                    get_messenger_nearby(since)
+                    get_messenger_nearby(
+                        since,
+                        probe=probe,
+                    )
                 )
 
             except Exception as exc:
