@@ -1997,7 +1997,7 @@ code {
 <div class="wrap">
   <div class="n2k-mobile-clean-top">
     <span>⌂ Home Assistant</span>
-    <button type="button" id="n2k-mobile-clean-status">⚙</button>
+    <button type="button" id="n2k-mobile-clean-status" onclick="n2kMobileSetView('settings'); return false;">⚙</button>
   </div>
 <header class="n2k-main-header">
 
@@ -2529,6 +2529,14 @@ code {
       <span>Status</span>
     </button>
   </nav>
+
+  <div id="n2k-mobile-chat-entry" class="n2k-mobile-chat-entry">
+    <div>
+      <strong>Chats</strong>
+      <span>Kontakt wählen oder neuen Chat starten</span>
+    </div>
+    <button type="button" id="n2k-mobile-new-chat" onclick="n2kMobileSetView('contacts'); return false;">+ Neuer Chat</button>
+  </div>
 
   <div id="msg-contacts-view"
        class="msg-secondary-view"
@@ -12788,5 +12796,156 @@ body {
   }
 
   window.n2kMobileSetView=setView;
+})();
+</script>
+
+
+<style id="n2k-mobile-chat-entry-1172">
+@media (max-width:900px){
+  #n2k-mobile-clean-status{
+    position:relative !important;
+    z-index:10 !important;
+    pointer-events:auto !important;
+    touch-action:manipulation !important;
+    cursor:pointer !important;
+  }
+
+  #n2k-mobile-chat-entry{
+    display:flex !important;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 10px 8px;
+    border-bottom:1px solid rgba(255,255,255,.07);
+    background:rgba(255,255,255,.015);
+  }
+
+  #n2k-mobile-chat-entry > div{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+
+  #n2k-mobile-chat-entry strong{
+    color:rgba(245,245,242,.96);
+    font-size:14px;
+  }
+
+  #n2k-mobile-chat-entry span{
+    color:rgba(190,199,204,.62);
+    font-size:11px;
+    line-height:1.3;
+  }
+
+  #n2k-mobile-new-chat{
+    flex:0 0 auto;
+    min-height:34px;
+    padding:7px 10px;
+    border:1px solid rgba(240,189,108,.18);
+    border-radius:8px;
+    background:rgba(240,189,108,.07);
+    color:#f0bd6c;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    pointer-events:auto !important;
+    touch-action:manipulation !important;
+  }
+
+  #n2k-mobile-new-chat:active{
+    background:rgba(240,189,108,.13);
+  }
+
+  /* Only show chat entry helper while Chats is active. */
+  body.n2k-mobile-view-contacts #n2k-mobile-chat-entry,
+  body.n2k-mobile-view-settings #n2k-mobile-chat-entry{
+    display:none !important;
+  }
+
+  #messenger-chat-list .m97-empty,
+  #messenger-chat-list .messenger-empty{
+    min-height:120px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:24px 16px !important;
+    color:rgba(193,201,205,.68) !important;
+    text-align:center !important;
+    font-size:13px !important;
+  }
+
+  /* A selected conversation must be usable on mobile. */
+  .lxmf-chat.messenger-conversation{
+    border:1px solid rgba(255,255,255,.09) !important;
+    border-radius:11px !important;
+    overflow:hidden !important;
+    background:#0b1117 !important;
+  }
+
+  .lxmf-chat.messenger-conversation[style*="display: flex"]{
+    min-height:58vh !important;
+  }
+}
+</style>
+
+
+<script id="n2k-mobile-chat-entry-js-1172">
+(function(){
+  var previous = window.n2kMobileSetView;
+
+  function mark(name){
+    document.body.classList.remove(
+      "n2k-mobile-view-chats",
+      "n2k-mobile-view-contacts",
+      "n2k-mobile-view-settings"
+    );
+    document.body.classList.add("n2k-mobile-view-" + name);
+  }
+
+  window.n2kMobileSetView = function(name){
+    if(typeof previous === "function"){
+      previous(name);
+    } else {
+      var btn = document.querySelector(
+        '#n2k-mobile-clean-tabs-top button[data-clean-tab="' + name + '"]'
+      );
+      if(btn) btn.click();
+    }
+    mark(name);
+    return false;
+  };
+
+  function boot(){
+    mark("chats");
+
+    var gear=document.getElementById("n2k-mobile-clean-status");
+    if(gear){
+      gear.onclick=function(){
+        window.n2kMobileSetView("settings");
+        return false;
+      };
+    }
+
+    var newChat=document.getElementById("n2k-mobile-new-chat");
+    if(newChat){
+      newChat.onclick=function(){
+        window.n2kMobileSetView("contacts");
+        return false;
+      };
+    }
+
+    document.querySelectorAll("#n2k-mobile-clean-tabs-top button").forEach(function(btn){
+      btn.addEventListener("click",function(){
+        mark(btn.dataset.cleanTab);
+      });
+    });
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
 })();
 </script>
