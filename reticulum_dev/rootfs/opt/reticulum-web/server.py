@@ -2161,6 +2161,110 @@ def get_messenger_contacts():
 
 
 
+def get_messenger_nearby(since=0):
+    """
+    Return recently heard LXMF announce contacts and enrich them
+    with the current Reticulum path table where available.
+
+    This is a passive scanner: it does not transmit, request paths
+    or alter Reticulum/RNode configuration.
+    """
+    try:
+        since = max(0, int(since or 0))
+    except Exception:
+        since = 0
+
+    contacts_result = get_messenger_contacts()
+    contacts = contacts_result.get("contacts", [])
+    if not isinstance(contacts, list):
+        contacts = []
+
+    network = get_network_snapshot()
+    paths = network.get("paths", [])
+    if not isinstance(paths, list):
+        paths = []
+
+    path_map = {}
+    for item in paths:
+        if not isinstance(item, dict):
+            continue
+        destination = str(
+            item.get("destination") or ""
+        ).strip().lower()
+        if destination:
+            path_map[destination] = item
+
+    now = int(time.time())
+    nearby = []
+
+    for item in contacts:
+        if not isinstance(item, dict):
+            continue
+
+        last_seen = int(item.get("last_seen") or 0)
+
+        # Scanner results are announces heard during this scan.
+        if since and last_seen < since:
+            continue
+
+        peer = str(
+            item.get("destination_hash") or ""
+        ).strip().lower()
+
+        if len(peer) != 32:
+            continue
+
+        path_info = path_map.get(peer) or {}
+
+        nearby.append({
+            "destination_hash": peer,
+            "display_name": str(
+                item.get("display_name") or ""
+            ).strip(),
+            "identity_hash": str(
+                item.get("identity_hash") or ""
+            ).strip(),
+            "last_seen": last_seen,
+            "age_seconds": (
+                max(0, now - last_seen)
+                if last_seen else None
+            ),
+            "source": str(
+                item.get("source") or ""
+            ).strip(),
+            "hops": path_info.get("hops"),
+            "interface": str(
+                path_info.get("interface") or ""
+            ).strip(),
+            "next_hop": str(
+                path_info.get("next_hop") or ""
+            ).strip(),
+            "expires": path_info.get("expires"),
+            "path_known": bool(path_info),
+        })
+
+    nearby.sort(
+        key=lambda item: int(
+            item.get("last_seen") or 0
+        ),
+        reverse=True,
+    )
+
+    return {
+        "ok": True,
+        "passive": True,
+        "since": since,
+        "timestamp": now,
+        "count": len(nearby),
+        "contacts": nearby,
+        "network_ok": bool(network.get("ok")),
+        "note": (
+            "Nearby means recently announced/reachable on the "
+            "configured Reticulum interfaces, not physical distance."
+        ),
+    }
+
+
 def set_messenger_contact_alias(peer_hash, name):
     peer_hash = str(peer_hash or "").strip()
     name = str(name or "").strip()
@@ -3162,6 +3266,31 @@ class Handler(BaseHTTPRequestHandler):
                 )
 
                 self.send_svg(svg)
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc),
+                }, 400)
+
+            return
+
+        if path.endswith("/api/messenger/nearby"):
+            try:
+                parsed = urllib.parse.urlsplit(
+                    self.path
+                )
+                params = urllib.parse.parse_qs(
+                    parsed.query
+                )
+                since = (
+                    params.get("since")
+                    or ["0"]
+                )[0]
+
+                self.send_json(
+                    get_messenger_nearby(since)
+                )
 
             except Exception as exc:
                 self.send_json({
