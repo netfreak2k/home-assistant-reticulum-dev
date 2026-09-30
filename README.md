@@ -7,9 +7,9 @@ This repository contains the current public beta development build.
 
 ## Current status
 
-**1.18.4-dev · Beta baseline**
+**1.18.6-beta1 · Public beta baseline**
 
-The core software stack has passed remote beta validation.
+The beta baseline has passed functional validation, update testing and a clean-install test on a second Home Assistant system.
 
 Verified:
 
@@ -22,6 +22,8 @@ Verified:
 - Retry workflow
 - Integrated system self-test
 - Privacy-safe diagnostic export
+- Contact QR code generation through Home Assistant Ingress
+- Clean installation on a second Home Assistant system
 
 Not yet physically validated:
 
