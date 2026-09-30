@@ -38,6 +38,14 @@ PROPAGATION_ENABLED = (
     in ("1", "true", "yes", "on")
 )
 
+PROPAGATION_AUTO_DISCOVERY = (
+    os.environ.get(
+        "RETICULUM_PROPAGATION_AUTO_DISCOVERY",
+        "true",
+    ).strip().lower()
+    in ("1", "true", "yes", "on")
+)
+
 PROPAGATION_NODE_HEX = os.environ.get(
     "RETICULUM_PROPAGATION_NODE",
     "",
@@ -149,37 +157,213 @@ lxmf_router = LXMF.LXMRouter(
 
 PROPAGATION_NODE_HASH = None
 PROPAGATION_READY = False
+PROPAGATION_SELECTED_SOURCE = None
 
-if PROPAGATION_ENABLED:
+
+def _read_propagation_nodes():
+    try:
+        if not PROPAGATION_NODES_FILE.exists():
+            return []
+
+        value = json.loads(
+            PROPAGATION_NODES_FILE.read_text(
+                encoding="utf-8"
+            )
+        )
+
+        return value if isinstance(value, list) else []
+
+    except Exception:
+        return []
+
+
+def _write_propagation_nodes(nodes):
+    STATE_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    tmp = Path(
+        str(PROPAGATION_NODES_FILE) + ".tmp"
+    )
+
+    tmp.write_text(
+        json.dumps(
+            nodes[-PROPAGATION_NODE_LIMIT:],
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    tmp.replace(
+        PROPAGATION_NODES_FILE
+    )
+
+
+def _set_propagation_node(
+    destination_hash,
+    source,
+):
+    global PROPAGATION_NODE_HASH
+    global PROPAGATION_READY
+    global PROPAGATION_SELECTED_SOURCE
+
+    if not isinstance(destination_hash, bytes):
+        raise ValueError(
+            "Propagation destination must be bytes"
+        )
+
+    if (
+        len(destination_hash)
+        != RNS.Identity.TRUNCATED_HASHLENGTH // 8
+    ):
+        raise ValueError(
+            "Invalid propagation destination length"
+        )
+
+    lxmf_router.set_outbound_propagation_node(
+        destination_hash
+    )
+
+    PROPAGATION_NODE_HASH = destination_hash
+    PROPAGATION_READY = True
+    PROPAGATION_SELECTED_SOURCE = source
+
+    RNS.log(
+        "LXMF propagation node selected: "
+        + destination_hash.hex()
+        + " ("
+        + str(source)
+        + ")",
+        RNS.LOG_INFO,
+    )
+
+
+def select_best_propagation_node():
+    if not (
+        PROPAGATION_ENABLED
+        and PROPAGATION_AUTO_DISCOVERY
+    ):
+        return None
+
+    now = int(time.time())
+
+    candidates = []
+
+    for item in _read_propagation_nodes():
+        if not isinstance(item, dict):
+            continue
+
+        if item.get("active") is not True:
+            continue
+
+        seen = int(
+            item.get("last_seen") or 0
+        )
+
+        if not seen or now - seen > PROPAGATION_NODE_TTL:
+            continue
+
+        peer = str(
+            item.get("destination_hash") or ""
+        ).strip().lower()
+
+        if len(peer) != 32:
+            continue
+
+        try:
+            peer_bytes = bytes.fromhex(peer)
+        except Exception:
+            continue
+
+        try:
+            hops = int(
+                RNS.Transport.hops_to(
+                    peer_bytes
+                )
+            )
+        except Exception:
+            hops = int(
+                item.get("hops") or 9999
+            )
+
+        candidates.append({
+            "peer": peer,
+            "bytes": peer_bytes,
+            "hops": hops,
+            "last_seen": seen,
+            "stamp_cost": int(
+                item.get("stamp_cost") or 0
+            ),
+        })
+
+    if not candidates:
+        return None
+
+    candidates.sort(
+        key=lambda item: (
+            item["hops"],
+            -item["last_seen"],
+            item["stamp_cost"],
+        )
+    )
+
+    best = candidates[0]
+
+    current_hex = (
+        PROPAGATION_NODE_HASH.hex()
+        if isinstance(
+            PROPAGATION_NODE_HASH,
+            bytes,
+        )
+        else ""
+    )
+
+    # Avoid needless switching: keep the current discovered
+    # node when it remains fresh and is at most one hop worse.
+    if current_hex:
+        current = next(
+            (
+                item
+                for item in candidates
+                if item["peer"] == current_hex
+            ),
+            None,
+        )
+
+        if (
+            current is not None
+            and current["hops"]
+            <= best["hops"] + 1
+        ):
+            return current
+
+    _set_propagation_node(
+        best["bytes"],
+        "auto",
+    )
+
+    return best
+
+
+if (
+    PROPAGATION_ENABLED
+    and not PROPAGATION_AUTO_DISCOVERY
+):
     try:
         candidate = bytes.fromhex(
             PROPAGATION_NODE_HEX
         )
 
-        if (
-            len(candidate)
-            != RNS.Identity.TRUNCATED_HASHLENGTH // 8
-        ):
-            raise ValueError(
-                "Propagation Node Hash muss 32 Hex-Zeichen haben"
-            )
-
-        lxmf_router.set_outbound_propagation_node(
-            candidate
-        )
-
-        PROPAGATION_NODE_HASH = candidate
-        PROPAGATION_READY = True
-
-        RNS.log(
-            "LXMF propagation node configured: "
-            + PROPAGATION_NODE_HEX,
-            RNS.LOG_INFO,
+        _set_propagation_node(
+            candidate,
+            "manual",
         )
 
     except Exception as exc:
         RNS.log(
-            "LXMF propagation disabled: "
+            "LXMF propagation manual node invalid: "
             + str(exc),
             RNS.LOG_ERROR,
         )
@@ -189,6 +373,11 @@ OUTBOUND_REQUEST = Path("/homeassistant/reticulum_bridge/lxmf_outbound.json")
 
 LXMF_OUTBOX_FILE = STATE_DIR / "lxmf-outbox.json"
 LXMF_OUTBOX_LIMIT = 100
+
+PROPAGATION_NODES_FILE = STATE_DIR / "propagation-nodes.json"
+PROPAGATION_NODE_LIMIT = 100
+PROPAGATION_NODE_TTL = 30 * 60
+PROPAGATION_SELECTION_INTERVAL = 60
 
 
 # --------------------------------------------------
@@ -446,6 +635,123 @@ def remember_lxmf_contact(
             "LXMF CONTACT ERROR:",
             str(exc),
         )
+
+
+class LXMFPropagationDiscoveryHandler:
+    aspect_filter = "lxmf.propagation"
+
+    def received_announce(
+        self,
+        destination_hash,
+        announced_identity,
+        app_data,
+        *args,
+        **kwargs,
+    ):
+        if not PROPAGATION_ENABLED:
+            return
+
+        if not PROPAGATION_AUTO_DISCOVERY:
+            return
+
+        try:
+            if not LXMF.pn_announce_data_is_valid(
+                app_data
+            ):
+                return
+
+            import msgpack
+
+            unpacked = msgpack.unpackb(
+                app_data
+            )
+
+            active = bool(unpacked[2])
+            emitted = int(unpacked[1])
+            stamp_cost = int(
+                unpacked[5][0]
+            )
+
+            if not active:
+                return
+
+            if isinstance(
+                destination_hash,
+                bytes,
+            ):
+                peer = destination_hash.hex()
+                peer_bytes = destination_hash
+            else:
+                peer = str(
+                    destination_hash or ""
+                ).strip().lower()
+                peer_bytes = bytes.fromhex(
+                    peer
+                )
+
+            if len(peer) != 32:
+                return
+
+            try:
+                hops = int(
+                    RNS.Transport.hops_to(
+                        peer_bytes
+                    )
+                )
+            except Exception:
+                hops = 9999
+
+            now = int(time.time())
+
+            nodes = _read_propagation_nodes()
+
+            existing = next(
+                (
+                    item
+                    for item in nodes
+                    if isinstance(item, dict)
+                    and item.get("destination_hash")
+                    == peer
+                ),
+                None,
+            )
+
+            if existing is None:
+                existing = {
+                    "destination_hash": peer,
+                    "first_seen": now,
+                }
+                nodes.append(existing)
+
+            existing.update({
+                "active": True,
+                "last_seen": now,
+                "emitted": emitted,
+                "hops": hops,
+                "stamp_cost": stamp_cost,
+            })
+
+            _write_propagation_nodes(
+                nodes
+            )
+
+            select_best_propagation_node()
+
+        except Exception as exc:
+            RNS.log(
+                "LXMF propagation discovery error: "
+                + str(exc),
+                RNS.LOG_WARNING,
+            )
+
+
+propagation_discovery_handler = (
+    LXMFPropagationDiscoveryHandler()
+)
+
+RNS.Transport.register_announce_handler(
+    propagation_discovery_handler
+)
 
 
 class LXMFAnnounceHandler:
@@ -1037,9 +1343,52 @@ next_auto_announce = (
 )
 
 last_propagation_sync = 0
+last_propagation_selection = 0
 
 while running:
     now = int(time.time())
+
+    if (
+        PROPAGATION_ENABLED
+        and PROPAGATION_AUTO_DISCOVERY
+        and (
+            last_propagation_selection == 0
+            or now - last_propagation_selection
+            >= PROPAGATION_SELECTION_INTERVAL
+        )
+    ):
+        try:
+            selected = (
+                select_best_propagation_node()
+            )
+
+            last_propagation_selection = now
+
+            state["lxmf_propagation_auto_discovery"] = True
+            state["lxmf_propagation_candidates"] = len(
+                [
+                    item
+                    for item in _read_propagation_nodes()
+                    if isinstance(item, dict)
+                    and int(
+                        item.get("last_seen") or 0
+                    ) >= now - PROPAGATION_NODE_TTL
+                ]
+            )
+
+            if selected is not None:
+                state["lxmf_propagation_selected_hops"] = int(
+                    selected.get("hops") or 0
+                )
+
+            state["updated"] = now
+            write_state(state)
+
+        except Exception as exc:
+            last_propagation_selection = now
+            state["lxmf_propagation_selection_error"] = str(exc)
+            state["updated"] = now
+            write_state(state)
 
     if (
         PROPAGATION_ENABLED
@@ -1059,7 +1408,15 @@ while running:
             last_propagation_sync = now
             state["lxmf_propagation_enabled"] = True
             state["lxmf_propagation_node"] = (
-                PROPAGATION_NODE_HEX
+                PROPAGATION_NODE_HASH.hex()
+                if isinstance(
+                    PROPAGATION_NODE_HASH,
+                    bytes,
+                )
+                else ""
+            )
+            state["lxmf_propagation_source"] = (
+                PROPAGATION_SELECTED_SOURCE
             )
             state["lxmf_propagation_last_sync"] = now
             state["lxmf_propagation_sync_result"] = "REQUESTED"
@@ -1081,6 +1438,9 @@ while running:
 
     elif not PROPAGATION_ENABLED:
         state["lxmf_propagation_enabled"] = False
+        state["lxmf_propagation_auto_discovery"] = (
+            PROPAGATION_AUTO_DISCOVERY
+        )
 
     # --------------------------------------------------
     # Automatic LXMF announce
