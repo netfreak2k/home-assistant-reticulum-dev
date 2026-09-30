@@ -159,6 +159,18 @@ PROPAGATION_NODE_HASH = None
 PROPAGATION_READY = False
 PROPAGATION_SELECTED_SOURCE = None
 
+PROPAGATION_DIAGNOSTICS = {
+    "announce_total": 0,
+    "announce_valid": 0,
+    "announce_invalid": 0,
+    "announce_inactive": 0,
+    "last_announce": 0,
+    "last_error": "",
+    "cache_scans": 0,
+    "cache_matches": 0,
+    "last_cache_scan": 0,
+}
+
 
 def _read_propagation_nodes():
     try:
@@ -388,6 +400,146 @@ PROPAGATION_PROBE_LIMIT = 3
 
 
 # --------------------------------------------------
+
+def scan_cached_propagation_nodes():
+    """
+    Recover LXMF propagation nodes from Reticulum's known-destination
+    cache. This catches valid propagation announces that were heard
+    before this add-on process registered its announce handler.
+
+    Reticulum stores the last announce app_data for known destinations,
+    so LXMF can validate the payload without guessing from the path table.
+    """
+    if not (
+        PROPAGATION_ENABLED
+        and PROPAGATION_AUTO_DISCOVERY
+    ):
+        return 0
+
+    now = int(time.time())
+    matched = 0
+
+    try:
+        known = getattr(
+            RNS.Identity,
+            "known_destinations",
+            {},
+        )
+
+        if not isinstance(known, dict):
+            known = {}
+
+        nodes = _read_propagation_nodes()
+
+        for destination_hash, entry in list(known.items()):
+            if not isinstance(destination_hash, bytes):
+                continue
+
+            if (
+                len(destination_hash)
+                != RNS.Identity.TRUNCATED_HASHLENGTH // 8
+            ):
+                continue
+
+            try:
+                app_data = RNS.Identity.recall_app_data(
+                    destination_hash
+                )
+            except Exception:
+                app_data = None
+
+            if not app_data:
+                continue
+
+            try:
+                if not LXMF.pn_announce_data_is_valid(
+                    app_data
+                ):
+                    continue
+
+                import msgpack
+
+                unpacked = msgpack.unpackb(
+                    app_data
+                )
+
+                active = bool(unpacked[2])
+                emitted = int(unpacked[1])
+                stamp_cost = int(
+                    unpacked[5][0]
+                )
+
+                if not active:
+                    continue
+
+                peer = destination_hash.hex()
+
+                try:
+                    last_seen = int(
+                        float(entry[0])
+                    )
+                except Exception:
+                    last_seen = now
+
+                try:
+                    hops = int(
+                        RNS.Transport.hops_to(
+                            destination_hash
+                        )
+                    )
+                except Exception:
+                    hops = 9999
+
+                existing = next(
+                    (
+                        item
+                        for item in nodes
+                        if isinstance(item, dict)
+                        and item.get("destination_hash")
+                        == peer
+                    ),
+                    None,
+                )
+
+                if existing is None:
+                    existing = {
+                        "destination_hash": peer,
+                        "first_seen": last_seen,
+                    }
+                    nodes.append(existing)
+
+                existing.update({
+                    "active": True,
+                    "last_seen": max(
+                        int(existing.get("last_seen") or 0),
+                        last_seen,
+                    ),
+                    "emitted": emitted,
+                    "hops": hops,
+                    "stamp_cost": stamp_cost,
+                    "source": "identity_cache",
+                })
+
+                matched += 1
+
+            except Exception:
+                continue
+
+        if matched:
+            _write_propagation_nodes(nodes)
+
+        PROPAGATION_DIAGNOSTICS["cache_scans"] += 1
+        PROPAGATION_DIAGNOSTICS["cache_matches"] = matched
+        PROPAGATION_DIAGNOSTICS["last_cache_scan"] = now
+
+        return matched
+
+    except Exception as exc:
+        PROPAGATION_DIAGNOSTICS["last_error"] = (
+            "cache scan: " + str(exc)
+        )
+        return 0
+
 
 def probe_known_propagation_nodes():
     """
@@ -751,11 +903,19 @@ class LXMFPropagationDiscoveryHandler:
         if not PROPAGATION_AUTO_DISCOVERY:
             return
 
+        PROPAGATION_DIAGNOSTICS["announce_total"] += 1
+        PROPAGATION_DIAGNOSTICS["last_announce"] = int(
+            time.time()
+        )
+
         try:
             if not LXMF.pn_announce_data_is_valid(
                 app_data
             ):
+                PROPAGATION_DIAGNOSTICS["announce_invalid"] += 1
                 return
+
+            PROPAGATION_DIAGNOSTICS["announce_valid"] += 1
 
             import msgpack
 
@@ -770,6 +930,7 @@ class LXMFPropagationDiscoveryHandler:
             )
 
             if not active:
+                PROPAGATION_DIAGNOSTICS["announce_inactive"] += 1
                 return
 
             if isinstance(
@@ -835,6 +996,7 @@ class LXMFPropagationDiscoveryHandler:
             select_best_propagation_node()
 
         except Exception as exc:
+            PROPAGATION_DIAGNOSTICS["last_error"] = str(exc)
             RNS.log(
                 "LXMF propagation discovery error: "
                 + str(exc),
@@ -1448,9 +1610,53 @@ next_auto_announce = (
 last_propagation_sync = 0
 last_propagation_selection = 0
 last_propagation_probe = 0
+last_propagation_cache_scan = 0
 
 while running:
     now = int(time.time())
+
+    if (
+        PROPAGATION_ENABLED
+        and PROPAGATION_AUTO_DISCOVERY
+        and (
+            last_propagation_cache_scan == 0
+            or now - last_propagation_cache_scan >= 60
+        )
+    ):
+        try:
+            state["lxmf_propagation_cache_matches"] = (
+                scan_cached_propagation_nodes()
+            )
+            state["lxmf_propagation_cache_scans"] = int(
+                PROPAGATION_DIAGNOSTICS.get("cache_scans") or 0
+            )
+            state["lxmf_propagation_last_cache_scan"] = int(
+                PROPAGATION_DIAGNOSTICS.get("last_cache_scan") or 0
+            )
+        except Exception as exc:
+            state["lxmf_propagation_cache_error"] = str(exc)
+
+        last_propagation_cache_scan = now
+        state["lxmf_propagation_announce_total"] = int(
+            PROPAGATION_DIAGNOSTICS.get("announce_total") or 0
+        )
+        state["lxmf_propagation_announce_valid"] = int(
+            PROPAGATION_DIAGNOSTICS.get("announce_valid") or 0
+        )
+        state["lxmf_propagation_announce_invalid"] = int(
+            PROPAGATION_DIAGNOSTICS.get("announce_invalid") or 0
+        )
+        state["lxmf_propagation_announce_inactive"] = int(
+            PROPAGATION_DIAGNOSTICS.get("announce_inactive") or 0
+        )
+        state["lxmf_propagation_last_announce"] = int(
+            PROPAGATION_DIAGNOSTICS.get("last_announce") or 0
+        )
+        state["lxmf_propagation_discovery_error"] = str(
+            PROPAGATION_DIAGNOSTICS.get("last_error") or ""
+        )
+        state["updated"] = now
+        write_state(state)
 
     if (
         PROPAGATION_ENABLED
