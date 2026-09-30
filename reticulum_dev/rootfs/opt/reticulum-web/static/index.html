@@ -10891,6 +10891,8 @@ if (
   var scanStarted=0;
   var duration=30;
   var lastData=null;
+  var expanded=false;
+  var previewLimit=3;
 
   function el(id){ return document.getElementById(id); }
 
@@ -10925,7 +10927,17 @@ if (
       return;
     }
 
-    box.innerHTML=items.map(function(item){
+    // Keep the contacts view compact: live peers first, then the freshest cached peers.
+    items=items.slice().sort(function(a,b){
+      var al=a&&a.seen_during_scan===true ? 1 : 0;
+      var bl=b&&b.seen_during_scan===true ? 1 : 0;
+      if(al!==bl) return bl-al;
+      return Number(a&&a.age_seconds||0)-Number(b&&b.age_seconds||0);
+    });
+
+    var visible=expanded ? items : items.slice(0,previewLimit);
+
+    var html=visible.map(function(item){
       var hash=String(item.destination_hash||"");
       var name=String(item.display_name||"").trim() || (hash.slice(0,10)+"…");
       var isLive=item.seen_during_scan===true;
@@ -10952,13 +10964,21 @@ if (
         '</div>';
     }).join("");
 
+    if(items.length>previewLimit){
+      html += '<button type="button" class="n2k-nearby-more" id="n2k-nearby-more">'+
+        (expanded ? 'Weniger anzeigen' : 'Alle anzeigen ('+items.length+')')+
+        '</button>';
+    }
+
+    box.innerHTML=html;
+
     var status=el("n2k-nearby-status");
     if(status && !scanTimer){
       status.textContent=
-        items.length+" LXMF bekannt · "+
+        items.length+" Kontakte gefunden · "+
         live+" live · "+
         rnsPaths+" RNS-Ziele"+
-        (cacheMatches ? " · "+cacheMatches+" aus RNS-Cache" : "");
+        (cacheMatches ? " · "+cacheMatches+" Cache-Treffer" : "");
     }
 
     box.querySelectorAll(".n2k-nearby-open").forEach(function(btn){
@@ -10969,6 +10989,14 @@ if (
         }
       });
     });
+
+    var more=el("n2k-nearby-more");
+    if(more){
+      more.addEventListener("click",function(){
+        expanded=!expanded;
+        render(lastData||{});
+      });
+    }
   }
 
   async function poll(){
@@ -13845,6 +13873,37 @@ body.n2k-resilience-mode #n2k-resilience-card{
   color:rgba(170,187,196,.48);
   font-size:9px;
   line-height:1.45;
+}
+
+.n2k-nearby-more{
+  display:block;
+  width:100%;
+  min-height:36px;
+  margin-top:6px;
+  padding:7px 10px;
+  border:1px solid rgba(255,255,255,.065);
+  border-radius:10px;
+  background:rgba(255,255,255,.025);
+  color:rgba(205,216,222,.76);
+  font:inherit;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+@media(max-width:900px){
+  .n2k-nearby-card{
+    padding:11px !important;
+  }
+  .n2k-nearby-sub{
+    max-width:210px;
+  }
+  .n2k-nearby-note{
+    display:none;
+  }
+  .n2k-nearby-row{
+    padding:9px 2px;
+  }
 }
 
 @media(max-width:900px){
