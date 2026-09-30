@@ -10225,7 +10225,15 @@ refreshLXMFInbox();
       if(name==="contacts" && core && typeof core.loadContacts==="function"){
         core.loadContacts();
       }
-    }catch(e){console.warn("[N2K mobile contacts]",e);}
+
+      if(
+        name==="settings" &&
+        window.reticulumProfile099 &&
+        typeof window.reticulumProfile099.loadIdentity==="function"
+      ){
+        window.reticulumProfile099.loadIdentity();
+      }
+    }catch(e){console.warn("[N2K mobile view]",e);}
 
     return false;
   }
