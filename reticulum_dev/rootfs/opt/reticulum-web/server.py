@@ -2950,6 +2950,27 @@ class Handler(BaseHTTPRequestHandler):
                         "Nachricht darf nicht leer sein"
                     )
 
+                photo_prefix = "N2KPHOTO/1|image/jpeg|"
+
+                if content.startswith(photo_prefix):
+                    photo_b64 = content[len(photo_prefix):]
+
+                    # Mesh Photo v1 is intentionally small. This also
+                    # prevents oversized data-URI payloads from filling
+                    # the local inbox/outbox JSON stores.
+                    if len(photo_b64) > 40000:
+                        raise ValueError(
+                            "Mesh-Foto ist zu groß"
+                        )
+
+                    if not re.fullmatch(
+                        r"[A-Za-z0-9+/]+={0,2}",
+                        photo_b64,
+                    ):
+                        raise ValueError(
+                            "Ungültiges Mesh-Foto"
+                        )
+
                 request_file = Path(
                     "/homeassistant/reticulum_bridge/"
                     "lxmf_outbound.json"
