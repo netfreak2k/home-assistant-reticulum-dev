@@ -1523,6 +1523,263 @@ code {
 }
 </style>
 
+
+<style id="n2k-fine-polish-1151">
+/* ==================================================
+   1.15.1 · FINE POLISH
+   Visual-only refinement. No RNS/LXMF logic changes.
+   ================================================== */
+
+.n2k-main-header {
+  min-height: 76px;
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
+
+.n2k-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.n2k-brand-kicker {
+  margin-bottom: 5px !important;
+  opacity: .92;
+}
+
+.n2k-main-header h1 {
+  text-shadow: 0 1px 0 rgba(255,255,255,.02);
+}
+
+.n2k-header-right {
+  gap: 10px !important;
+}
+
+.n2k-clock {
+  min-width: 224px !important;
+}
+
+.n2k-clock-date {
+  opacity: .82;
+}
+
+.n2k-main-header .status {
+  position: relative;
+  padding-left: 18px !important;
+}
+
+.n2k-main-header .status::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(105,224,177,.05);
+}
+
+.node-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.node-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(105,224,177,.55), rgba(115,217,255,.10));
+}
+
+.node-hero-top {
+  margin-bottom: 14px !important;
+}
+
+.node-title {
+  font-size: 16px !important;
+  letter-spacing: .025em !important;
+}
+
+.node-subtitle {
+  max-width: 720px;
+  line-height: 1.45;
+}
+
+#hero-node-state {
+  padding: 6px 9px;
+  border: 1px solid rgba(105,224,177,.10);
+  border-radius: 7px;
+  background: rgba(105,224,177,.025);
+  font-size: 10px !important;
+  letter-spacing: .055em;
+}
+
+.node-path {
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.node-path-state {
+  margin-top: 5px !important;
+}
+
+.node-path-detail {
+  margin-top: 3px !important;
+}
+
+.network-stat {
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.network-stat-value {
+  font-size: 17px !important;
+}
+
+.n2k-tech-panel {
+  margin-top: 12px !important;
+}
+
+.n2k-tech-panel summary {
+  color: rgba(210,222,228,.72);
+  font-size: 11px;
+  letter-spacing: .02em;
+}
+
+.messenger-app {
+  margin-top: 4px;
+}
+
+.messenger-status {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.msg-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.msg-tab {
+  min-height: 34px;
+}
+
+.messenger-contact {
+  min-height: 64px;
+}
+
+.messenger-contact-avatar,
+.lxmf-chat-avatar {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.messenger-contact-name {
+  letter-spacing: -.01em;
+}
+
+.messenger-contact-preview {
+  margin-top: 2px;
+}
+
+.lxmf-chat-header {
+  min-height: 62px !important;
+}
+
+#lxmf-inbox.lxmf-chat-messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(115,217,255,.18) transparent;
+}
+
+#lxmf-chat-content {
+  border-radius: 12px !important;
+}
+
+#lxmf-chat-send {
+  min-width: 74px !important;
+  border-radius: 12px !important;
+}
+
+.n2k-about-card,
+.n2k-selftest-card {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .n2k-main-header {
+    min-height: 0;
+    gap: 12px !important;
+  }
+
+  .n2k-header-right {
+    align-items: stretch !important;
+  }
+
+  .n2k-clock {
+    min-width: 0 !important;
+  }
+
+  #hero-node-state {
+    align-self: flex-start;
+  }
+
+  .node-path {
+    min-height: 70px;
+  }
+
+  .messenger-status {
+    min-height: 34px;
+  }
+}
+
+@media (max-width: 430px) {
+  .n2k-main-header h1 {
+    font-size: 24px !important;
+  }
+
+  .n2k-brand-kicker {
+    font-size: 8px !important;
+  }
+
+  .node-title {
+    font-size: 14px !important;
+  }
+
+  .node-subtitle {
+    font-size: 11px !important;
+  }
+
+  .node-paths {
+    gap: 7px !important;
+  }
+
+  .node-path {
+    min-height: 66px;
+  }
+
+  .node-path-label {
+    font-size: 8px !important;
+  }
+
+  .node-path-state {
+    font-size: 12px !important;
+  }
+
+  .node-path-detail {
+    font-size: 10px !important;
+  }
+}
+</style>
+
 </head>
 
 <body>
