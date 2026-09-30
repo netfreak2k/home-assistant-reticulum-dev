@@ -1,3 +1,16 @@
+## 1.21.0-beta1 · Store & Forward
+
+- Added standards-based **LXMF Propagation / Store & Forward** support without RFed-specific dependencies.
+- Direct delivery remains preferred. After the normal direct path attempt, N2K can fall back to `LXMF.LXMessage.PROPAGATED` when a valid propagation node is enabled.
+- Added mobile **Store & Forward** configuration under Status: enable/disable, 32-character propagation destination, automatic parked-message retrieval and sync interval.
+- Added periodic `request_messages_from_propagation_node()` retrieval for messages parked for the local Identity.
+- Added explicit message states: **Store & Forward ⏳**, **am Propagation Node ✓**, direct **zugestellt ✓✓**, and failed.
+- Propagation acceptance is deliberately not shown as final recipient delivery.
+- Added propagation runtime state to Systemcheck and the Messenger feature-bundle integrity check.
+- Propagation configuration is included in the N2K Gateway backup.
+- Existing installations keep propagation disabled by default, preserving 1.20.1 direct-delivery behaviour until explicitly configured.
+- Rollback branch: `backup-1.20.1-beta1-before-store-forward`.
+
 ## 1.20.1-beta1
 
 - Fixed chat flicker after Mesh Photo messages.
