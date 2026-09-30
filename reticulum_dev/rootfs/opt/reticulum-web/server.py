@@ -1669,6 +1669,68 @@ def get_n2k_selftest():
 
 
     # -------------------------------------------------
+    # LXMF propagation / Store & Forward
+    # -------------------------------------------------
+
+    try:
+        propagation = get_propagation_config()
+
+        if propagation.get("enabled"):
+            node_hash = str(
+                propagation.get("node") or ""
+            ).strip().lower()
+
+            configured = bool(
+                re.fullmatch(
+                    r"[0-9a-f]{32}",
+                    node_hash,
+                )
+            )
+
+            runtime_ok = (
+                propagation.get("runtime_enabled") is True
+                and str(
+                    propagation.get("runtime_node") or ""
+                ).strip().lower()
+                == node_hash
+            )
+
+            add_check(
+                "propagation",
+                "LXMF Store & Forward",
+                configured and runtime_ok,
+                (
+                    "Aktiv · "
+                    + node_hash[:8]
+                    + "… · Sync "
+                    + (
+                        propagation.get("sync_result")
+                        or "bereit"
+                    )
+                    if configured and runtime_ok
+                    else "Konfiguration gespeichert · Add-on-Neustart prüfen"
+                ),
+            )
+
+        else:
+            add_check(
+                "propagation",
+                "LXMF Store & Forward",
+                True,
+                "Optional · nicht aktiviert",
+                optional=True,
+            )
+
+    except Exception as exc:
+        add_check(
+            "propagation",
+            "LXMF Store & Forward",
+            False,
+            str(exc),
+        )
+
+
+    # -------------------------------------------------
     # UI feature bundle integrity
     # -------------------------------------------------
 
@@ -1691,6 +1753,7 @@ def get_n2k_selftest():
             "photo": "n2k-photo-pick",
             "emoji": "n2k-emoji-toggle",
             "resilience": "n2k-resilience-card",
+            "propagation": "n2k-propagation-card",
         }
 
         missing = [
@@ -1707,7 +1770,7 @@ def get_n2k_selftest():
             "Messenger Feature Bundle",
             not missing,
             (
-                "Scanner · Announce · Foto · Emoji · Resilience"
+                "Scanner · Announce · Foto · Emoji · Resilience · Store & Forward"
                 if not missing
                 else "Fehlt: " + ", ".join(missing)
             ),
