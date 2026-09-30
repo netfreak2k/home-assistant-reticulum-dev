@@ -12469,3 +12469,324 @@ body {
 
 
 
+
+
+<style id="n2k-mobile-final-layout-1171">
+@media (max-width:900px){
+
+  /* FINAL OVERRIDE: intentionally last in file so legacy mobile CSS cannot win. */
+  html,body{
+    position:static !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:100% !important;
+    max-height:none !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    touch-action:auto !important;
+  }
+
+  body{padding:0 !important;}
+
+  .wrap{
+    display:block !important;
+    width:100% !important;
+    max-width:760px !important;
+    height:auto !important;
+    min-height:100vh !important;
+    max-height:none !important;
+    overflow:visible !important;
+    padding:0 10px 18px !important;
+  }
+
+  .n2k-main-header{
+    position:static !important;
+    display:flex !important;
+    flex-direction:column !important;
+    min-height:0 !important;
+    padding:3px 0 8px !important;
+    margin:0 !important;
+  }
+
+  .n2k-header-right{
+    order:1 !important;
+    width:100% !important;
+    display:block !important;
+  }
+
+  .n2k-brand{
+    order:2 !important;
+    margin-top:7px !important;
+    text-align:center !important;
+  }
+
+  .n2k-brand-kicker,
+  .n2k-main-header .sub,
+  #node-status{
+    display:none !important;
+  }
+
+  /* Smaller complete HH:MM clock */
+  .n2k-clock{
+    width:100% !important;
+    min-width:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+
+  .n2k-clock-date{
+    width:min(320px,88%) !important;
+    margin:0 auto 6px !important;
+    padding:5px 9px !important;
+    font-size:11px !important;
+    line-height:1.2 !important;
+  }
+
+  .n2k-clock-time{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:4px !important;
+    width:100% !important;
+  }
+
+  .n2k-flap{
+    display:inline-flex !important;
+    width:60px !important;
+    height:70px !important;
+    min-width:60px !important;
+    align-items:center !important;
+    justify-content:center !important;
+    font-size:46px !important;
+    line-height:1 !important;
+    border-radius:7px !important;
+  }
+
+  .n2k-clock-separator{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:14px !important;
+    font-size:32px !important;
+    line-height:1 !important;
+  }
+
+  /* DOM children: hour(1), colon(2), minute(3), colon(4), second(5) */
+  .n2k-clock-time > :nth-child(4),
+  .n2k-clock-time > :nth-child(5){
+    display:none !important;
+  }
+
+  .n2k-main-header h1{
+    margin:0 !important;
+    font-size:20px !important;
+    line-height:1.15 !important;
+    letter-spacing:.01em !important;
+    text-transform:none !important;
+  }
+
+  .n2k-main-header h1::after{content:" DEV";}
+
+  .n2k-mobile-clean-state{
+    display:grid !important;
+    grid-template-columns:repeat(3,1fr) !important;
+    min-height:40px !important;
+    margin:0 0 7px !important;
+  }
+
+  /* Keep all technical dashboard blocks out of mobile app mode. */
+  .node-hero,
+  .n2k-tech-panel,
+  .grid,
+  #reticulum-network,
+  #reticulum-identity,
+  .wrap > details,
+  .wrap > hr{
+    display:none !important;
+  }
+
+  #messenger-app.messenger-app{
+    display:block !important;
+    width:100% !important;
+    max-width:none !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    border-radius:11px !important;
+  }
+
+  #messenger-app .messenger-status,
+  #messenger-app > .msg-tabs{
+    display:none !important;
+  }
+
+  /* Our real mobile tabs stay directly under status strip. */
+  #n2k-mobile-clean-tabs-top.n2k-mobile-clean-nav{
+    position:static !important;
+    display:grid !important;
+    grid-template-columns:repeat(3,1fr) !important;
+    width:100% !important;
+    min-height:50px !important;
+    margin:0 !important;
+    padding:0 !important;
+    border-top:0 !important;
+    border-bottom:1px solid rgba(255,255,255,.09) !important;
+    background:rgba(17,22,25,.98) !important;
+    z-index:1 !important;
+  }
+
+  #n2k-mobile-clean-tabs-top button{
+    min-height:50px !important;
+    border:0 !important;
+    background:transparent !important;
+    pointer-events:auto !important;
+    touch-action:manipulation !important;
+    cursor:pointer !important;
+    color:#b8c0c4 !important;
+    font-size:17px !important;
+  }
+
+  #n2k-mobile-clean-tabs-top button small{
+    display:block !important;
+    font-size:11px !important;
+    margin-top:2px !important;
+  }
+
+  #n2k-mobile-clean-tabs-top button.active{
+    color:#f0bd6c !important;
+    background:rgba(240,189,108,.045) !important;
+  }
+
+  /* Hidden really means hidden, regardless of legacy CSS later. */
+  #msg-contacts-view[hidden],
+  #msg-settings-view[hidden],
+  #messenger-chat-list[hidden]{
+    display:none !important;
+    min-height:0 !important;
+  }
+
+  #msg-contacts-view:not([hidden]),
+  #msg-settings-view:not([hidden]),
+  #messenger-chat-list:not([hidden]){
+    display:block !important;
+  }
+
+  #msg-contacts-view,
+  #msg-settings-view,
+  #messenger-chat-list.messenger-chat-list{
+    height:auto !important;
+    max-height:none !important;
+    min-height:0 !important;
+    overflow:visible !important;
+  }
+
+  .messenger-search-wrap{
+    padding:7px 9px 4px !important;
+  }
+
+  .messenger-search{
+    height:36px !important;
+    min-height:36px !important;
+    font-size:14px !important;
+  }
+
+  #messenger-chat-list .messenger-contact{
+    min-height:68px !important;
+    padding:8px 8px !important;
+  }
+
+  .m100-settings-head,
+  .m110-contact-head{
+    padding:12px 10px 8px !important;
+  }
+
+  .n2k-selftest-card,
+  .n2k-about-card{
+    margin:8px 9px !important;
+  }
+
+  /* Do not show Status/Systemcheck while Chats are active. */
+  #msg-settings-view[hidden] .n2k-selftest-card,
+  #msg-settings-view[hidden] .n2k-about-card{
+    display:none !important;
+  }
+
+  .lxmf-chat.messenger-conversation{
+    width:100% !important;
+    max-width:none !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+  }
+}
+</style>
+
+
+<script id="n2k-mobile-final-js-1171">
+(function(){
+  function byId(id){return document.getElementById(id);}
+
+  function setView(name){
+    var chats=byId("messenger-chat-list");
+    var contacts=byId("msg-contacts-view");
+    var settings=byId("msg-settings-view");
+    var search=document.querySelector(".messenger-search-wrap");
+    var conversation=document.querySelector(".messenger-conversation");
+
+    if(conversation){
+      conversation.style.setProperty("display","none","important");
+    }
+
+    function toggle(el,on){
+      if(!el)return;
+      el.hidden=!on;
+      el.style.setProperty("display",on?"block":"none","important");
+    }
+
+    toggle(chats,name==="chats");
+    toggle(search,name==="chats");
+    toggle(contacts,name==="contacts");
+    toggle(settings,name==="settings");
+
+    document.querySelectorAll("#n2k-mobile-clean-tabs-top button").forEach(function(btn){
+      btn.classList.toggle("active",btn.dataset.cleanTab===name);
+    });
+
+    if(name==="contacts"){
+      try{
+        var core=window.reticulumMessenger097;
+        if(core && typeof core.loadContacts==="function") core.loadContacts();
+      }catch(e){}
+    }
+  }
+
+  function boot(){
+    document.querySelectorAll("#n2k-mobile-clean-tabs-top button").forEach(function(btn){
+      btn.onclick=function(){
+        setView(btn.dataset.cleanTab);
+        return false;
+      };
+    });
+
+    var gear=byId("n2k-mobile-clean-status");
+    if(gear){
+      gear.onclick=function(){setView("settings");return false;};
+    }
+
+    setView("chats");
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+
+  window.n2kMobileSetView=setView;
+})();
+</script>
