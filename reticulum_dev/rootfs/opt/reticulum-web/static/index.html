@@ -2904,6 +2904,110 @@ code {
 
   </div>
 
+  <section class="n2k-help-card" id="n2k-help" aria-labelledby="n2k-help-title">
+    <div class="n2k-help-head">
+      <div>
+        <div class="n2k-help-title" id="n2k-help-title">Hilfe &amp; Handbuch</div>
+        <div class="n2k-help-sub">Lokale Systemhilfe · funktioniert ohne Internet</div>
+      </div>
+      <span class="n2k-help-badge">OFFLINE</span>
+    </div>
+
+    <label class="n2k-help-search-label" for="n2k-help-search">Handbuch &amp; FAQ durchsuchen</label>
+    <input id="n2k-help-search" class="n2k-help-search" type="search"
+           autocomplete="off" placeholder="z. B. Node, QR-Code, Update, Kontakte …">
+
+    <div class="n2k-help-zero" id="n2k-help-zero" hidden>
+      Keine passende Hilfe gefunden. Suchbegriff kürzen oder anderes Stichwort verwenden.
+    </div>
+
+    <div class="n2k-help-list" id="n2k-help-list">
+      <details class="n2k-help-item" data-help="start installation repository addon starten home assistant">
+        <summary>1 · Installation &amp; Start</summary>
+        <div class="n2k-help-body">
+          <p>N2K RNS Gateway läuft als Home-Assistant-Add-on. Nach der Installation das Add-on starten und anschließend die Weboberfläche über „Öffnen“ aufrufen.</p>
+          <p><strong>Erster Check:</strong> Oben müssen RNS und LXMF betriebsbereit erscheinen. Ein RNode ist optional; das Gateway kann auch über andere konfigurierte Reticulum-Interfaces arbeiten.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="identity name username anzeigename announce identität lxmf">
+        <summary>2 · Identity, Name &amp; Announce</summary>
+        <div class="n2k-help-body">
+          <p>Die lokale Reticulum/LXMF-Identity wird persistent im Add-on gespeichert. Der Messenger-Name kann in der Add-on-Konfiguration angepasst werden.</p>
+          <p>Mit einem Announce wird die eigene LXMF-Destination im Reticulum-Netz bekannt gemacht. Die Identity sollte nicht gelöscht werden, wenn bestehende Kontakte dieselbe Gegenstelle weiter erreichen sollen.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="kontakte kontakt qr qr-code import export scan">
+        <summary>3 · Kontakte &amp; QR-Code</summary>
+        <div class="n2k-help-body">
+          <p>Kontakte werden im Bereich „Kontakte“ verwaltet. „Mein QR“ erzeugt den eigenen Kontakt-QR-Code. Export und Import dienen zur lokalen Sicherung bzw. Übernahme des Kontaktverzeichnisses.</p>
+          <p>Wenn der QR-Code leer bleibt, die Ansicht einmal schließen und erneut öffnen. Bleibt das Feld leer, unter „Systemcheck“ eine Diagnose exportieren.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="chat nachricht senden empfangen lxmf zustellung delivery">
+        <summary>4 · Chats &amp; LXMF</summary>
+        <div class="n2k-help-body">
+          <p>Chats verwenden LXMF über Reticulum. Für eine erfolgreiche Zustellung muss die Ziel-Destination bekannt beziehungsweise über das Reticulum-Netz erreichbar sein.</p>
+          <p>Bei Problemen zuerst Kontakt-Destination, Pfadstatus und Identity prüfen. Die Versanddiagnose zeigt, an welcher Stufe ein Sendeversuch scheitert.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="rnode usb serial seriell node hardware lora lilygo">
+        <summary>5 · RNode / USB-Hardware</summary>
+        <div class="n2k-help-body">
+          <p>Ein RNode kann als Funk-Interface verwendet werden, ist aber nicht zwingend erforderlich. USB-Gerät und seriellen Port in der Add-on-Konfiguration auswählen und die RNode-Parameter passend zur Hardware setzen.</p>
+          <p>Wird ein USB-Node nicht erkannt, zuerst Kabel, Stromversorgung, Gerätepfad und Add-on-Neustart prüfen. Danach den Systemcheck ausführen.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="netzwerk auto interface tcp internet bootstrap tailscale lte offline reticulum">
+        <summary>6 · Netzwerk &amp; Interfaces</summary>
+        <div class="n2k-help-body">
+          <p>Das Gateway kann je nach Konfiguration AutoInterface, TCP, Internet Bootstrap und RNode verwenden. Tailscale oder LTE verändern die lokale Bedienung nicht; entscheidend ist, ob das konfigurierte Reticulum-Interface erreichbar ist.</p>
+          <p>Für reinen Offgrid-Betrieb Internet Bootstrap deaktivieren und lokale Funk- oder Netzwerkinterfaces verwenden.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="update aktualisieren repository github version backup rollback sichern">
+        <summary>7 · Update, Backup &amp; Rollback</summary>
+        <div class="n2k-help-body">
+          <p>Vor größeren Updates Konfiguration, Identity und Kontakt-Export sichern. Nach einem Update Add-on starten, Oberfläche öffnen und den Systemcheck ausführen.</p>
+          <p><strong>PASS:</strong> RNS/LXMF starten, Identity bleibt erhalten, Kontakte sind vorhanden, Chat und QR-Code funktionieren. Bei einem Fehler nicht weiter aktualisieren, sondern Diagnose sichern und auf die letzte funktionierende Version zurückgehen.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="diagnose systemcheck fehler logs rnstatus export support troubleshooting">
+        <summary>8 · Diagnose &amp; Fehlersuche</summary>
+        <div class="n2k-help-body">
+          <p>Unter „Systemcheck“ werden Identity, LXMF, Netzwerk und RNode geprüft. „Diagnose exportieren“ sammelt die für die Fehlersuche relevanten Zustände.</p>
+          <p>Reihenfolge bei Störungen: Add-on-Status → Systemcheck → Reticulum-Interface → Zielpfad → LXMF-Destination. Erst danach Konfiguration ändern.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="sicherheit datenschutz privacy lokal internet cloud daten">
+        <summary>9 · Sicherheit &amp; Datenschutz</summary>
+        <div class="n2k-help-body">
+          <p>Die integrierte Hilfe wird lokal mit dem Add-on ausgeliefert. Für ihre Anzeige ist keine externe Dokumentationsseite erforderlich.</p>
+          <p>Reticulum/LXMF-Verbindungen hängen von den aktivierten Interfaces ab. Vor Diagnose- oder Support-Uploads sensible Inhalte wie private Destinations, Namen oder Netzwerkdaten prüfen.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="faq häufige fragen internet node offline kontakte fehlen qr update neustart">
+        <summary>FAQ · Häufige Fragen</summary>
+        <div class="n2k-help-body n2k-faq">
+          <p><strong>Brauche ich Internet?</strong><br>Nein. Lokale Reticulum-Interfaces und RNode können ohne Internet arbeiten. Internet Bootstrap benötigt entsprechend eine Internetverbindung.</p>
+          <p><strong>Warum sehe ich keine Kontakte?</strong><br>Kontakte müssen lokal angelegt/importiert oder über passende Announce-/Discovery-Wege bekannt werden. Zusätzlich den Reticulum-Pfad prüfen.</p>
+          <p><strong>Warum ist mein Node offline?</strong><br>USB-Verbindung, Gerätepfad, Stromversorgung und RNode-Konfiguration prüfen und anschließend den Systemcheck starten.</p>
+          <p><strong>Bleibt meine Identity nach Neustart erhalten?</strong><br>Ja, solange die persistente Add-on-Konfiguration beziehungsweise die gespeicherte Identity nicht gelöscht wird.</p>
+          <p><strong>Funktioniert die App über Tailscale/LTE?</strong><br>Die Home-Assistant-Oberfläche kann darüber bedient werden. Für Reticulum zählt zusätzlich die Erreichbarkeit der jeweils aktivierten Interfaces.</p>
+          <p><strong>Was mache ich bei einem Fehler nach einem Update?</strong><br>Keine weiteren Änderungen vornehmen, Diagnose exportieren, Konfiguration sichern und bei Bedarf auf die letzte funktionierende Version zurückgehen.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
   <div class="n2k-about-card">
 
     <div class="n2k-about-title">
@@ -9866,6 +9970,39 @@ refreshLXMFInbox();
 
 
 
+<script id="n2k-help-js-1187">
+(function(){
+  function norm(v){
+    return String(v||"").toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  }
+  function bootHelp(){
+    var input=document.getElementById("n2k-help-search");
+    var list=document.getElementById("n2k-help-list");
+    var zero=document.getElementById("n2k-help-zero");
+    if(!input || !list) return;
+    var items=Array.prototype.slice.call(list.querySelectorAll(".n2k-help-item"));
+    input.addEventListener("input",function(){
+      var q=norm(input.value).trim();
+      var shown=0;
+      items.forEach(function(item){
+        var hay=norm((item.dataset.help||"")+" "+item.textContent);
+        var match=!q || q.split(/\s+/).every(function(term){return hay.indexOf(term)!==-1;});
+        item.hidden=!match;
+        item.style.display=match?"block":"none";
+        if(match) shown++;
+      });
+      if(zero) zero.hidden=shown!==0;
+    });
+  }
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",bootHelp,{once:true});
+  }else{
+    bootHelp();
+  }
+})();
+</script>
+
 <script src="static/messenger.js"></script>
 
 
@@ -11870,6 +12007,147 @@ refreshLXMFInbox();
 }
 
 
+
+/* ==================================================
+   1.18.7-beta1 · LOCAL HELP / HANDBOOK / FAQ
+   ================================================== */
+
+.n2k-help-card {
+  margin: 14px;
+  padding: 15px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 12px;
+  background: rgba(255,255,255,.018);
+}
+
+.n2k-help-head {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.n2k-help-title {
+  color:rgba(240,246,248,.96);
+  font-size:16px;
+  font-weight:780;
+}
+
+.n2k-help-sub {
+  margin-top:3px;
+  color:rgba(185,201,210,.62);
+  font-size:11px;
+}
+
+.n2k-help-badge {
+  flex:0 0 auto;
+  padding:4px 7px;
+  border:1px solid rgba(113,217,176,.18);
+  border-radius:999px;
+  background:rgba(113,217,176,.06);
+  color:#71d9b0;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+
+.n2k-help-search-label {
+  display:block;
+  margin:0 0 6px;
+  color:rgba(203,216,222,.75);
+  font-size:11px;
+  font-weight:650;
+}
+
+.n2k-help-search {
+  width:100%;
+  min-height:42px;
+  padding:9px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:11px;
+  outline:none;
+  background:rgba(8,12,15,.55);
+  color:#eef3f5;
+  font:inherit;
+  font-size:13px;
+}
+
+.n2k-help-search:focus {
+  border-color:rgba(113,217,176,.34);
+  box-shadow:0 0 0 3px rgba(113,217,176,.06);
+}
+
+.n2k-help-list {
+  margin-top:12px;
+}
+
+.n2k-help-item {
+  margin:7px 0;
+  padding:0;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:10px;
+  background:rgba(255,255,255,.018);
+  overflow:hidden;
+}
+
+.n2k-help-item summary {
+  padding:12px 13px;
+  list-style:none;
+  cursor:pointer;
+  color:rgba(233,241,244,.9);
+  font-size:12px;
+  font-weight:700;
+}
+
+.n2k-help-item summary::-webkit-details-marker { display:none; }
+
+.n2k-help-item summary::after {
+  content:"+";
+  float:right;
+  color:rgba(185,201,210,.58);
+  font-size:16px;
+  line-height:1;
+}
+
+.n2k-help-item[open] summary::after { content:"−"; }
+
+.n2k-help-body {
+  padding:0 13px 12px;
+  color:rgba(203,216,222,.72);
+  font-size:11px;
+  line-height:1.6;
+}
+
+.n2k-help-body p { margin:8px 0 0; }
+.n2k-help-body strong { color:rgba(235,241,243,.9); }
+
+.n2k-help-zero {
+  margin-top:12px;
+  padding:12px;
+  border:1px dashed rgba(255,255,255,.08);
+  border-radius:10px;
+  color:rgba(185,201,210,.62);
+  font-size:11px;
+  text-align:center;
+}
+
+@media (max-width:900px) {
+  #n2k-mobile-real-content .n2k-help-card {
+    margin:10px 12px !important;
+    padding:14px !important;
+    border-radius:16px !important;
+  }
+  .n2k-help-item summary {
+    min-height:44px;
+    display:block;
+    padding:13px;
+    font-size:13px;
+  }
+  .n2k-help-body {
+    font-size:12px;
+  }
+}
 
 /* ==================================================
    1.11.0 · ABOUT / LEGAL
