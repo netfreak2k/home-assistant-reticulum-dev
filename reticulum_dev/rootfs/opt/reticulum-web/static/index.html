@@ -10006,12 +10006,6 @@ refreshLXMFInbox();
 
   function el(id){ return document.getElementById(id); }
 
-  function apiUrl(path){
-    var base=window.location.pathname.replace(/\/$/,"");
-    if(/\/api\//.test(base)) return path;
-    return base + path;
-  }
-
   function esc(v){
     return String(v==null?"":v)
       .replace(/&/g,"&amp;").replace(/</g,"&lt;")
@@ -10065,7 +10059,7 @@ refreshLXMFInbox();
   async function poll(){
     if(!scanStarted) return;
     try{
-      var res=await fetch(apiUrl("/api/messenger/nearby?since="+encodeURIComponent(scanStarted)),{
+      var res=await fetch("api/messenger/nearby?since="+encodeURIComponent(scanStarted)+"&ts="+Date.now(),{
         cache:"no-store"
       });
       var data=await res.json();
