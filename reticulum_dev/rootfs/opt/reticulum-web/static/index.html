@@ -10359,32 +10359,59 @@ if (
         }
 
         if(note){
-          if(data.diagnostic==="only_stale_candidates"){
-            note.textContent=
-              "Scanner läuft: "+Number(data.stale_count||0)+
-              " ältere Propagation-Announce(s) vorhanden, aber seit mehr als 24 Stunden nicht mehr gesehen.";
-          }else if(data.diagnostic==="no_announces_recorded"){
-            note.textContent=
-              "Scanner läuft, aber bisher wurde kein lxmf.propagation-Announce empfangen.";
-          }else if(data.diagnostic==="discovery_file_missing"){
-            note.textContent=
-              "Noch kein Propagation Node gefunden. Propagation-Announces: "+
-              Number(data.announce_valid||0)+
-              " gültig · "+Math.max(0,Number(data.announce_valid||0)-Number(data.announce_inactive||0))+
-              " aktiv · "+Number(data.announce_inactive||0)+
-              " inaktiv · "+Number(data.announce_invalid||0)+
-              " ungültig · Cache-Treffer: "+Number(data.cache_matches||0)+
-              " · Pfad-Probes: "+Number(data.probe_requests||0)+
-              ". N2K prüft Reticulums bekannten Destination-Cache zusätzlich zur Live-Suche.";
-          }else{
-            note.textContent=
-              "Scanner aktiv · Propagation-Announces: "+Number(data.announce_valid||0)+
-              " gültig · "+Math.max(0,Number(data.announce_valid||0)-Number(data.announce_inactive||0))+
-              " aktiv · "+Number(data.announce_inactive||0)+
-              " inaktiv · Cache-Treffer: "+Number(data.cache_matches||0)+
-              " · Pfad-Probes: "+Number(data.probe_requests||0)+
-              ". Aktuell ist kein aktiver erreichbarer LXMF Propagation Node bekannt.";
+          var valid=Number(data.announce_valid||0);
+          var activeSeen=Number(
+            data.announce_active!=null
+              ? data.announce_active
+              : Math.max(0,valid-Number(data.announce_inactive||0))
+          );
+          var persisted=Number(data.announce_persisted||0);
+          var rawCount=Number(data.raw_count||0);
+          var stage=String(data.last_stage||"—");
+          var errorText=String(
+            data.discovery_error||
+            data.cache_error||
+            data.probe_error||
+            ""
+          ).trim();
+          var badHash=Number(data.announce_bad_hash||0);
+          var handlerErrors=Number(data.handler_errors||0);
+
+          var diagnosticText=
+            "Scanner: "+valid+" gültig → "+
+            activeSeen+" aktiv → "+
+            persisted+" gespeichert → "+
+            items.length+" geeignet.";
+
+          if(rawCount){
+            diagnosticText+=" Datei: "+rawCount+" Einträge.";
           }
+
+          if(badHash){
+            diagnosticText+=" Hash verworfen: "+badHash+".";
+          }
+
+          if(handlerErrors){
+            diagnosticText+=" Handler-Fehler: "+handlerErrors+".";
+          }
+
+          diagnosticText+=" Letzte Stufe: "+stage+".";
+
+          if(errorText){
+            diagnosticText+=" Fehler: "+errorText;
+          }else if(data.diagnostic==="only_stale_candidates"){
+            diagnosticText+=" "+Number(data.stale_count||0)+
+              " Eintrag/Einträge älter als 24 Stunden.";
+          }else if(data.diagnostic==="no_announces_recorded"){
+            diagnosticText+=" Noch kein persistierter Propagation-Announce vorhanden.";
+          }else if(data.diagnostic==="discovery_file_missing"){
+            diagnosticText+=" Discovery-Datei wurde noch nicht erzeugt.";
+          }
+
+          diagnosticText+=" Cache-Treffer: "+Number(data.cache_matches||0)+
+            " · Pfad-Probes: "+Number(data.probe_requests||0)+".";
+
+          note.textContent=diagnosticText;
         }
 
         return;
