@@ -1,3 +1,11 @@
+## 1.20.1-beta1
+
+- Fixed chat flicker after Mesh Photo messages.
+- Prevented the legacy 5-second LXMF inbox renderer from overwriting the current Messenger conversation.
+- Prevented raw Mesh Photo payload text from temporarily replacing rendered images.
+- Added conversation change detection so unchanged chats are no longer fully re-rendered every refresh cycle.
+- Existing text, emoji, photo send/receive and delivery-status logic remain unchanged.
+
 ## 1.20.0-beta1 · Resilience Core
 
 - Added **Resilience Core** status panel with simplified RNS, LXMF, active-interface and path overview.
