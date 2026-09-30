@@ -1,3 +1,10 @@
+## 1.21.11-beta1
+
+- Nearby scanner now listens specifically for canonical `lxmf.delivery` announces and accepts valid path-response announces.
+- On startup and every 60 seconds, the node reconstructs LXMF delivery destinations from Reticulum's known-destination cache, so peers learned before the UI scan are not lost.
+- Scanner diagnostics now separate **live LXMF**, **cached LXMF** and total **RNS known paths**.
+- Existing contacts remain persistent; cache recovery only promotes destinations that cryptographically map to `lxmf.delivery`.
+
 ## 1.21.10-beta1
 
 - Umgebungsscanner nutzt jetzt den dauerhaft gepflegten LXMF-Announce-Cache statt nur das 30-Sekunden-Zeitfenster.
