@@ -561,6 +561,34 @@ def parse_rnstatus(text):
         rate = re.search(r"Rate\s*:\s*([^,\n]+),\s*MTU\s*(\d+)", block)
         peers = re.search(r"Peers\s*:\s*(\d+)\s+reachable", block)
 
+        noise_line = re.search(
+            r"Noise\\s+Fl\\.\\s*:\\s*([^\\n]+)",
+            block,
+            re.I,
+        )
+        noise_dbm = re.search(
+            r"(-?\\d+(?:\\.\\d+)?)\\s*dBm",
+            noise_line.group(1) if noise_line else "",
+            re.I,
+        )
+        airtime = re.search(
+            r"Airtime\\s*:\\s*([0-9.]+)%\\s*\\(15s\\),"
+            r"\\s*([0-9.]+)%\\s*\\(1h\\)",
+            block,
+            re.I,
+        )
+        channel_load = re.search(
+            r"Ch\\.\\s*Load\\s*:\\s*([0-9.]+)%\\s*\\(15s\\),"
+            r"\\s*([0-9.]+)%\\s*\\(1h\\)",
+            block,
+            re.I,
+        )
+        cpu_load = re.search(
+            r"CPU\\s+load\\s*:\\s*([^\\n]+)",
+            block,
+            re.I,
+        )
+
         item = {
             "type": interface_type,
             "name": match.group(2),
@@ -569,6 +597,34 @@ def parse_rnstatus(text):
             "rate": rate.group(1).strip() if rate else None,
             "mtu": int(rate.group(2)) if rate else None,
             "peers": int(peers.group(1)) if peers else None,
+            "noise_floor_dbm": (
+                float(noise_dbm.group(1))
+                if noise_dbm else None
+            ),
+            "noise_floor_text": (
+                noise_line.group(1).strip()
+                if noise_line else None
+            ),
+            "cpu_load": (
+                cpu_load.group(1).strip()
+                if cpu_load else None
+            ),
+            "airtime_15s_percent": (
+                float(airtime.group(1))
+                if airtime else None
+            ),
+            "airtime_1h_percent": (
+                float(airtime.group(2))
+                if airtime else None
+            ),
+            "channel_load_15s_percent": (
+                float(channel_load.group(1))
+                if channel_load else None
+            ),
+            "channel_load_1h_percent": (
+                float(channel_load.group(2))
+                if channel_load else None
+            ),
         }
 
         traffic = re.search(
@@ -3121,6 +3177,28 @@ class Handler(BaseHTTPRequestHandler):
         if path.endswith("/api/rnode/config"):
             try:
                 options = get_addon_options()
+                status = get_status()
+
+                interfaces = (
+                    status.get("interfaces", [])
+                    if isinstance(status, dict)
+                    else []
+                )
+
+                live_rnode = next(
+                    (
+                        item for item in interfaces
+                        if isinstance(item, dict)
+                        and (
+                            str(item.get("type", "")).lower()
+                            == "rnodeinterface"
+                            or "rnode" in str(
+                                item.get("name", "")
+                            ).lower()
+                        )
+                    ),
+                    None,
+                )
 
                 self.send_json({
                     "ok": True,
@@ -3145,6 +3223,7 @@ class Handler(BaseHTTPRequestHandler):
                     "rnode_codingrate": options.get(
                         "rnode_codingrate", 5
                     ),
+                    "live": live_rnode,
                 })
                 return
 
