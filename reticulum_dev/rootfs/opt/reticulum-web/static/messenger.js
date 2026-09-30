@@ -353,7 +353,7 @@
         String(chat.last_message || "Noch keine Nachrichten");
 
       const preview =
-        isPhotoContent(rawPreview)
+        rawPreview.startsWith("N2KPHOTO/1|image/jpeg|")
           ? "📷 Foto"
           : rawPreview;
 
@@ -482,6 +482,28 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
+  }
+
+  function renderMessageContent(value) {
+    const prefix = "N2KPHOTO/1|image/jpeg|";
+    const content = String(value || "");
+
+    if (!content.startsWith(prefix)) {
+      return esc(content);
+    }
+
+    const b64 = content.slice(prefix.length);
+
+    if (
+      !b64 ||
+      b64.length > 40000 ||
+      !/^[A-Za-z0-9+/]+={0,2}$/.test(b64)
+    ) {
+      return '<span class="n2k-photo-invalid">📷 Foto konnte nicht angezeigt werden</span>';
+    }
+
+    return '<img class="n2k-chat-photo" alt="Gesendetes Foto" loading="lazy" ' +
+      'src="data:image/jpeg;base64,' + b64 + '">';
   }
 
   function shortTime(ts) {
