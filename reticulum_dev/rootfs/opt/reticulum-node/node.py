@@ -1110,8 +1110,14 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
             else "direct"
         ),
         "propagation_node": (
-            PROPAGATION_NODE_HEX
-            if use_propagation
+            PROPAGATION_NODE_HASH.hex()
+            if (
+                use_propagation
+                and isinstance(
+                    PROPAGATION_NODE_HASH,
+                    bytes,
+                )
+            )
             else None
         ),
         "delivery_updated_at": int(time.time()),
