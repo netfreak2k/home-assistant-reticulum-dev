@@ -2936,6 +2936,23 @@ code {
       <span>Propagation verwenden, wenn kein Direktpfad verfügbar ist</span>
     </label>
 
+    <label class="n2k-propagation-toggle">
+      <input id="n2k-propagation-auto-discovery" type="checkbox" checked>
+      <span>Propagation Node automatisch suchen und auswählen</span>
+    </label>
+
+    <div id="n2k-propagation-auto-box" class="n2k-propagation-auto-box">
+      <div class="n2k-propagation-auto-head">
+        <span>Automatische Auswahl</span>
+        <strong id="n2k-propagation-candidate-count">0 Nodes</strong>
+      </div>
+      <div id="n2k-propagation-selected" class="n2k-propagation-selected">
+        Noch kein aktiver Propagation Node entdeckt.
+      </div>
+      <div id="n2k-propagation-candidates" class="n2k-propagation-candidates"></div>
+    </div>
+
+    <div id="n2k-propagation-manual-box">
     <label class="n2k-propagation-label" for="n2k-propagation-node">
       Propagation Node Destination
     </label>
@@ -2949,6 +2966,7 @@ code {
       spellcheck="false"
       maxlength="32"
       placeholder="32-stelliger Hex-Destination-Hash">
+    </div>
 
     <div class="n2k-propagation-row">
       <label class="n2k-propagation-toggle compact">
@@ -10237,7 +10255,7 @@ if (
 
 
 
-<script id="n2k-propagation-js-1210">
+<script id="n2k-propagation-js-1211">
 (function(){
   function $(id){return document.getElementById(id);}
 
@@ -10251,11 +10269,28 @@ if (
     }
   }
 
+  function age(seconds){
+    seconds=Number(seconds||0);
+    if(seconds<60) return seconds+" s";
+    if(seconds<3600) return Math.floor(seconds/60)+" min";
+    return Math.floor(seconds/3600)+" h";
+  }
+
+  function syncModeVisibility(){
+    var auto=!!$("n2k-propagation-auto-discovery")?.checked;
+    var autoBox=$("n2k-propagation-auto-box");
+    var manualBox=$("n2k-propagation-manual-box");
+
+    if(autoBox) autoBox.hidden=!auto;
+    if(manualBox) manualBox.hidden=auto;
+  }
+
   function setRuntime(data){
     var state=$("n2k-propagation-state");
     var runtime=$("n2k-propagation-runtime");
     var last=$("n2k-propagation-last-sync");
     var note=$("n2k-propagation-note");
+    var selected=$("n2k-propagation-selected");
 
     if(state){
       state.className="n2k-propagation-state"+(data.enabled?" on":"");
@@ -10270,8 +10305,52 @@ if (
 
     if(last) last.textContent=stamp(data.last_sync);
 
-    if(note && data.error){
-      note.textContent="Runtime-Hinweis: "+data.error;
+    if(selected){
+      if(data.runtime_node){
+        selected.textContent=
+          (data.runtime_source==="auto"?"Automatisch gewählt: ":"Aktiv: ")+
+          data.runtime_node+
+          (data.selected_hops?" · "+data.selected_hops+" Hop(s)":"");
+      }else{
+        selected.textContent=data.enabled&&data.auto_discovery
+          ?"Suche läuft · noch kein aktiver Propagation Node entdeckt."
+          :"Keine automatische Auswahl aktiv.";
+      }
+    }
+
+    if(note){
+      if(data.error){
+        note.textContent="Runtime-Hinweis: "+data.error;
+      }else if(data.enabled&&data.auto_discovery&&!data.runtime_node){
+        note.textContent="N2K lauscht passiv auf lxmf.propagation-Announces.";
+      }else{
+        note.textContent="Direktpfade bleiben immer bevorzugt.";
+      }
+    }
+  }
+
+  async function loadCandidates(){
+    var list=$("n2k-propagation-candidates");
+    var count=$("n2k-propagation-candidate-count");
+    if(!list||!count) return;
+
+    try{
+      var response=await fetch("api/propagation/candidates?ts="+Date.now(),{cache:"no-store"});
+      var data=await response.json();
+      var items=data.ok&&Array.isArray(data.candidates)?data.candidates:[];
+
+      count.textContent=items.length+" Node"+(items.length===1?"":"s");
+
+      list.innerHTML=items.slice(0,5).map(function(item){
+        return '<div class="n2k-propagation-candidate">'+
+          '<span>'+String(item.destination_hash||"").slice(0,8)+'…</span>'+
+          '<span>'+Number(item.hops||0)+' Hop(s) · vor '+age(item.age_seconds)+'</span>'+
+        '</div>';
+      }).join("");
+
+    }catch(e){
+      count.textContent="—";
+      list.innerHTML="";
     }
   }
 
@@ -10285,13 +10364,16 @@ if (
       }
 
       var enabled=$("n2k-propagation-enabled");
+      var autoDiscovery=$("n2k-propagation-auto-discovery");
       var node=$("n2k-propagation-node");
       var auto=$("n2k-propagation-auto-sync");
       var interval=$("n2k-propagation-interval");
 
       if(enabled) enabled.checked=!!data.enabled;
+      if(autoDiscovery) autoDiscovery.checked=data.auto_discovery!==false;
       if(node) node.value=String(data.node||"");
       if(auto) auto.checked=data.auto_sync!==false;
+
       if(interval){
         var value=String(data.sync_interval||900);
         if(!Array.from(interval.options).some(function(o){return o.value===value;})){
@@ -10300,7 +10382,9 @@ if (
         interval.value=value;
       }
 
+      syncModeVisibility();
       setRuntime(data);
+      await loadCandidates();
 
     }catch(e){
       var note=$("n2k-propagation-note");
@@ -10311,12 +10395,13 @@ if (
   async function save(){
     var button=$("n2k-propagation-save");
     var enabled=!!$("n2k-propagation-enabled")?.checked;
+    var autoDiscovery=!!$("n2k-propagation-auto-discovery")?.checked;
     var node=String($("n2k-propagation-node")?.value||"").trim().toLowerCase();
     var auto=!!$("n2k-propagation-auto-sync")?.checked;
     var interval=Number($("n2k-propagation-interval")?.value||900);
 
-    if(enabled && !/^[0-9a-f]{32}$/.test(node)){
-      alert("Bitte einen gültigen 32-stelligen LXMF Propagation Node Hash eintragen.");
+    if(enabled&&!autoDiscovery&&!/^[0-9a-f]{32}$/.test(node)){
+      alert("Im manuellen Modus bitte einen gültigen 32-stelligen Propagation Node Hash eintragen.");
       return;
     }
 
@@ -10331,6 +10416,7 @@ if (
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
           enabled:enabled,
+          auto_discovery:autoDiscovery,
           node:node,
           auto_sync:auto,
           sync_interval:interval
@@ -10346,7 +10432,9 @@ if (
 
       alert(
         "Store & Forward gespeichert.\n\n"+
-        "Direktpfade bleiben bevorzugt. "+
+        (autoDiscovery
+          ?"N2K sucht Propagation Nodes automatisch. "
+          :"Manueller Propagation Node gespeichert. ")+
         "Bitte das Add-on jetzt neu starten."
       );
 
@@ -10364,6 +10452,7 @@ if (
 
   function boot(){
     $("n2k-propagation-save")?.addEventListener("click",save);
+    $("n2k-propagation-auto-discovery")?.addEventListener("change",syncModeVisibility);
     load();
     setInterval(load,30000);
   }
@@ -12875,6 +12964,55 @@ if (
   color:rgba(233,240,243,.9);
   font:inherit;
   font-size:11px;
+}
+
+.n2k-propagation-auto-box{
+  margin-top:10px;
+  padding:10px;
+  border:1px solid rgba(103,174,255,.10);
+  border-radius:10px;
+  background:rgba(103,174,255,.025);
+}
+
+.n2k-propagation-auto-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  color:rgba(177,196,207,.62);
+  font-size:9px;
+}
+
+.n2k-propagation-auto-head strong{
+  color:rgba(202,222,234,.80);
+}
+
+.n2k-propagation-selected{
+  margin-top:7px;
+  color:rgba(229,237,241,.88);
+  font-size:10px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+
+.n2k-propagation-candidates{
+  display:grid;
+  gap:5px;
+  margin-top:8px;
+}
+
+.n2k-propagation-candidate{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding-top:6px;
+  border-top:1px solid rgba(255,255,255,.04);
+  color:rgba(176,193,203,.58);
+  font-size:9px;
+}
+
+#n2k-propagation-manual-box[hidden],
+#n2k-propagation-auto-box[hidden]{
+  display:none !important;
 }
 
 .n2k-propagation-row{
