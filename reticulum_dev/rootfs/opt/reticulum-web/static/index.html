@@ -5784,71 +5784,11 @@ async function openM110QrModal(
       "&t=" +
       Date.now();
 
-    const response =
-      await fetch(
-        url,
-        {
-          cache:
-            "no-store"
-        }
-      );
-
-    if (!response.ok) {
-
-      let reason =
-        "HTTP " +
-        response.status;
-
-      try {
-
-        const errorData =
-          await response.json();
-
-        if (errorData.error) {
-          reason =
-            errorData.error;
-        }
-
-      } catch (_) {
-      }
-
-      throw new Error(
-        reason
-      );
-    }
-
-    const contentType =
-      response.headers.get(
-        "Content-Type"
-      ) || "";
-
-    if (
-      !contentType.includes(
-        "image/svg+xml"
-      )
-    ) {
-
-      throw new Error(
-        "Unerwarteter Inhalt: " +
-        contentType
-      );
-    }
-
-    const blob =
-      await response.blob();
-
-    if (!blob.size) {
-
-      throw new Error(
-        "Leere QR-Antwort"
-      );
-    }
-
-    const objectUrl =
-      URL.createObjectURL(
-        blob
-      );
-
+    /*
+     * Home Assistant Ingress can block or mishandle blob:
+     * object URLs inside its embedded Web UI. Load the SVG
+     * directly through the relative Ingress URL instead.
+     */
     image.onload =
       () => {
 
@@ -5859,13 +5799,6 @@ async function openM110QrModal(
           status.style.display =
             "none";
         }
-
-        setTimeout(
-          () => URL.revokeObjectURL(
-            objectUrl
-          ),
-          5000
-        );
       };
 
     image.onerror =
@@ -5875,7 +5808,6 @@ async function openM110QrModal(
           "none";
 
         if (status) {
-
           status.style.display =
             "flex";
 
@@ -5884,9 +5816,7 @@ async function openM110QrModal(
         }
       };
 
-    image.src =
-      objectUrl;
-
+    image.src = url;
   } catch (error) {
 
     image.style.display =
