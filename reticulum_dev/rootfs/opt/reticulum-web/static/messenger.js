@@ -583,7 +583,7 @@
                             ? "zugestellt ✓✓"
                             : message.delivery_status === "failed"
                               ? "fehlgeschlagen ⚠"
-                              : "gesendet"
+                              : "in Übertragung …"
                         }</span>`
                       : ""
                   }
