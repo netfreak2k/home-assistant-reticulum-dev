@@ -253,7 +253,7 @@ def probe_rnode(port):
             ["rnodeconf", "-i", port],
             capture_output=True,
             text=True,
-            timeout=5,
+            timeout=15,
         )
 
         output = (result.stdout + "\n" + result.stderr).strip()
@@ -274,7 +274,7 @@ def probe_rnode(port):
             "device_present": True,
             "result": "PROBE_TIMEOUT",
             "returncode": None,
-            "info": "Serial device present, but no RNode response",
+            "info": "Serial device present, but no RNode response within 15 seconds",
         }
 
     except Exception as exc:
