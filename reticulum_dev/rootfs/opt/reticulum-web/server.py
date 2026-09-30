@@ -12,6 +12,7 @@ import threading
 import urllib.request
 import urllib.parse
 import io
+import re
 
 import qrcode
 import qrcode.image.svg
