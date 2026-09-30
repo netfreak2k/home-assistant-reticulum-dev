@@ -1779,6 +1779,45 @@ html, body {
     </span>
   </div>
 
+
+  <div class="n2k-selftest-card">
+
+    <div class="n2k-selftest-head">
+
+      <div>
+
+        <div class="n2k-selftest-title">
+          Systemcheck
+        </div>
+
+        <div class="n2k-selftest-sub">
+          Identity · LXMF · Netzwerk · RNode
+        </div>
+
+      </div>
+
+      <button
+        id="n2k-selftest-button"
+        class="n2k-selftest-button"
+        type="button">
+        Prüfen
+      </button>
+
+    </div>
+
+    <div
+      id="n2k-selftest-summary"
+      class="n2k-selftest-summary">
+      Noch nicht geprüft
+    </div>
+
+    <div
+      id="n2k-selftest-results"
+      class="n2k-selftest-results">
+    </div>
+
+  </div>
+
   <div class="n2k-about-card">
 
     <div class="n2k-about-title">
@@ -5115,7 +5154,169 @@ function activateMessengerTab(tab) {
 }
 
 
+
+async function runN2KSelftest() {
+
+  const button =
+    document.getElementById(
+      "n2k-selftest-button"
+    );
+
+  const summary =
+    document.getElementById(
+      "n2k-selftest-summary"
+    );
+
+  const results =
+    document.getElementById(
+      "n2k-selftest-results"
+    );
+
+  if (!summary || !results) {
+    return;
+  }
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Prüfe…";
+  }
+
+  summary.className =
+    "n2k-selftest-summary";
+
+  summary.textContent =
+    "System wird geprüft…";
+
+  results.innerHTML = "";
+
+  try {
+
+    const response =
+      await fetch(
+        "api/selftest",
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+    const data =
+      await response.json();
+
+    const checks =
+      Array.isArray(data.checks)
+        ? data.checks
+        : [];
+
+    results.innerHTML =
+      checks.map(check => {
+
+        const passed =
+          check.passed === true;
+
+        const optional =
+          check.optional === true;
+
+        const state =
+          passed
+            ? (
+                optional
+                  ? "OPTIONAL"
+                  : "PASS"
+              )
+            : "FAIL";
+
+        const css =
+          passed
+            ? (
+                optional
+                  ? "optional"
+                  : "pass"
+              )
+            : "fail";
+
+        return `
+          <div class="n2k-selftest-row">
+
+            <span
+              class="n2k-selftest-state ${css}">
+              ${state}
+            </span>
+
+            <span class="n2k-selftest-body">
+
+              <strong>
+                ${escapeHTML(
+                  check.label || ""
+                )}
+              </strong>
+
+              <span>
+                ${escapeHTML(
+                  check.detail || ""
+                )}
+              </span>
+
+            </span>
+
+          </div>
+        `;
+
+      }).join("");
+
+    if (data.ok) {
+
+      summary.className =
+        "n2k-selftest-summary pass";
+
+      summary.textContent =
+        "PASS · " +
+        data.passed +
+        " Prüfungen erfolgreich";
+
+    } else {
+
+      summary.className =
+        "n2k-selftest-summary fail";
+
+      summary.textContent =
+        "FAIL · " +
+        data.failed +
+        " Fehler gefunden";
+    }
+
+  } catch (error) {
+
+    summary.className =
+      "n2k-selftest-summary fail";
+
+    summary.textContent =
+      "FAIL · Systemcheck nicht erreichbar";
+
+    results.innerHTML =
+      '<div class="n2k-selftest-error">' +
+      escapeHTML(
+        error.message ||
+        "Unbekannter Fehler"
+      ) +
+      '</div>';
+  }
+
+  if (button) {
+    button.disabled = false;
+    button.textContent = "Prüfen";
+  }
+}
+
+
 function initMessengerCore() {
+
+  document.getElementById(
+    "n2k-selftest-button"
+  )?.addEventListener(
+    "click",
+    runN2KSelftest
+  );
 
   document
     .querySelectorAll(
@@ -10927,6 +11128,329 @@ body {
 
     text-align:
       center;
+  }
+}
+
+
+
+/* ==================================================
+   1.13.0 · SYSTEM SELFTEST
+   ================================================== */
+
+.n2k-selftest-card {
+
+  margin:
+    14px;
+
+  padding:
+    14px;
+
+  border:
+    1px solid rgba(255,255,255,.065);
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(255,255,255,.018);
+}
+
+
+.n2k-selftest-head {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    12px;
+}
+
+
+.n2k-selftest-title {
+
+  color:
+    rgba(240,246,248,.95);
+
+  font-size:
+    14px;
+
+  font-weight:
+    750;
+}
+
+
+.n2k-selftest-sub {
+
+  margin-top:
+    3px;
+
+  color:
+    rgba(175,192,201,.52);
+
+  font-size:
+    10px;
+}
+
+
+.n2k-selftest-button {
+
+  min-height:
+    34px;
+
+  padding:
+    7px 11px;
+
+  border:
+    1px solid rgba(102,227,180,.18);
+
+  border-radius:
+    7px;
+
+  background:
+    rgba(102,227,180,.07);
+
+  color:
+    #78e3b8;
+
+  font-size:
+    11px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+}
+
+
+.n2k-selftest-button:disabled {
+
+  opacity:
+    .55;
+
+  cursor:
+    default;
+}
+
+
+.n2k-selftest-summary {
+
+  margin-top:
+    13px;
+
+  padding:
+    9px 10px;
+
+  border:
+    1px solid rgba(255,255,255,.05);
+
+  border-radius:
+    6px;
+
+  background:
+    rgba(255,255,255,.018);
+
+  color:
+    rgba(189,204,212,.65);
+
+  font-size:
+    11px;
+
+  font-weight:
+    650;
+}
+
+
+.n2k-selftest-summary.pass {
+
+  color:
+    #69e0b1;
+
+  border-color:
+    rgba(105,224,177,.14);
+
+  background:
+    rgba(105,224,177,.035);
+}
+
+
+.n2k-selftest-summary.fail {
+
+  color:
+    #ff8989;
+
+  border-color:
+    rgba(255,137,137,.14);
+
+  background:
+    rgba(255,137,137,.035);
+}
+
+
+.n2k-selftest-results {
+
+  margin-top:
+    8px;
+}
+
+
+.n2k-selftest-row {
+
+  display:
+    grid;
+
+  grid-template-columns:
+    64px minmax(0,1fr);
+
+  gap:
+    9px;
+
+  align-items:
+    start;
+
+  padding:
+    9px 0;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.04);
+}
+
+
+.n2k-selftest-row:last-child {
+
+  border-bottom:
+    0;
+}
+
+
+.n2k-selftest-state {
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  min-height:
+    22px;
+
+  padding:
+    2px 6px;
+
+  border-radius:
+    5px;
+
+  font-size:
+    9px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .05em;
+}
+
+
+.n2k-selftest-state.pass {
+
+  color:
+    #68e0b0;
+
+  background:
+    rgba(104,224,176,.07);
+}
+
+
+.n2k-selftest-state.fail {
+
+  color:
+    #ff8989;
+
+  background:
+    rgba(255,137,137,.07);
+}
+
+
+.n2k-selftest-state.optional {
+
+  color:
+    rgba(115,217,255,.82);
+
+  background:
+    rgba(115,217,255,.06);
+}
+
+
+.n2k-selftest-body {
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    3px;
+
+  min-width:
+    0;
+}
+
+
+.n2k-selftest-body strong {
+
+  color:
+    rgba(233,241,244,.90);
+
+  font-size:
+    11px;
+
+  font-weight:
+    650;
+}
+
+
+.n2k-selftest-body span {
+
+  color:
+    rgba(172,190,199,.57);
+
+  font-size:
+    10px;
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+.n2k-selftest-error {
+
+  padding:
+    10px 0;
+
+  color:
+    rgba(255,137,137,.85);
+
+  font-size:
+    10px;
+}
+
+
+@media (max-width: 520px) {
+
+  .n2k-selftest-row {
+
+    grid-template-columns:
+      58px minmax(0,1fr);
   }
 }
 

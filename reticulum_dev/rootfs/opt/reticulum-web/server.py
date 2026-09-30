@@ -1282,6 +1282,294 @@ def get_lxmf_inbox():
         }
 
 
+
+def get_n2k_selftest():
+    checks = []
+
+    def add_check(
+        key,
+        label,
+        passed,
+        detail="",
+        optional=False,
+    ):
+        checks.append({
+            "key": key,
+            "label": label,
+            "passed": bool(passed),
+            "detail": str(detail or ""),
+            "optional": bool(optional),
+        })
+
+    # -------------------------------------------------
+    # Identity
+    # -------------------------------------------------
+
+    try:
+        identity = get_node_identity_status()
+
+        identity_hash = str(
+            identity.get("identity_hash")
+            or ""
+        ).strip()
+
+        destination_hash = str(
+            identity.get("lxmf_destination_hash")
+            or identity.get("destination_hash")
+            or ""
+        ).strip()
+
+        persistent = bool(
+            identity.get("persistent")
+        )
+
+        add_check(
+            "identity",
+            "Persistente Identity",
+            persistent
+            and bool(identity_hash)
+            and bool(destination_hash),
+            (
+                "Identity "
+                + (
+                    identity_hash[:8] + "…"
+                    if identity_hash
+                    else "fehlt"
+                )
+                + " · LXMF "
+                + (
+                    destination_hash[:8] + "…"
+                    if destination_hash
+                    else "fehlt"
+                )
+            ),
+        )
+
+    except Exception as exc:
+        add_check(
+            "identity",
+            "Persistente Identity",
+            False,
+            str(exc),
+        )
+
+
+    # -------------------------------------------------
+    # Messenger storage
+    # -------------------------------------------------
+
+    try:
+        contacts = get_messenger_contacts()
+
+        add_check(
+            "contacts",
+            "Kontaktspeicher",
+            contacts.get("ok") is True,
+            str(
+                contacts.get("count", 0)
+            ) + " Kontakt(e)",
+        )
+
+    except Exception as exc:
+        add_check(
+            "contacts",
+            "Kontaktspeicher",
+            False,
+            str(exc),
+        )
+
+
+    try:
+        inbox = get_lxmf_inbox()
+
+        add_check(
+            "inbox",
+            "LXMF Inbox",
+            inbox.get("ok") is True,
+            str(
+                inbox.get("count", 0)
+            ) + " Nachricht(en)",
+        )
+
+    except Exception as exc:
+        add_check(
+            "inbox",
+            "LXMF Inbox",
+            False,
+            str(exc),
+        )
+
+
+    try:
+        outbox = get_lxmf_outbox()
+
+        add_check(
+            "outbox",
+            "LXMF Outbox",
+            outbox.get("ok") is True,
+            str(
+                outbox.get("count", 0)
+            ) + " Nachricht(en)",
+        )
+
+    except Exception as exc:
+        add_check(
+            "outbox",
+            "LXMF Outbox",
+            False,
+            str(exc),
+        )
+
+
+    # -------------------------------------------------
+    # Reticulum network
+    # -------------------------------------------------
+
+    try:
+        network = get_network_snapshot()
+
+        add_check(
+            "network",
+            "Reticulum Stack",
+            network.get("ok") is True,
+            (
+                str(
+                    network.get(
+                        "interfaces_up",
+                        0,
+                    )
+                )
+                + "/"
+                + str(
+                    network.get(
+                        "interfaces_total",
+                        0,
+                    )
+                )
+                + " Interface(s) aktiv · "
+                + str(
+                    network.get(
+                        "path_count",
+                        0,
+                    )
+                )
+                + " Pfade"
+            ),
+        )
+
+    except Exception as exc:
+        add_check(
+            "network",
+            "Reticulum Stack",
+            False,
+            str(exc),
+        )
+
+
+    # -------------------------------------------------
+    # Serial / RNode
+    # -------------------------------------------------
+
+    try:
+        devices = get_serial_devices()
+
+        options = get_addon_options()
+
+        rnode_enabled = bool(
+            options.get(
+                "rnode_interface",
+                False,
+            )
+        )
+
+        configured_port = str(
+            options.get(
+                "rnode_port",
+                "",
+            )
+            or ""
+        ).strip()
+
+        device_paths = {
+            str(
+                item.get("path")
+                or ""
+            )
+            for item in devices
+            if isinstance(item, dict)
+        }
+
+        if not rnode_enabled:
+
+            add_check(
+                "rnode",
+                "RNode / Serial",
+                True,
+                "Optional · nicht aktiviert",
+                optional=True,
+            )
+
+        elif (
+            configured_port
+            and configured_port in device_paths
+        ):
+
+            add_check(
+                "rnode",
+                "RNode / Serial",
+                True,
+                configured_port,
+            )
+
+        else:
+
+            add_check(
+                "rnode",
+                "RNode / Serial",
+                False,
+                (
+                    configured_port
+                    or "Kein Port konfiguriert"
+                ),
+            )
+
+    except Exception as exc:
+
+        add_check(
+            "rnode",
+            "RNode / Serial",
+            False,
+            str(exc),
+        )
+
+
+    required = [
+        item
+        for item in checks
+        if not item.get("optional")
+    ]
+
+    passed = sum(
+        1
+        for item in required
+        if item.get("passed")
+    )
+
+    failed = len(required) - passed
+
+    return {
+        "ok": failed == 0,
+        "state":
+            "PASS"
+            if failed == 0
+            else "FAIL",
+        "passed": passed,
+        "failed": failed,
+        "checks": checks,
+        "timestamp": int(time.time()),
+    }
+
+
 def get_node_identity_status():
     state_file = Path(
         "/config/reticulum/homeassistant-node/state.json"
@@ -2542,6 +2830,10 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "ok"
             })
+            return
+
+        if path.endswith("/api/selftest"):
+            self.send_json(get_n2k_selftest())
             return
 
         if path.endswith("/api/status"):
