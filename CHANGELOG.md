@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.14.3-dev — Public Beta Preparation
+
+### Documentation
+
+- Public beta installation instructions
+- Requirements documentation
+- Beta limitations
+- Privacy guidance
+- Problem-reporting guidance
+- Public beta checklist
+- Public beta release text
+
+### Status
+
+Core software remains feature frozen.
+
+Remote software validation remains PASS.
+
+Physical RNode USB disconnect/reconnect recovery remains UNVERIFIED.
+
+
 ## 1.14.2-dev — Beta 3 Hardening
 
 ### Added
