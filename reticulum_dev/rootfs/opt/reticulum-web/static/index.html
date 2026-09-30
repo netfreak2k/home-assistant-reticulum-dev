@@ -12830,3 +12830,81 @@ body {
 
 </style>
 
+
+
+<style id="n2k-mobile-scroll-fix-1161">
+/* 1.16.1 · iOS / Home Assistant ingress scroll fix
+   Keep the compact phone shell, but let the document itself scroll. */
+@media (max-width: 900px) {
+  html,
+  body {
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y !important;
+  }
+
+  body {
+    position: static !important;
+  }
+
+  .wrap {
+    position: relative !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 96px !important;
+  }
+
+  #messenger-app.messenger-app,
+  #messenger-chat-list.messenger-chat-list,
+  .messenger-search-wrap,
+  #msg-contacts-view,
+  #msg-settings-view {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  #messenger-app.messenger-app {
+    display: block !important;
+    min-height: 260px !important;
+    margin-bottom: 20px !important;
+  }
+
+  #messenger-chat-list.messenger-chat-list {
+    display: block !important;
+    min-height: 220px !important;
+    padding-bottom: 22px !important;
+  }
+
+  /* Old messenger rules made the tab bar sticky at the bottom.
+     The new fixed bottom nav already handles that. */
+  #messenger-app .msg-tabs {
+    position: static !important;
+    bottom: auto !important;
+    order: initial !important;
+    margin-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* Keep conversation scrolling internal only when a chat is actually open. */
+  .lxmf-chat.messenger-conversation {
+    max-height: none !important;
+  }
+
+  #lxmf-inbox.lxmf-chat-messages {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .n2k-mobile-bottom-nav {
+    pointer-events: auto !important;
+  }
+}
+</style>
