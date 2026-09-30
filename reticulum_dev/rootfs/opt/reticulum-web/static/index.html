@@ -3161,12 +3161,13 @@ code {
         </div>
       </details>
 
-      <details class="n2k-help-item" data-help="store forward propagation offline nachricht puffern später zustellen propagation node">
+      <details class="n2k-help-item" data-help="store forward propagation offline nachricht puffern später zustellen propagation node automatisch suchen discovery">
         <summary>12 · Store &amp; Forward / Propagation</summary>
         <div class="n2k-help-body">
-          <p>Direktzustellung bleibt immer die erste Wahl. Ist nach dem normalen Pfadversuch kein Direktpfad zum Empfänger verfügbar und Store &amp; Forward ist aktiviert, kann N2K die LXMF-Nachricht über den eingetragenen Propagation Node senden.</p>
-          <p>Der Propagation Node muss als gültige 32-stellige LXMF-Propagation-Destination eingetragen werden. Geparkte Nachrichten können automatisch in einem konfigurierbaren Intervall abgerufen werden.</p>
-          <p><strong>Wichtig:</strong> Ohne konfigurierten Propagation Node bleibt das bisherige Direktverhalten unverändert. Nach Änderungen an der Propagation-Konfiguration ist ein Add-on-Neustart erforderlich.</p>
+          <p>Direktzustellung bleibt immer die erste Wahl. Ist nach dem normalen Pfadversuch kein Direktpfad zum Empfänger verfügbar und Store &amp; Forward ist aktiviert, kann N2K die Nachricht über einen LXMF Propagation Node senden.</p>
+          <p>Im empfohlenen Modus „automatisch suchen“ lauscht N2K passiv auf gültige <code>lxmf.propagation</code>-Announces. Aktive Nodes werden nach Hop-Anzahl, Aktualität und Stamp Cost bewertet. Ein weiterhin brauchbarer Node wird bevorzugt beibehalten, um unnötige Wechsel zu vermeiden.</p>
+          <p>Alternativ kann unter „manuell“ weiterhin ein 32-stelliger Propagation-Destination-Hash eingetragen werden. Geparkte Nachrichten können automatisch in einem konfigurierbaren Intervall abgerufen werden.</p>
+          <p><strong>Wichtig:</strong> Die automatische Suche sendet keine zusätzlichen Discovery-Anfragen. Nach Änderungen an der Propagation-Konfiguration ist ein Add-on-Neustart erforderlich.</p>
         </div>
       </details>
 
