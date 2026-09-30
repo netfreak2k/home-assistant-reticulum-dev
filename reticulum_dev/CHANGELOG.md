@@ -1,3 +1,12 @@
+## 1.18.8-beta1
+
+- Added a 30-second passive **Umgebungsscanner** under Contacts.
+- Scanner shows LXMF announces heard during the scan window.
+- Results include display name/hash, last-seen age, Reticulum hop count and interface when available.
+- Added direct **Chat** action for detected peers.
+- Scanner is passive: it does not transmit extra RF traffic, request paths or change RNode/Reticulum configuration.
+- Clarified that “nearby” means recently seen on configured Reticulum interfaces, not physical distance in metres.
+
 ## 1.18.7-beta1
 
 - Added an in-app **Hilfe & Handbuch** section under Status.
