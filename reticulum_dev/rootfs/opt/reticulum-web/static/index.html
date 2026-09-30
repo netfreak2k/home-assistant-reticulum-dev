@@ -2296,6 +2296,170 @@ code {
 })();
 </script>
 
+
+<style id="n2k-mobile-touch-fix-1165">
+@media (max-width: 700px) {
+  #n2k-mobile-bottom-nav {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 2147483000 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+  }
+
+  #n2k-mobile-bottom-nav .n2k-bottom-tab,
+  #n2k-mobile-gear,
+  #messenger-app .msg-tab {
+    position: relative !important;
+    z-index: 2147483001 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: rgba(240,189,108,.12) !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+
+  #n2k-mobile-bottom-nav .n2k-bottom-tab:active,
+  #messenger-app .msg-tab:active {
+    background: rgba(240,189,108,.08) !important;
+  }
+}
+</style>
+
+
+<script id="n2k-mobile-touch-js-1165">
+(function () {
+  var lastTouch = 0;
+
+  function q(id) {
+    return document.getElementById(id);
+  }
+
+  function setDisplay(el, show, displayValue) {
+    if (!el) return;
+    el.hidden = !show;
+    el.style.setProperty(
+      "display",
+      show ? (displayValue || "block") : "none",
+      "important"
+    );
+  }
+
+  function openTab(name) {
+    var contacts = q("msg-contacts-view");
+    var settings = q("msg-settings-view");
+    var chats = q("messenger-chat-list");
+    var searchWrap = document.querySelector(".messenger-search-wrap");
+    var conversation = document.querySelector(".messenger-conversation");
+    var app = q("messenger-app");
+
+    if (app) {
+      app.style.setProperty("display", "flex", "important");
+    }
+    if (conversation) {
+      conversation.style.setProperty("display", "none", "important");
+    }
+
+    setDisplay(chats, name === "chats", "block");
+    setDisplay(searchWrap, name === "chats", "block");
+    setDisplay(contacts, name === "contacts", "block");
+    setDisplay(settings, name === "settings", "block");
+
+    document.querySelectorAll("[data-msg-tab]").forEach(function (button) {
+      button.classList.toggle(
+        "active",
+        button.getAttribute("data-msg-tab") === name
+      );
+    });
+
+    document.querySelectorAll(".n2k-bottom-tab").forEach(function (button) {
+      button.classList.toggle(
+        "active",
+        button.getAttribute("data-n2k-tab") === name
+      );
+    });
+
+    try {
+      if (
+        window.reticulumMessenger097 &&
+        typeof window.reticulumMessenger097.selectTab === "function"
+      ) {
+        window.reticulumMessenger097.selectTab(name);
+      }
+    } catch (error) {
+      console.warn("[N2K Mobile] core tab sync failed", error);
+    }
+
+    if (name === "contacts") {
+      try {
+        if (
+          window.reticulumMessenger097 &&
+          typeof window.reticulumMessenger097.loadContacts === "function"
+        ) {
+          window.reticulumMessenger097.loadContacts();
+        }
+      } catch (error) {
+        console.warn("[N2K Mobile] contact load failed", error);
+      }
+    }
+
+    return false;
+  }
+
+  window.n2kMobileOpenTab = openTab;
+
+  function resolveTab(target) {
+    var bottom = target.closest && target.closest(".n2k-bottom-tab");
+    if (bottom) {
+      return bottom.getAttribute("data-n2k-tab");
+    }
+
+    var top = target.closest && target.closest(".msg-tab[data-msg-tab]");
+    if (top) {
+      return top.getAttribute("data-msg-tab");
+    }
+
+    if (target.closest && target.closest("#n2k-mobile-gear")) {
+      return "settings";
+    }
+
+    return null;
+  }
+
+  function handle(event) {
+    var tab = resolveTab(event.target);
+    if (!tab) return;
+
+    if (event.type === "touchend") {
+      lastTouch = Date.now();
+      event.preventDefault();
+    } else if (event.type === "click" && Date.now() - lastTouch < 700) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    openTab(tab);
+  }
+
+  document.addEventListener("touchend", handle, true);
+  document.addEventListener("pointerup", handle, true);
+  document.addEventListener("click", handle, true);
+
+  function boot() {
+    openTab("chats");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, {once:true});
+  } else {
+    boot();
+  }
+})();
+</script>
+
 </head>
 
 <body>
