@@ -4262,6 +4262,12 @@ class Handler(BaseHTTPRequestHandler):
 
             return
 
+        if path.endswith("/api/propagation/candidates"):
+            self.send_json(
+                get_propagation_candidates()
+            )
+            return
+
         if path.endswith("/api/propagation"):
             self.send_json(
                 get_propagation_config()
