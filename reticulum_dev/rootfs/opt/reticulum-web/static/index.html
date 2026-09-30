@@ -5806,9 +5806,17 @@ async function openM110QrModal(
       );
 
     if (!response.ok) {
-      throw new Error(
-        "HTTP " + response.status
-      );
+      let reason = "HTTP " + response.status;
+
+      try {
+        const errorData = await response.json();
+        if (errorData && errorData.error) {
+          reason = String(errorData.error);
+        }
+      } catch (_) {
+      }
+
+      throw new Error(reason);
     }
 
     const svgText =
