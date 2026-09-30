@@ -10362,16 +10362,16 @@ if (
           if(data.diagnostic==="only_stale_candidates"){
             note.textContent=
               "Scanner läuft: "+Number(data.stale_count||0)+
-              " ältere Propagation-Announce(s) vorhanden, aber seit mehr als 30 Minuten nicht mehr gesehen.";
+              " ältere Propagation-Announce(s) vorhanden, aber seit mehr als 24 Stunden nicht mehr gesehen.";
           }else if(data.diagnostic==="no_announces_recorded"){
             note.textContent=
               "Scanner läuft, aber bisher wurde kein lxmf.propagation-Announce empfangen.";
           }else if(data.diagnostic==="discovery_file_missing"){
             note.textContent=
-              "Noch keine Propagation-Discovery-Daten vorhanden. Nach Add-on-Neustart und empfangenen Announces erneut prüfen.";
+              "Noch keine Propagation-Discovery-Daten vorhanden. Der Scanner lauscht auf lxmf.propagation-Announces; bekannte Nodes werden danach automatisch erneut geprüft.";
           }else{
             note.textContent=
-              "Scanner läuft, aktuell ist kein erreichbarer LXMF Propagation Node bekannt.";
+              "Scanner läuft, aktuell ist kein erreichbarer LXMF Propagation Node bekannt. Bereits bekannte Nodes werden automatisch per Pfadanfrage nachgeprüft.";
           }
         }
 
