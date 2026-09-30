@@ -3347,6 +3347,44 @@ code {
         <span aria-hidden="true">📷</span>
       </button>
 
+      <div class="n2k-emoji-wrap">
+        <button
+          id="n2k-emoji-toggle"
+          class="n2k-emoji-toggle"
+          type="button"
+          aria-label="Emojis"
+          title="Emojis">
+          <span aria-hidden="true">😊</span>
+        </button>
+
+        <div id="n2k-emoji-panel" class="n2k-emoji-panel" hidden>
+          <button type="button">😀</button>
+          <button type="button">😃</button>
+          <button type="button">😄</button>
+          <button type="button">😁</button>
+          <button type="button">😂</button>
+          <button type="button">🤣</button>
+          <button type="button">😊</button>
+          <button type="button">😍</button>
+          <button type="button">🥰</button>
+          <button type="button">😎</button>
+          <button type="button">🤔</button>
+          <button type="button">👍</button>
+          <button type="button">👎</button>
+          <button type="button">👌</button>
+          <button type="button">👏</button>
+          <button type="button">🙏</button>
+          <button type="button">❤️</button>
+          <button type="button">🔥</button>
+          <button type="button">🎉</button>
+          <button type="button">⚡</button>
+          <button type="button">📡</button>
+          <button type="button">📍</button>
+          <button type="button">✅</button>
+          <button type="button">⚠️</button>
+        </div>
+      </div>
+
       <textarea
         id="lxmf-chat-content"
         rows="1"
@@ -10031,6 +10069,58 @@ refreshLXMFInbox();
 
 
 
+<script id="n2k-emoji-js-1191">
+(function(){
+  function $(id){return document.getElementById(id);}
+
+  function insertAtCursor(input, text){
+    if(!input) return;
+    var start=typeof input.selectionStart==="number" ? input.selectionStart : input.value.length;
+    var end=typeof input.selectionEnd==="number" ? input.selectionEnd : input.value.length;
+    var value=input.value||"";
+    input.value=value.slice(0,start)+text+value.slice(end);
+    var pos=start+text.length;
+    try{
+      input.setSelectionRange(pos,pos);
+    }catch(e){}
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+    input.focus();
+  }
+
+  function boot(){
+    var toggle=$("n2k-emoji-toggle");
+    var panel=$("n2k-emoji-panel");
+    var input=$("lxmf-chat-content");
+    if(!toggle||!panel||!input) return;
+
+    toggle.addEventListener("click",function(e){
+      e.stopPropagation();
+      panel.hidden=!panel.hidden;
+    });
+
+    panel.querySelectorAll("button").forEach(function(btn){
+      btn.addEventListener("click",function(e){
+        e.stopPropagation();
+        insertAtCursor(input,btn.textContent||"");
+        panel.hidden=true;
+      });
+    });
+
+    document.addEventListener("click",function(e){
+      if(!panel.hidden && !panel.contains(e.target) && e.target!==toggle){
+        panel.hidden=true;
+      }
+    });
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
+
 <script id="n2k-nearby-js-1188">
 (function(){
   var scanTimer=null;
@@ -12203,6 +12293,70 @@ refreshLXMFInbox();
 }
 
 
+
+/* ==================================================
+   1.19.1-beta1 · EMOJI PICKER
+   ================================================== */
+
+.n2k-emoji-wrap{
+  position:relative;
+  flex:0 0 auto;
+}
+
+.n2k-emoji-toggle{
+  width:44px;
+  height:44px;
+  min-width:44px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:50%;
+  background:rgba(255,255,255,.04);
+  color:rgba(236,242,244,.9);
+  font:inherit;
+  font-size:18px;
+  cursor:pointer;
+}
+
+.n2k-emoji-panel{
+  position:absolute;
+  left:0;
+  bottom:52px;
+  z-index:1200;
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:4px;
+  width:250px;
+  padding:8px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;
+  background:rgba(15,20,24,.98);
+  box-shadow:0 12px 32px rgba(0,0,0,.32);
+}
+
+.n2k-emoji-panel[hidden]{
+  display:none !important;
+}
+
+.n2k-emoji-panel button{
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.n2k-emoji-panel button:active{
+  background:rgba(255,255,255,.07);
+  transform:scale(.96);
+}
+
+@media(max-width:900px){
+  .n2k-emoji-panel{
+    left:-54px;
+    width:246px;
+  }
+}
 
 /* ==================================================
    1.19.0-beta1 · MESH PHOTO
