@@ -30,6 +30,40 @@ LXMF_DISPLAY_NAME = (
     or "Home Assistant"
 )
 
+PROPAGATION_ENABLED = (
+    os.environ.get(
+        "RETICULUM_PROPAGATION_ENABLED",
+        "false",
+    ).strip().lower()
+    in ("1", "true", "yes", "on")
+)
+
+PROPAGATION_NODE_HEX = os.environ.get(
+    "RETICULUM_PROPAGATION_NODE",
+    "",
+).strip().lower()
+
+PROPAGATION_AUTO_SYNC = (
+    os.environ.get(
+        "RETICULUM_PROPAGATION_AUTO_SYNC",
+        "true",
+    ).strip().lower()
+    in ("1", "true", "yes", "on")
+)
+
+try:
+    PROPAGATION_SYNC_INTERVAL = max(
+        300,
+        int(
+            os.environ.get(
+                "RETICULUM_PROPAGATION_SYNC_INTERVAL",
+                "900",
+            )
+        ),
+    )
+except Exception:
+    PROPAGATION_SYNC_INTERVAL = 900
+
 APP_NAME = "homeassistant"
 ASPECT = "node"
 
@@ -112,6 +146,43 @@ lxmf_router = LXMF.LXMRouter(
     storagepath=str(lxmf_storage),
     name=LXMF_DISPLAY_NAME,
 )
+
+PROPAGATION_NODE_HASH = None
+PROPAGATION_READY = False
+
+if PROPAGATION_ENABLED:
+    try:
+        candidate = bytes.fromhex(
+            PROPAGATION_NODE_HEX
+        )
+
+        if (
+            len(candidate)
+            != RNS.Identity.TRUNCATED_HASHLENGTH // 8
+        ):
+            raise ValueError(
+                "Propagation Node Hash muss 32 Hex-Zeichen haben"
+            )
+
+        lxmf_router.set_outbound_propagation_node(
+            candidate
+        )
+
+        PROPAGATION_NODE_HASH = candidate
+        PROPAGATION_READY = True
+
+        RNS.log(
+            "LXMF propagation node configured: "
+            + PROPAGATION_NODE_HEX,
+            RNS.LOG_INFO,
+        )
+
+    except Exception as exc:
+        RNS.log(
+            "LXMF propagation disabled: "
+            + str(exc),
+            RNS.LOG_ERROR,
+        )
 
 OUTBOUND_REQUEST = Path("/homeassistant/reticulum_bridge/lxmf_outbound.json")
 
@@ -604,7 +675,18 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
         ):
             time.sleep(0.25)
 
-    if not RNS.Transport.has_path(recipient_hash):
+    direct_path = RNS.Transport.has_path(
+        recipient_hash
+    )
+
+    use_propagation = (
+        not direct_path
+        and PROPAGATION_ENABLED
+        and PROPAGATION_READY
+        and PROPAGATION_NODE_HASH is not None
+    )
+
+    if not direct_path and not use_propagation:
         if state is not None:
             state["lxmf_outbound_stage"] = "PATH"
             state["lxmf_outbound_path"] = False
@@ -617,7 +699,14 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
         )
 
     if state is not None:
-        state["lxmf_outbound_path"] = True
+        state["lxmf_outbound_path"] = bool(
+            direct_path
+        )
+        state["lxmf_outbound_method"] = (
+            "PROPAGATED"
+            if use_propagation
+            else "DIRECT"
+        )
         state["lxmf_outbound_stage"] = "IDENTITY"
         state["updated"] = int(time.time())
         write_state(state)
@@ -654,11 +743,20 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
         state["updated"] = int(time.time())
         write_state(state)
 
+    message_kwargs = {
+        "title": title,
+    }
+
+    if use_propagation:
+        message_kwargs["desired_method"] = (
+            LXMF.LXMessage.PROPAGATED
+        )
+
     message = LXMF.LXMessage(
         destination,
         lxmf_destination,
         content,
-        title=title,
+        **message_kwargs,
     )
 
     message.register_delivery_callback(
@@ -683,14 +781,32 @@ def send_lxmf_message(destination_hash, content, title="", state=None):
         ),
         "direction": "out",
         "delivery_status": "queued",
+        "delivery_method": (
+            "propagated"
+            if use_propagation
+            else "direct"
+        ),
+        "propagation_node": (
+            PROPAGATION_NODE_HEX
+            if use_propagation
+            else None
+        ),
         "delivery_updated_at": int(time.time()),
         "delivered_at": None,
         "delivery_error": None,
     })
 
     if state is not None:
-        state["lxmf_outbound_stage"] = "QUEUED"
-        state["lxmf_outbound_result"] = "QUEUED"
+        state["lxmf_outbound_stage"] = (
+            "PROPAGATED"
+            if use_propagation
+            else "QUEUED"
+        )
+        state["lxmf_outbound_result"] = (
+            "PROPAGATED"
+            if use_propagation
+            else "QUEUED"
+        )
         state["lxmf_outbound_error"] = None
         state["updated"] = int(time.time())
         write_state(state)
@@ -903,8 +1019,51 @@ next_auto_announce = (
     int(time.time()) + AUTO_ANNOUNCE_INITIAL_DELAY
 )
 
+last_propagation_sync = 0
+
 while running:
     now = int(time.time())
+
+    if (
+        PROPAGATION_ENABLED
+        and PROPAGATION_READY
+        and PROPAGATION_AUTO_SYNC
+        and (
+            last_propagation_sync == 0
+            or now - last_propagation_sync
+            >= PROPAGATION_SYNC_INTERVAL
+        )
+    ):
+        try:
+            lxmf_router.request_messages_from_propagation_node(
+                identity
+            )
+
+            last_propagation_sync = now
+            state["lxmf_propagation_enabled"] = True
+            state["lxmf_propagation_node"] = (
+                PROPAGATION_NODE_HEX
+            )
+            state["lxmf_propagation_last_sync"] = now
+            state["lxmf_propagation_sync_result"] = "REQUESTED"
+            state["lxmf_propagation_error"] = None
+            state["updated"] = now
+            write_state(state)
+
+        except Exception as exc:
+            last_propagation_sync = now
+            state["lxmf_propagation_enabled"] = True
+            state["lxmf_propagation_node"] = (
+                PROPAGATION_NODE_HEX
+            )
+            state["lxmf_propagation_last_sync"] = now
+            state["lxmf_propagation_sync_result"] = "ERROR"
+            state["lxmf_propagation_error"] = str(exc)
+            state["updated"] = now
+            write_state(state)
+
+    elif not PROPAGATION_ENABLED:
+        state["lxmf_propagation_enabled"] = False
 
     # --------------------------------------------------
     # Automatic LXMF announce
