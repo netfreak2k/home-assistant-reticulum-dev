@@ -2779,6 +2779,39 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         path = self.path.rstrip("/")
 
+        if path.endswith("/api/messenger/qr"):
+            try:
+                length = int(
+                    self.headers.get("Content-Length", "0")
+                )
+                raw = self.rfile.read(length)
+                payload = json.loads(
+                    raw.decode("utf-8") or "{}"
+                )
+
+                peer = str(
+                    payload.get("peer", "")
+                ).strip()
+
+                name = str(
+                    payload.get("name", "")
+                ).strip()
+
+                svg, _ = messenger_qr_svg(
+                    peer,
+                    name,
+                )
+
+                self.send_svg(svg)
+
+            except Exception as exc:
+                self.send_json({
+                    "ok": False,
+                    "error": str(exc),
+                }, 400)
+
+            return
+
         if path.endswith("/api/node/announce"):
             self.send_json(request_node_announce())
             return
