@@ -17,6 +17,21 @@ fi
 
 export RETICULUM_MESSENGER_NAME="${MESSENGER_NAME}"
 
+PROPAGATION_ENABLED="$(bashio::config 'propagation_enabled' 2>/dev/null || true)"
+PROPAGATION_NODE="$(bashio::config 'propagation_node' 2>/dev/null || true)"
+PROPAGATION_AUTO_SYNC="$(bashio::config 'propagation_auto_sync' 2>/dev/null || true)"
+PROPAGATION_SYNC_INTERVAL="$(bashio::config 'propagation_sync_interval' 2>/dev/null || true)"
+
+[ -n "${PROPAGATION_ENABLED}" ] || PROPAGATION_ENABLED="false"
+[ -n "${PROPAGATION_AUTO_SYNC}" ] || PROPAGATION_AUTO_SYNC="true"
+[ -n "${PROPAGATION_SYNC_INTERVAL}" ] || PROPAGATION_SYNC_INTERVAL="900"
+
+export RETICULUM_PROPAGATION_ENABLED="${PROPAGATION_ENABLED}"
+export RETICULUM_PROPAGATION_NODE="${PROPAGATION_NODE}"
+export RETICULUM_PROPAGATION_AUTO_SYNC="${PROPAGATION_AUTO_SYNC}"
+export RETICULUM_PROPAGATION_SYNC_INTERVAL="${PROPAGATION_SYNC_INTERVAL}"
+
 bashio::log.info "Messenger name: ${MESSENGER_NAME}"
+bashio::log.info "LXMF propagation: ${PROPAGATION_ENABLED}"
 
 exec python3 /opt/reticulum-node/node.py
