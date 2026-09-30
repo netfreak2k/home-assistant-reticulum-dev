@@ -150,6 +150,47 @@ def get_addon_options():
     return dict(options)
 
 
+def schedule_addon_restart(delay=1.5):
+    """Restart this add-on shortly after the HTTP response is sent."""
+    token = os.environ.get("SUPERVISOR_TOKEN", "").strip()
+
+    if not token:
+        return False
+
+    def restart():
+        try:
+            request = urllib.request.Request(
+                "http://supervisor/addons/self/restart",
+                data=b"{}",
+                method="POST",
+                headers={
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json",
+                },
+            )
+
+            with urllib.request.urlopen(
+                request,
+                timeout=10,
+            ) as response:
+                response.read()
+
+        except Exception as exc:
+            print(
+                "ADD-ON RESTART ERROR:",
+                str(exc),
+            )
+
+    timer = threading.Timer(
+        max(0.5, float(delay)),
+        restart,
+    )
+    timer.daemon = True
+    timer.start()
+
+    return True
+
+
 def get_usb_devices():
     """Return USB devices visible inside the add-on container."""
     devices = []
@@ -2873,6 +2914,8 @@ def save_propagation_config(payload):
                 or "Option konnte nicht gespeichert werden"
             )
 
+        restart_scheduled = schedule_addon_restart()
+
         return {
             "ok": True,
             "enabled": enabled,
@@ -2880,7 +2923,8 @@ def save_propagation_config(payload):
             "node": node,
             "auto_sync": auto_sync,
             "sync_interval": interval,
-            "restart_required": True,
+            "restart_required": not restart_scheduled,
+            "restart_scheduled": restart_scheduled,
         }
 
     except Exception as exc:
