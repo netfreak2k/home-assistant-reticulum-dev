@@ -12949,3 +12949,324 @@ body {
   }
 })();
 </script>
+
+
+<style id="n2k-mobile-stage-css-1180">
+.n2k-mobile-stage{display:none;}
+
+@media (max-width:900px){
+  /* Dedicated mobile app surface. Legacy dashboard stays available on desktop. */
+  body{
+    padding-bottom:74px !important;
+  }
+
+  .n2k-mobile-stage{
+    display:block !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:12px;
+    overflow:hidden;
+    background:linear-gradient(180deg,rgba(25,31,34,.98),rgba(11,15,18,.99));
+  }
+
+  .n2k-mobile-stage-content{
+    width:100%;
+    min-height:180px;
+    overflow:visible;
+  }
+
+  /* The old messenger shell must not reserve empty height on mobile. */
+  #messenger-app.messenger-app{
+    display:none !important;
+    width:0 !important;
+    min-height:0 !important;
+    height:0 !important;
+    max-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    overflow:hidden !important;
+  }
+
+  /* Views are physically moved into the mobile stage by JS. */
+  #n2k-mobile-stage .messenger-search-wrap{
+    display:block;
+    width:100%;
+    margin:0 !important;
+    padding:9px 10px 5px !important;
+    background:transparent !important;
+  }
+
+  #n2k-mobile-stage .messenger-search{
+    width:100% !important;
+    height:40px !important;
+    min-height:40px !important;
+    margin:0 !important;
+  }
+
+  #n2k-mobile-stage #messenger-chat-list,
+  #n2k-mobile-stage #msg-contacts-view,
+  #n2k-mobile-stage #msg-settings-view{
+    width:100% !important;
+    min-height:0 !important;
+    height:auto !important;
+    max-height:none !important;
+    margin:0 !important;
+    overflow:visible !important;
+  }
+
+  #n2k-mobile-stage #messenger-chat-list{
+    padding:0 10px 12px !important;
+  }
+
+  #n2k-mobile-stage #messenger-chat-list .messenger-contact{
+    width:100% !important;
+    min-height:70px !important;
+    margin:0 !important;
+    padding:9px 5px !important;
+    border-radius:0 !important;
+  }
+
+  #n2k-mobile-stage .m97-empty,
+  #n2k-mobile-stage .messenger-empty{
+    min-height:135px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:24px 18px !important;
+    text-align:center !important;
+    color:rgba(196,203,207,.68) !important;
+  }
+
+  #n2k-mobile-stage #msg-settings-view[hidden],
+  #n2k-mobile-stage #msg-contacts-view[hidden],
+  #n2k-mobile-stage #messenger-chat-list[hidden],
+  #n2k-mobile-stage .messenger-search-wrap[hidden],
+  #n2k-mobile-stage .messenger-conversation[hidden]{
+    display:none !important;
+  }
+
+  #n2k-mobile-stage .n2k-selftest-card,
+  #n2k-mobile-stage .n2k-about-card{
+    margin:10px !important;
+  }
+
+  /* Real chat view inside the same mobile stage. */
+  #n2k-mobile-stage .lxmf-chat.messenger-conversation{
+    display:none;
+    width:100% !important;
+    max-width:none !important;
+    min-height:420px !important;
+    height:auto !important;
+    max-height:none !important;
+    margin:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    overflow:hidden !important;
+    background:#0b1117 !important;
+  }
+
+  #n2k-mobile-stage .lxmf-chat.messenger-conversation.n2k-mobile-chat-open{
+    display:flex !important;
+    flex-direction:column !important;
+  }
+
+  #n2k-mobile-stage #lxmf-inbox.lxmf-chat-messages{
+    min-height:260px !important;
+    max-height:52vh !important;
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+
+  /* Keep the working navigation fixed at the bottom, like the phone mockup. */
+  #n2k-mobile-clean-tabs-top.n2k-mobile-clean-nav{
+    position:fixed !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    z-index:1000 !important;
+    display:grid !important;
+    grid-template-columns:repeat(3,1fr) !important;
+    width:100% !important;
+    min-height:68px !important;
+    margin:0 !important;
+    padding:5px 10px calc(6px + env(safe-area-inset-bottom)) !important;
+    border-top:1px solid rgba(255,255,255,.10) !important;
+    border-bottom:0 !important;
+    background:rgba(8,12,14,.98) !important;
+    backdrop-filter:blur(16px);
+  }
+
+  #n2k-mobile-clean-tabs-top button{
+    pointer-events:auto !important;
+    touch-action:manipulation !important;
+  }
+
+  /* Top gear is a real clickable control. */
+  #n2k-mobile-clean-status{
+    position:relative !important;
+    z-index:30 !important;
+    pointer-events:auto !important;
+    touch-action:manipulation !important;
+  }
+
+  /* Hide helper/title blocks outside the new stage. */
+  #n2k-mobile-chat-entry{
+    display:none !important;
+  }
+}
+</style>
+
+
+<script id="n2k-mobile-stage-js-1180">
+(function(){
+  function isMobile(){
+    return window.matchMedia("(max-width:900px)").matches;
+  }
+
+  function byId(id){return document.getElementById(id);}
+
+  function moveIntoStage(){
+    if(!isMobile()) return;
+
+    var stage=byId("n2k-mobile-stage-content");
+    if(!stage) return;
+
+    var search=document.querySelector(".messenger-search-wrap");
+    var chats=byId("messenger-chat-list");
+    var contacts=byId("msg-contacts-view");
+    var settings=byId("msg-settings-view");
+    var conversation=document.querySelector(".messenger-conversation");
+
+    [search,chats,contacts,settings,conversation].forEach(function(el){
+      if(el && el.parentElement!==stage) stage.appendChild(el);
+    });
+  }
+
+  function setView(name){
+    if(!isMobile()) return;
+    moveIntoStage();
+
+    var search=document.querySelector("#n2k-mobile-stage .messenger-search-wrap");
+    var chats=byId("messenger-chat-list");
+    var contacts=byId("msg-contacts-view");
+    var settings=byId("msg-settings-view");
+    var conversation=document.querySelector("#n2k-mobile-stage .messenger-conversation");
+
+    if(conversation){
+      conversation.classList.remove("n2k-mobile-chat-open");
+      conversation.hidden=true;
+      conversation.style.setProperty("display","none","important");
+    }
+
+    function toggle(el,on,display){
+      if(!el)return;
+      el.hidden=!on;
+      el.style.setProperty("display",on?(display||"block"):"none","important");
+    }
+
+    toggle(search,name==="chats","block");
+    toggle(chats,name==="chats","block");
+    toggle(contacts,name==="contacts","block");
+    toggle(settings,name==="settings","block");
+
+    document.querySelectorAll("#n2k-mobile-clean-tabs-top button").forEach(function(btn){
+      btn.classList.toggle("active",btn.dataset.cleanTab===name);
+    });
+
+    try{
+      var core=window.reticulumMessenger097;
+      if(name==="contacts" && core && typeof core.loadContacts==="function"){
+        core.loadContacts();
+      }
+    }catch(e){console.warn("[N2K mobile stage contacts]",e);}
+  }
+
+  function showConversation(){
+    if(!isMobile()) return;
+    moveIntoStage();
+
+    var search=document.querySelector("#n2k-mobile-stage .messenger-search-wrap");
+    var chats=byId("messenger-chat-list");
+    var contacts=byId("msg-contacts-view");
+    var settings=byId("msg-settings-view");
+    var conversation=document.querySelector("#n2k-mobile-stage .messenger-conversation");
+
+    [search,chats,contacts,settings].forEach(function(el){
+      if(el){
+        el.hidden=true;
+        el.style.setProperty("display","none","important");
+      }
+    });
+
+    if(conversation){
+      conversation.hidden=false;
+      conversation.classList.add("n2k-mobile-chat-open");
+      conversation.style.setProperty("display","flex","important");
+    }
+  }
+
+  function bind(){
+    if(!isMobile()) return;
+    moveIntoStage();
+
+    document.querySelectorAll("#n2k-mobile-clean-tabs-top button").forEach(function(btn){
+      btn.onclick=function(){
+        setView(btn.dataset.cleanTab);
+        return false;
+      };
+    });
+
+    var gear=byId("n2k-mobile-clean-status");
+    if(gear){
+      gear.onclick=function(){
+        setView("settings");
+        return false;
+      };
+    }
+
+    var back=byId("messenger-back");
+    if(back){
+      back.onclick=function(){
+        setView("chats");
+        return false;
+      };
+    }
+
+    /* Preserve existing messenger logic, then force chat into the mobile stage. */
+    var oldOpen=window.openMessengerConversation;
+    if(typeof oldOpen==="function" && !oldOpen.__n2kStageWrapped){
+      var wrapped=function(peer){
+        oldOpen(peer);
+        setTimeout(showConversation,0);
+      };
+      wrapped.__n2kStageWrapped=true;
+      window.openMessengerConversation=wrapped;
+    }
+
+    setView("chats");
+  }
+
+  function boot(){
+    if(!isMobile()) return;
+    moveIntoStage();
+    bind();
+    setTimeout(bind,250);
+    setTimeout(bind,1200);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+
+  window.addEventListener("resize",function(){
+    if(isMobile()) moveIntoStage();
+  });
+
+  window.n2kMobileSetView=setView;
+})();
+</script>
