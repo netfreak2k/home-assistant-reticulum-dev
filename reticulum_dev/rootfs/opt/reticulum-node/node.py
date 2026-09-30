@@ -376,11 +376,108 @@ LXMF_OUTBOX_LIMIT = 100
 
 PROPAGATION_NODES_FILE = STATE_DIR / "propagation-nodes.json"
 PROPAGATION_NODE_LIMIT = 100
-PROPAGATION_NODE_TTL = 30 * 60
+# Keep discovered propagation nodes long enough to survive normal
+# announce intervals. Stale entries are periodically probed with a
+# targeted Reticulum path request instead of being discarded after
+# only 30 minutes.
+PROPAGATION_NODE_TTL = 24 * 60 * 60
 PROPAGATION_SELECTION_INTERVAL = 60
+PROPAGATION_PROBE_INTERVAL = 5 * 60
+PROPAGATION_PROBE_AFTER = 15 * 60
+PROPAGATION_PROBE_LIMIT = 3
 
 
 # --------------------------------------------------
+
+def probe_known_propagation_nodes():
+    """
+    Re-check a few previously discovered propagation nodes.
+
+    Reticulum does not provide a global service directory. A fresh
+    lxmf.propagation announce is normally required for discovery.
+    Once a node has been heard, however, a targeted path request can
+    provoke a fresh announce/path response and keeps Store & Forward
+    useful even when propagation nodes announce infrequently.
+    """
+    if not (
+        PROPAGATION_ENABLED
+        and PROPAGATION_AUTO_DISCOVERY
+    ):
+        return 0
+
+    now = int(time.time())
+    probe = []
+
+    for item in _read_propagation_nodes():
+        if not isinstance(item, dict):
+            continue
+
+        if item.get("active") is not True:
+            continue
+
+        peer = str(
+            item.get("destination_hash") or ""
+        ).strip().lower()
+
+        seen = int(
+            item.get("last_seen") or 0
+        )
+
+        if len(peer) != 32 or not seen:
+            continue
+
+        age = now - seen
+
+        if age < PROPAGATION_PROBE_AFTER:
+            continue
+
+        # Very old entries are kept on disk for diagnostics, but are
+        # not actively probed forever.
+        if age > 7 * 24 * 60 * 60:
+            continue
+
+        try:
+            peer_bytes = bytes.fromhex(peer)
+        except Exception:
+            continue
+
+        probe.append(
+            (seen, peer_bytes, peer)
+        )
+
+    # Prefer the most recently heard nodes and limit network traffic.
+    probe.sort(
+        key=lambda item: item[0],
+        reverse=True,
+    )
+
+    requested = 0
+
+    for _, peer_bytes, peer in probe[:PROPAGATION_PROBE_LIMIT]:
+        try:
+            RNS.Transport.request_path(
+                peer_bytes
+            )
+            requested += 1
+
+            RNS.log(
+                "LXMF propagation probe requested: "
+                + peer,
+                RNS.LOG_DEBUG,
+            )
+
+        except Exception as exc:
+            RNS.log(
+                "LXMF propagation probe error for "
+                + peer
+                + ": "
+                + str(exc),
+                RNS.LOG_WARNING,
+            )
+
+    return requested
+
+
 # LXMF CONTACT DISCOVERY
 # --------------------------------------------------
 
@@ -1350,9 +1447,32 @@ next_auto_announce = (
 
 last_propagation_sync = 0
 last_propagation_selection = 0
+last_propagation_probe = 0
 
 while running:
     now = int(time.time())
+
+    if (
+        PROPAGATION_ENABLED
+        and PROPAGATION_AUTO_DISCOVERY
+        and (
+            last_propagation_probe == 0
+            or now - last_propagation_probe
+            >= PROPAGATION_PROBE_INTERVAL
+        )
+    ):
+        try:
+            state["lxmf_propagation_probe_requests"] = (
+                probe_known_propagation_nodes()
+            )
+            state["lxmf_propagation_last_probe"] = now
+            state["lxmf_propagation_probe_error"] = None
+        except Exception as exc:
+            state["lxmf_propagation_probe_error"] = str(exc)
+
+        last_propagation_probe = now
+        state["updated"] = now
+        write_state(state)
 
     if (
         PROPAGATION_ENABLED
