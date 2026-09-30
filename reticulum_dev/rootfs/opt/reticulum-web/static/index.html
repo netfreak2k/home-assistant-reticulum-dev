@@ -2965,6 +2965,12 @@ code {
     </div>
 
     <div
+      id="n2k-selftest-next"
+      class="n2k-selftest-next"
+      hidden>
+    </div>
+
+    <div
       id="n2k-selftest-results"
       class="n2k-selftest-results">
     </div>
@@ -6614,6 +6620,24 @@ async function runN2KSelftest() {
         ? data.checks
         : [];
 
+    const next =
+      document.getElementById(
+        "n2k-selftest-next"
+      );
+
+    if (next) {
+      const advice =
+        String(
+          data.next_step || ""
+        ).trim();
+
+      next.hidden = !advice;
+      next.textContent =
+        advice
+          ? "Nächster Schritt · " + advice
+          : "";
+    }
+
     results.innerHTML =
       checks.map(check => {
 
@@ -6706,6 +6730,17 @@ async function runN2KSelftest() {
         "Unbekannter Fehler"
       ) +
       '</div>';
+
+    const next =
+      document.getElementById(
+        "n2k-selftest-next"
+      );
+
+    if (next) {
+      next.hidden = false;
+      next.textContent =
+        "Nächster Schritt · Add-on-Status prüfen und Diagnose exportieren.";
+    }
   }
 
   if (button) {
@@ -10251,6 +10286,7 @@ refreshLXMFInbox();
         "Wiederherstellung abgeschlossen.\n\n"+
         result.contacts_restored+" Kontakte · "+
         result.options_restored+" Einstellungen.\n\n"+
+        (result.warning ? "Hinweis: "+result.warning+"\n\n" : "")+
         "Jetzt das Add-on in Home Assistant neu starten."
       );
 
@@ -14097,6 +14133,22 @@ body {
   }
 }
 
+
+
+.n2k-selftest-next{
+  margin:9px 0 2px;
+  padding:9px 10px;
+  border:1px solid rgba(113,217,176,.10);
+  border-radius:10px;
+  background:rgba(113,217,176,.025);
+  color:rgba(199,214,221,.72);
+  font-size:10px;
+  line-height:1.5;
+}
+
+.n2k-selftest-next[hidden]{
+  display:none !important;
+}
 
 
 /* ==================================================
