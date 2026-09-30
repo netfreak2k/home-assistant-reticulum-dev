@@ -176,6 +176,11 @@
   margin-top: 14px;
 }
 
+.m99-announce:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
 .m99-separator {
   height: 1px;
   background: rgba(255,255,255,.08);
