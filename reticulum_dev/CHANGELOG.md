@@ -1,3 +1,10 @@
+## 1.21.34-beta1
+
+- Add a Reticulum-inspired transport backdrop to N2K Mesh Universe.
+- Add subtle propagation rings, faint path-space routing lines and low-density signal particles.
+- Add event-driven announce waves around new or refreshed realtime peers.
+- Keep all backdrop elements decorative and visually subordinate to real nodes and routes.
+
 ## 1.21.33-beta1
 
 - Rebalance realtime Smart Camera framing.
