@@ -11143,6 +11143,13 @@ if (
           '<circle class="n2k-u-particle route-'+route.kind+'" r="2.2">'+
             '<animateMotion dur="'+duration+'s" repeatCount="indefinite" path="'+path+'" />'+
           '</circle>';
+        if(age<=30){
+          var duration2=(Number(duration)+0.7).toFixed(1);
+          particles +=
+            '<circle class="n2k-u-particle secondary route-'+route.kind+'" r="1.5">'+
+              '<animateMotion dur="'+duration2+'s" begin="-0.9s" repeatCount="indefinite" path="'+path+'" />'+
+            '</circle>';
+        }
       }
 
       var hops=item.hops;
@@ -11151,12 +11158,12 @@ if (
         : "—";
 
       nodes +=
-        '<g class="n2k-cnode route-'+route.kind+(fresh?' fresh':'')+(age>3600?' cached':'')+(burst?' burst':'')+(selectedNow?' selected':'')+'" '+
+        '<g class="n2k-cnode ring-'+pos.ring+' route-'+route.kind+(fresh?' fresh':'')+(age>3600?' cached':'')+(burst?' burst':'')+(selectedNow?' selected':'')+'" '+
           'data-peer="'+esc(peer)+'" tabindex="0" role="button" transform="translate('+pos.x+' '+pos.y+')">'+
           '<circle class="n2k-cnode-halo" r="'+halo+'"></circle>'+
           '<circle class="n2k-cnode-orb" r="'+radius+'"></circle>'+
           '<circle class="n2k-cnode-core" r="'+Math.max(2.4,Number(radius)*.34).toFixed(1)+'"></circle>'+
-          '<g class="n2k-cnode-label-group'+((fresh||selectedNow||score>.72)?' important':'')+'">'+
+          '<g class="n2k-cnode-label-group'+((selectedNow||score>.86||(fresh&&index<10))?' important':'')+'">'+
             '<text class="n2k-cnode-label" x="'+(Number(radius)+8)+'" y="-9">'+esc(name.slice(0,20))+'</text>'+
             '<text class="n2k-cnode-hop" x="'+(Number(radius)+8)+'" y="5">'+esc(hopText)+' · '+esc(ageText(age))+'</text>'+
             '<text class="n2k-cnode-route" x="'+(Number(radius)+8)+'" y="18">'+esc(route.short)+'</text>'+
@@ -11165,6 +11172,11 @@ if (
     });
 
     var core=
+      '<g class="n2k-u-core-sparks" transform="translate(550 310)">'+
+        '<circle class="spark s1" cx="0" cy="-58" r="2"></circle>'+
+        '<circle class="spark s2" cx="52" cy="18" r="1.6"></circle>'+
+        '<circle class="spark s3" cx="-44" cy="34" r="1.8"></circle>'+
+      '</g>'+
       '<g class="n2k-ccore" transform="translate(550 310)">'+
         '<circle class="n2k-u-core-aura" r="44"></circle>'+
         '<circle class="n2k-u-core-pulse" r="34"></circle>'+
@@ -11938,6 +11950,152 @@ if (
   .n2k-cnode-label-group.important,
   .n2k-cnode.selected .n2k-cnode-label-group{
     opacity:1;
+  }
+}
+</style>
+
+
+<style id="n2k-mesh-universe-wowpass-12128">
+/* 1.21.28-beta1 · N2K MESH UNIVERSE WOW PASS */
+
+.n2k-universe-stage{
+  background:
+    radial-gradient(circle at 50% 50%,rgba(240,189,108,.045),transparent 12%),
+    radial-gradient(circle at 50% 50%,rgba(80,145,230,.085),transparent 38%),
+    linear-gradient(rgba(255,255,255,.010) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.010) 1px,transparent 1px),
+    #070c11 !important;
+  background-size:auto,auto,44px 44px,44px 44px,auto !important;
+}
+
+.n2k-ccore{
+  filter:drop-shadow(0 0 14px rgba(240,189,108,.18));
+}
+
+.n2k-ccore-body{
+  stroke:rgba(255,214,143,.96) !important;
+  fill:rgba(240,189,108,.19) !important;
+}
+
+.n2k-u-core-aura{
+  opacity:.40 !important;
+  animation-duration:2.7s !important;
+}
+
+.n2k-u-core-pulse{
+  stroke:rgba(240,189,108,.46) !important;
+  animation-duration:2.1s !important;
+}
+
+.n2k-u-core-sparks{
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:n2k-u-core-orbit 11s linear infinite;
+}
+
+.n2k-u-core-sparks .spark{
+  fill:#f0bd6c;
+  opacity:.78;
+  filter:url(#n2k-soft-glow);
+}
+
+.n2k-u-core-sparks .s2{opacity:.48;}
+.n2k-u-core-sparks .s3{opacity:.58;}
+
+@keyframes n2k-u-core-orbit{
+  to{transform:rotate(360deg);}
+}
+
+.n2k-cnode{
+  transition:opacity .16s ease,filter .16s ease;
+}
+
+.n2k-cnode.ring-1{opacity:1;}
+.n2k-cnode.ring-2{opacity:.92;}
+.n2k-cnode.ring-3{opacity:.80;}
+.n2k-cnode.ring-4{opacity:.66;}
+
+.n2k-cnode:hover,
+.n2k-cnode:focus,
+.n2k-cnode.selected{
+  opacity:1 !important;
+  filter:drop-shadow(0 0 8px rgba(113,217,176,.16));
+}
+
+.n2k-cnode.selected{
+  filter:drop-shadow(0 0 12px rgba(240,189,108,.30)) !important;
+}
+
+.n2k-clink{
+  stroke-linecap:round;
+  transition:opacity .18s ease,stroke-width .18s ease;
+}
+
+.n2k-clink.fresh{
+  stroke-dasharray:4 12 !important;
+  animation-duration:1.35s !important;
+}
+
+.n2k-clink.selected{
+  stroke:#f0bd6c !important;
+  stroke-dasharray:2 8 !important;
+  animation-duration:.85s !important;
+}
+
+.n2k-u-particle{
+  opacity:.92 !important;
+}
+
+.n2k-u-particle.secondary{
+  opacity:.48 !important;
+}
+
+.n2k-cnode-label-group{
+  opacity:0 !important;
+}
+
+.n2k-cnode-label-group.important,
+.n2k-cnode:hover .n2k-cnode-label-group,
+.n2k-cnode:focus .n2k-cnode-label-group,
+.n2k-cnode.selected .n2k-cnode-label-group{
+  opacity:1 !important;
+}
+
+.n2k-cnode-label{
+  paint-order:stroke;
+  stroke:rgba(4,8,11,.85);
+  stroke-width:2px;
+  stroke-linejoin:round;
+}
+
+.n2k-cnode-hop,
+.n2k-cnode-route{
+  paint-order:stroke;
+  stroke:rgba(4,8,11,.78);
+  stroke-width:1.5px;
+}
+
+.n2k-u-clusters ellipse{
+  opacity:.55;
+}
+
+.n2k-u-orbits ellipse{
+  stroke-dasharray:2 14 !important;
+  animation:n2k-u-orbit-drift 18s linear infinite;
+}
+
+.n2k-u-orbits ellipse:nth-child(2){animation-duration:24s;}
+.n2k-u-orbits ellipse:nth-child(3){animation-duration:31s;}
+.n2k-u-orbits ellipse:nth-child(4){animation-duration:38s;}
+
+@keyframes n2k-u-orbit-drift{
+  to{stroke-dashoffset:-160;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .n2k-u-core-sparks,
+  .n2k-u-orbits ellipse{
+    animation:none !important;
   }
 }
 </style>
