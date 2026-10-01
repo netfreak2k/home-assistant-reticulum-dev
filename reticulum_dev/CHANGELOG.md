@@ -1,3 +1,10 @@
+## 1.21.47-beta1
+
+- Restore the full RNode / USB setup block inside the visible Status view.
+- Reuse the existing USB detection, serial port selection, probe, inspector and live telemetry logic.
+- Keep all existing RNode configuration options in the Home Assistant add-on schema.
+- No backend behavior changes.
+
 ## 1.21.46-beta1
 
 - Scale the unified Messenger for desktop canvases without changing the mobile layout.
