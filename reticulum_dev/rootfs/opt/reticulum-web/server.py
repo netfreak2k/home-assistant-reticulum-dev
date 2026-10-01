@@ -1821,7 +1821,7 @@ def get_n2k_selftest():
         )
 
         feature_markers = {
-            "scanner": "n2k-nearby-start",
+            "mesh_map": "n2k-constellation-svg",
             "announce": "m99-announce",
             "photo": "n2k-photo-pick",
             "emoji": "n2k-emoji-toggle",
@@ -1843,7 +1843,7 @@ def get_n2k_selftest():
             "Messenger Feature Bundle",
             not missing,
             (
-                "Scanner · Announce · Foto · Emoji · Resilience · Store & Forward"
+                "Live Mesh Map · Announce · Foto · Emoji · Resilience · Store & Forward"
                 if not missing
                 else "Fehlt: " + ", ".join(missing)
             ),
@@ -2002,7 +2002,7 @@ def get_n2k_selftest():
 
     if failed == 0:
         next_step = (
-            "System bereit. Text, Announce, Scanner und bei Bedarf "
+            "System bereit. Text, Announce, Live Mesh Map und bei Bedarf "
             "Mesh-Foto mit einem bekannten Kontakt testen."
         )
     elif "identity" in failed_keys:
