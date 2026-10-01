@@ -11159,7 +11159,7 @@ if (
 
       nodes +=
         '<g class="n2k-cnode ring-'+pos.ring+' route-'+route.kind+(fresh?' fresh':'')+(age>3600?' cached':'')+(burst?' burst':'')+(selectedNow?' selected':'')+'" '+
-          'data-peer="'+esc(peer)+'" tabindex="0" role="button" transform="translate('+pos.x+' '+pos.y+')">'+
+          'data-peer="'+esc(peer)+'" data-focus="'+(selectedNow?'true':'false')+'" tabindex="0" role="button" transform="translate('+pos.x+' '+pos.y+')">'+
           '<circle class="n2k-cnode-halo" r="'+halo+'"></circle>'+
           '<circle class="n2k-cnode-orb" r="'+radius+'"></circle>'+
           '<circle class="n2k-cnode-core" r="'+Math.max(2.4,Number(radius)*.34).toFixed(1)+'"></circle>'+
@@ -11193,6 +11193,14 @@ if (
       core+
       '<g class="n2k-constellation-nodes">'+nodes+'</g>';
 
+    if(selected){
+      svg.classList.add("n2k-focus-mode");
+      svg.setAttribute("data-focus-peer",selected);
+    }else{
+      svg.classList.remove("n2k-focus-mode");
+      svg.removeAttribute("data-focus-peer");
+    }
+
     svg.querySelectorAll(".n2k-cnode").forEach(function(node){
       function choose(){
         var peer=node.getAttribute("data-peer")||"";
@@ -11202,11 +11210,23 @@ if (
         showDetail(item);
         render(data);
       }
-      node.addEventListener("click",choose);
+      node.addEventListener("click",function(e){ e.stopPropagation(); choose(); });
       node.addEventListener("keydown",function(e){
         if(e.key==="Enter"||e.key===" "){e.preventDefault();choose();}
       });
     });
+
+    if(!svg.__n2kFocusClearBound){
+      svg.addEventListener("click",function(e){
+        if(e.target===svg || e.target.closest(".n2k-u-orbits") || e.target.closest(".n2k-u-clusters")){
+          selected="";
+          var chat=el("n2k-map-chat");
+          if(chat) chat.hidden=true;
+          if(latestData) render(latestData);
+        }
+      });
+      svg.__n2kFocusClearBound=true;
+    }
 
     startAmbientAnimation();
   }
@@ -12095,6 +12115,86 @@ if (
 @media(prefers-reduced-motion:reduce){
   .n2k-u-core-sparks,
   .n2k-u-orbits ellipse{
+    animation:none !important;
+  }
+}
+</style>
+
+
+<style id="n2k-mesh-universe-focusmode-12129">
+/* 1.21.29-beta1 · FOCUS SPOTLIGHT */
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-cnode{
+  opacity:.18 !important;
+  filter:saturate(.55) brightness(.72);
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-cnode.selected{
+  opacity:1 !important;
+  filter:
+    drop-shadow(0 0 10px rgba(240,189,108,.52))
+    drop-shadow(0 0 22px rgba(240,189,108,.16)) !important;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-clink{
+  opacity:.06 !important;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-clink.selected{
+  opacity:1 !important;
+  stroke:#f0bd6c !important;
+  stroke-width:2.5 !important;
+  stroke-dasharray:3 7 !important;
+  filter:url(#n2k-soft-glow);
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-u-particle{
+  opacity:.12 !important;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-u-core-sparks,
+#n2k-constellation-svg.n2k-focus-mode .n2k-ccore{
+  opacity:1 !important;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-u-orbits,
+#n2k-constellation-svg.n2k-focus-mode .n2k-u-clusters{
+  opacity:.24 !important;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-cnode-label-group{
+  opacity:0 !important;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-cnode.selected .n2k-cnode-label-group{
+  opacity:1 !important;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-ccore::after{
+  content:"";
+}
+
+.n2k-cnode.selected .n2k-cnode-halo{
+  animation:n2k-selected-focus-ring 1.7s ease-out infinite;
+}
+
+@keyframes n2k-selected-focus-ring{
+  0%{transform:scale(.76);opacity:.9;}
+  100%{transform:scale(1.7);opacity:0;}
+}
+
+.n2k-universe-focus{
+  transition:background .18s ease,border-color .18s ease;
+}
+
+.n2k-universe-focus:has(#n2k-map-chat:not([hidden])){
+  background:
+    linear-gradient(180deg,rgba(240,189,108,.035),rgba(255,255,255,.014)) !important;
+  border-left-color:rgba(240,189,108,.10) !important;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .n2k-cnode.selected .n2k-cnode-halo{
     animation:none !important;
   }
 }
