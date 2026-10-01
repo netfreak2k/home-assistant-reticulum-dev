@@ -1,3 +1,12 @@
+## 1.21.45-beta1
+
+- Final readability pass for the unified Messenger.
+- Increase contrast of previews, metadata, section labels, clock and status.
+- Refine row separators and filter clarity without making the UI larger.
+- Restyle the load-more control to match the Messenger surface.
+- Remove the remaining bottom light divider from the app surface.
+- Preserve the stable layout and existing LXMF behavior.
+
 ## 1.21.44-beta1
 
 - Increase chat readability with larger names, previews and metadata.
