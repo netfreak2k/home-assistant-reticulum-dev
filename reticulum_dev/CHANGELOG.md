@@ -1,3 +1,13 @@
+## 1.21.40-beta1
+
+- Merge Chats and Contacts into one modern **Chat** home.
+- Reduce primary navigation to Chat, Status and Living Mesh.
+- Add compact messenger header with New Chat (+) and options (⋯).
+- Keep search across both conversations and contacts.
+- Add compact filters for All, Unread and Contacts.
+- Move QR, Export and Import into the small options menu.
+- Preserve existing contact storage, QR flow, chat opening and LXMF behavior.
+
 ## 1.21.39-beta1
 
 - Restore the chat search field.
