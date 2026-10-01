@@ -1,3 +1,11 @@
+## 1.21.50-beta1
+
+- Fix RNode startup when a stable /dev/serial/by-id path is stored.
+- Resolve the stable symlink to the actual runtime tty device before starting RNS.
+- Validate the resolved character device before writing the managed RNodeInterface block.
+- Add explicit startup logging for the generated RNodeInterface configuration.
+- Keep the stable by-id path in Home Assistant options while using the resolved tty path at runtime.
+
 ## 1.21.49-beta1
 
 - Automatically configure a confirmed RNode after compatibility probing.
