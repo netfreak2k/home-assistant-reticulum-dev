@@ -1,3 +1,10 @@
+## 1.21.37-beta1
+
+- Compress the main header to reduce vertical dominance.
+- Integrate RNS, LXMF and NODE as live status chips beside the app title.
+- Bind chip states to the existing live UI status sources without changing backend behavior.
+- Add restrained scan/glow animation for a cleaner product-style header.
+
 ## 1.21.36-beta1
 
 - Move N2K Mesh Universe out of Contacts into a dedicated **Living Mesh** main view.
