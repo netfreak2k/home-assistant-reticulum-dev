@@ -17283,3 +17283,131 @@ body {
   window.n2kDesktopView=setView;
 })();
 </script>
+
+<style id="n2k-desktop-finish-12121">
+/* ==================================================
+   1.21.21-beta1 · DESKTOP FINISHING PASS
+   Use the available HA browser canvas more effectively.
+   ================================================== */
+
+@media (min-width:901px){
+  body{
+    padding:12px 14px 18px !important;
+  }
+
+  /* Remove the old wide brand/banner strip on desktop if present. */
+  #n2k-global-brand,
+  .n2k-global-brand{
+    display:none !important;
+  }
+
+  .wrap{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    grid-template-columns:190px minmax(0,1fr) !important;
+    gap:12px 16px !important;
+  }
+
+  .n2k-main-header{
+    padding:13px 18px !important;
+    border-radius:17px !important;
+  }
+
+  .n2k-main-header h1{
+    font-size:28px !important;
+  }
+
+  .n2k-mobile-real-nav{
+    width:190px !important;
+    top:12px !important;
+    padding:11px !important;
+    border-radius:17px !important;
+  }
+
+  .n2k-mobile-real-nav button{
+    min-height:52px !important;
+    grid-template-columns:32px 1fr !important;
+    padding:9px 11px !important;
+  }
+
+  .n2k-mobile-real-nav button small{
+    font-size:14px !important;
+  }
+
+  .n2k-mobile-real-state{
+    min-height:52px !important;
+    border-radius:15px !important;
+  }
+
+  .n2k-mobile-real-stage{
+    min-height:650px !important;
+    border-radius:18px !important;
+  }
+
+  #n2k-mobile-real-content{
+    min-height:650px !important;
+  }
+
+  #n2k-mobile-real-content .messenger-search-wrap{
+    padding:16px 18px 9px !important;
+  }
+
+  #n2k-mobile-real-content .messenger-search{
+    min-height:46px !important;
+    font-size:14px !important;
+  }
+
+  #n2k-mobile-real-content #messenger-chat-list{
+    padding:4px 18px 20px !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact{
+    min-height:78px !important;
+    padding:12px 11px !important;
+  }
+
+  #n2k-mobile-real-content .lxmf-chat.messenger-conversation{
+    min-height:650px !important;
+  }
+
+  #n2k-mobile-real-content #lxmf-inbox{
+    min-height:430px !important;
+    max-height:64vh !important;
+  }
+
+  .m110-contact-head,
+  .m100-settings-head{
+    padding:22px 20px 13px !important;
+  }
+
+  .m99-card,
+  .n2k-selftest-card,
+  .n2k-about-card{
+    margin:14px 18px !important;
+    padding:18px !important;
+  }
+}
+
+@media (min-width:1400px){
+  body{
+    padding-left:24px !important;
+    padding-right:24px !important;
+  }
+
+  .wrap{
+    grid-template-columns:210px minmax(0,1fr) !important;
+    gap:14px 20px !important;
+  }
+
+  .n2k-mobile-real-nav{
+    width:210px !important;
+  }
+
+  .n2k-mobile-real-stage,
+  #n2k-mobile-real-content,
+  #n2k-mobile-real-content .lxmf-chat.messenger-conversation{
+    min-height:700px !important;
+  }
+}
+</style>
