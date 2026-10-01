@@ -4089,6 +4089,39 @@ def get_ha_bridge_diagnostic():
     }
 
 
+def schedule_self_restart(delay=2.0):
+    """Restart this add-on through Supervisor after the HTTP response."""
+    import threading
+    import urllib.request
+    import os
+
+    def _restart():
+        try:
+            token = os.environ.get("SUPERVISOR_TOKEN")
+            if not token:
+                return
+
+            request = urllib.request.Request(
+                "http://supervisor/addons/self/restart",
+                data=b"{}",
+                method="POST",
+                headers={
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json",
+                },
+            )
+
+            with urllib.request.urlopen(request, timeout=5):
+                pass
+        except Exception:
+            pass
+
+    timer = threading.Timer(delay, _restart)
+    timer.daemon = True
+    timer.start()
+
+
+
 class Handler(BaseHTTPRequestHandler):
 
     def send_json(self, data, status=200):
@@ -4584,8 +4617,11 @@ class Handler(BaseHTTPRequestHandler):
                     },
                     "rnode_interface": True,
                     "restart_required": True,
+                    "restart_scheduled": True,
                     "supervisor_response": supervisor_response[:200],
                 })
+
+                schedule_self_restart(2.0)
                 return
 
             except Exception as exc:
