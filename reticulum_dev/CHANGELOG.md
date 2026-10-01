@@ -1,3 +1,10 @@
+## 1.21.39-beta1
+
+- Restore the chat search field.
+- Remove only the obsolete RNS/LXMF/NODE status strip below the compact live header.
+- Keep the new header status chips as the single status presentation.
+- Preserve the bottom-line cleanup from the previous makeover.
+
 ## 1.21.38-beta1
 
 - Replace the DEV label in the visible app branding with the current version number.
