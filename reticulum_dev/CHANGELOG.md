@@ -1,3 +1,11 @@
+## 1.21.52-beta1
+
+- Prefer the exact serial path that already passed the RNode compatibility probe.
+- Fall back to the resolved tty device only when needed.
+- Persist rnsd startup output for RNode diagnostics.
+- Expose the generated managed RNode config and startup errors through the status API.
+- Show the exact RNode startup diagnosis directly in Status when no live interface is detected.
+
 ## 1.21.51-beta1
 
 - Explicitly install pyserial 3.5 for Reticulum RNodeInterface support.
