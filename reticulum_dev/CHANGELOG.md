@@ -1,3 +1,12 @@
+## 1.21.48-beta1
+
+- Improve the restored RNode / USB layout in Status.
+- Give RNode configuration and setup more horizontal space.
+- Prevent long USB serial paths from breaking the layout.
+- Separate Live telemetry visually from configuration values.
+- Improve step cards, port selection and diagnostic readability.
+- Keep all existing backend and USB detection behavior unchanged.
+
 ## 1.21.47-beta1
 
 - Restore the full RNode / USB setup block inside the visible Status view.
