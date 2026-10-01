@@ -10934,6 +10934,78 @@ if (
     return "vor "+Math.round(sec/3600)+" h";
   }
 
+  function routeInfo(item){
+    var iface=String(item&&item.interface||"").trim();
+    var lower=iface.toLowerCase();
+    var hops=Number(item&&item.hops);
+    var pathKnown=!!(item&&item.path_known);
+
+    function gatewayFromInterface(value){
+      var text=String(value||"").trim();
+      if(!text) return "";
+
+      var slash=text.lastIndexOf("/");
+      if(slash>=0 && slash<text.length-1){
+        var tail=text.slice(slash+1).trim();
+        if(tail) return tail;
+      }
+
+      var host=text.match(/([a-z0-9][a-z0-9.-]+\.[a-z]{2,})(?::\d+)?/i);
+      return host ? host[1] : "";
+    }
+
+    if(/rnode|lora|serial|kiss|ax\.25|ax25/.test(lower)){
+      return {
+        kind:"radio",
+        short:"LOCAL RADIO",
+        origin:"direkt/lokal über Funk",
+        confidence:"hoch",
+        gateway:""
+      };
+    }
+
+    if(/backbone|tcp|internet|sideband|one-big|noderage|nepamesh|washmesh|reticulum\.world|not-a-number/.test(lower)){
+      var gateway=gatewayFromInterface(iface);
+      return {
+        kind:"internet",
+        short:"INTERNET",
+        origin:gateway
+          ? "Einstieg über "+gateway
+          : "Einstieg über Internet-Gateway",
+        confidence:gateway ? "mittel" : "niedrig",
+        gateway:gateway
+      };
+    }
+
+    if(/auto(interface)?|lan|ethernet|wifi|wlan|udp/.test(lower)){
+      return {
+        kind:"localnet",
+        short:"LOCAL NET",
+        origin:"lokales LAN/WLAN/AutoInterface",
+        confidence:"mittel",
+        gateway:""
+      };
+    }
+
+    if(pathKnown && Number.isFinite(hops) && hops===1){
+      return {
+        kind:"direct",
+        short:"DIRECT",
+        origin:"direkter Reticulum-Pfad",
+        confidence:"mittel",
+        gateway:""
+      };
+    }
+
+    return {
+      kind:"unknown",
+      short:"UNKNOWN",
+      origin:"Herkunft nicht bestimmbar",
+      confidence:"niedrig",
+      gateway:""
+    };
+  }
+
   function nodePosition(item,index,total){
     var peer=String(item.destination_hash||"");
     var a=hashNumber(peer,0);
@@ -11044,7 +11116,9 @@ if (
       var midY=(180+pos.y)/2 + ((hashNumber(peer,11)%35)-17);
       var path='M340 180 Q'+midX+' '+midY+' '+pos.x+' '+pos.y;
 
-      var pathClass=age<=120 ? "n2k-clink fresh" : "n2k-clink";
+      var route=routeInfo(item);
+      var pathClass=(age<=120 ? "n2k-clink fresh" : "n2k-clink")+
+        " route-"+route.kind;
 
       links +=
         '<path class="'+pathClass+'" d="'+path+'" />';
@@ -11056,13 +11130,14 @@ if (
       }
 
       nodes +=
-        '<g class="'+classFor(item,burst)+'" data-peer="'+esc(peer)+'" tabindex="0" role="button" '+
-          'aria-label="'+esc(name)+', '+esc(ageText(age))+'" transform="translate('+pos.x+' '+pos.y+')">'+
+        '<g class="'+classFor(item,burst)+' route-'+route.kind+'" data-peer="'+esc(peer)+'" tabindex="0" role="button" '+
+          'aria-label="'+esc(name)+', '+esc(route.short)+', '+esc(ageText(age))+'" transform="translate('+pos.x+' '+pos.y+')">'+
           '<circle class="n2k-cnode-halo" r="18"></circle>'+
           '<circle class="n2k-cnode-orb" r="8"></circle>'+
           '<circle class="n2k-cnode-core" r="3"></circle>'+
-          '<text class="n2k-cnode-label" x="12" y="-8">'+esc(name.slice(0,18))+'</text>'+
-          '<text class="n2k-cnode-hop" x="12" y="7">'+esc(hopText||ageText(age))+'</text>'+
+          '<text class="n2k-cnode-label" x="12" y="-10">'+esc(name.slice(0,18))+'</text>'+
+          '<text class="n2k-cnode-hop" x="12" y="5">'+esc(hopText||ageText(age))+'</text>'+
+          '<text class="n2k-cnode-route" x="12" y="18">'+esc(route.short)+'</text>'+
         '</g>';
     });
 
@@ -11106,14 +11181,20 @@ if (
     var name=String(item.display_name||"").trim() ||
       String(item.destination_hash||"").slice(0,10)+"…";
 
+    var route=routeInfo(item);
+
     var meta=[
+      route.short,
+      route.origin,
+      "Vertrauen "+route.confidence,
       ageText(item.age_seconds),
       item.hops!==null && item.hops!==undefined && Number(item.hops)<128
         ? String(Number(item.hops))+" Hop"+(Number(item.hops)===1?"":"s")
         : "Hops unbekannt",
       item.interface ? String(item.interface) : "Interface unbekannt",
+      item.next_hop ? "Gateway "+String(item.next_hop).slice(0,8)+"…" : "",
       String(item.destination_hash||"").slice(0,10)+"…"+String(item.destination_hash||"").slice(-6)
-    ];
+    ].filter(Boolean);
 
     if(el("n2k-map-detail-name")) el("n2k-map-detail-name").textContent=name;
     if(el("n2k-map-detail-meta")) el("n2k-map-detail-meta").textContent=meta.join(" · ");
@@ -14156,6 +14237,40 @@ body.n2k-resilience-mode #n2k-resilience-card{
   margin-top:2px;
   color:rgba(177,193,201,.56);
   font-size:8px;
+}
+
+.n2k-cnode-route{
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.08em;
+  opacity:.72;
+}
+
+.n2k-cnode.route-radio .n2k-cnode-orb{
+  stroke:#71d9b0;
+}
+.n2k-cnode.route-internet .n2k-cnode-orb{
+  stroke:#7fb7ff;
+}
+.n2k-cnode.route-localnet .n2k-cnode-orb{
+  stroke:#f0bd5b;
+}
+.n2k-cnode.route-direct .n2k-cnode-orb{
+  stroke:#c69cff;
+}
+.n2k-cnode.route-unknown .n2k-cnode-orb{
+  stroke:#8d9baa;
+  opacity:.8;
+}
+
+.n2k-clink.route-internet{
+  stroke-dasharray:5 6;
+}
+.n2k-clink.route-radio{
+  stroke-width:1.35;
+}
+.n2k-clink.route-unknown{
+  opacity:.28;
 }
 
 #n2k-map-chat{
