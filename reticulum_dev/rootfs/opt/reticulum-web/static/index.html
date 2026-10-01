@@ -2830,43 +2830,67 @@ code {
 
     </div>
 
-    <section class="n2k-constellation-card" id="n2k-constellation-card">
-      <div class="n2k-constellation-head">
+    <section class="n2k-constellation-card n2k-universe-card" id="n2k-constellation-card">
+      <div class="n2k-constellation-head n2k-universe-head">
         <div>
-          <div class="n2k-constellation-title">Live Mesh Map</div>
-          <div class="n2k-constellation-sub">LXMF-Nodes, die sich im Reticulum-Netz melden</div>
+          <div class="n2k-constellation-title n2k-universe-title">N2K Mesh Universe</div>
+          <div class="n2k-constellation-sub n2k-universe-sub">Live activity · routes · relays · LXMF presence</div>
         </div>
-        <div class="n2k-constellation-stats" aria-label="Mesh-Statistik">
+        <div class="n2k-constellation-stats n2k-universe-stats" aria-label="Mesh-Statistik">
           <span><b id="n2k-map-live">0</b> live</span>
-          <span><b id="n2k-map-visible">0</b> sichtbar</span>
-          <span><b id="n2k-map-paths">0</b> Pfade</span>
+          <span><b id="n2k-map-visible">0</b> seen</span>
+          <span><b id="n2k-map-paths">0</b> paths</span>
+          <span><b id="n2k-map-relays">0</b> relays</span>
         </div>
       </div>
 
-      <div class="n2k-constellation-filters" role="group" aria-label="Zeitraum">
-        <button type="button" data-n2k-map-filter="live">Live</button>
-        <button type="button" data-n2k-map-filter="hour" class="active">1 h</button>
-        <button type="button" data-n2k-map-filter="day">24 h</button>
-      </div>
-
-      <div class="n2k-constellation-stage">
-        <svg
-          id="n2k-constellation-svg"
-          viewBox="0 0 680 360"
-          role="img"
-          aria-label="Interaktive Reticulum Mesh Map">
-        </svg>
-        <div class="n2k-constellation-empty" id="n2k-constellation-empty" hidden>
-          Noch keine LXMF-Nodes in diesem Zeitraum.
+      <div class="n2k-universe-toolbar">
+        <div class="n2k-constellation-filters n2k-universe-filters" role="group" aria-label="Zeitraum">
+          <button type="button" data-n2k-map-filter="live">Live</button>
+          <button type="button" data-n2k-map-filter="hour" class="active">1 h</button>
+          <button type="button" data-n2k-map-filter="day">24 h</button>
+          <button type="button" data-n2k-map-filter="replay">Replay</button>
+        </div>
+        <div class="n2k-universe-actions">
+          <button id="n2k-universe-trails" class="active" type="button">Trails</button>
+          <button id="n2k-universe-clusters" class="active" type="button">Cluster</button>
         </div>
       </div>
 
-      <div class="n2k-constellation-detail" id="n2k-constellation-detail">
-        <div>
+      <div class="n2k-universe-shell">
+        <div class="n2k-constellation-stage n2k-universe-stage">
+          <svg
+            id="n2k-constellation-svg"
+            viewBox="0 0 900 520"
+            role="img"
+            aria-label="N2K Mesh Universe · interaktive Reticulum Visualisierung">
+          </svg>
+          <div class="n2k-constellation-empty" id="n2k-constellation-empty" hidden>
+            Noch keine LXMF-Nodes in diesem Zeitraum.
+          </div>
+          <div class="n2k-universe-legend" aria-hidden="true">
+            <span><i class="radio"></i>Radio</span>
+            <span><i class="internet"></i>Internet</span>
+            <span><i class="local"></i>Local</span>
+            <span><i class="ghost"></i>Ghost</span>
+          </div>
+        </div>
+
+        <aside class="n2k-universe-focus" id="n2k-universe-focus">
+          <div class="n2k-universe-focus-kicker">FOCUS NODE</div>
           <strong id="n2k-map-detail-name">Node auswählen</strong>
-          <span id="n2k-map-detail-meta">Tippe einen Punkt in der Map an.</span>
-        </div>
-        <button type="button" id="n2k-map-chat" hidden>Chat öffnen</button>
+          <span id="n2k-map-detail-meta">Wähle einen Node im Universe aus.</span>
+
+          <div class="n2k-universe-focus-grid">
+            <div><span>Route</span><b id="n2k-focus-route">—</b></div>
+            <div><span>Seen</span><b id="n2k-focus-seen">—</b></div>
+            <div><span>Hops</span><b id="n2k-focus-hops">—</b></div>
+            <div><span>Interface</span><b id="n2k-focus-interface">—</b></div>
+          </div>
+
+          <div class="n2k-universe-focus-tags" id="n2k-focus-tags"></div>
+          <button type="button" id="n2k-map-chat" hidden>Chat öffnen</button>
+        </aside>
       </div>
     </section>
 
@@ -10897,7 +10921,7 @@ if (
 })();
 </script>
 
-<script id="n2k-constellation-js-12117">
+<script id="n2k-constellation-js-12126">
 (function(){
   "use strict";
 
@@ -10905,6 +10929,11 @@ if (
   var filter="hour";
   var selected="";
   var previousSeen=new Map();
+  var latestData=null;
+  var trails=true;
+  var clusters=true;
+  var animationFrame=0;
+  var replayStarted=0;
 
   function el(id){ return document.getElementById(id); }
 
@@ -10917,10 +10946,10 @@ if (
   }
 
   function hashNumber(value,offset){
-    var s=String(value||"");
+    var text=String(value||"");
     var h=2166136261>>>0;
-    for(var i=offset||0;i<s.length;i++){
-      h^=s.charCodeAt(i);
+    for(var i=offset||0;i<text.length;i++){
+      h^=text.charCodeAt(i);
       h=Math.imul(h,16777619)>>>0;
     }
     return h>>>0;
@@ -10943,119 +10972,86 @@ if (
     function gatewayFromInterface(value){
       var text=String(value||"").trim();
       if(!text) return "";
-
       var slash=text.lastIndexOf("/");
       if(slash>=0 && slash<text.length-1){
         var tail=text.slice(slash+1).trim();
         if(tail) return tail;
       }
-
       var host=text.match(/([a-z0-9][a-z0-9.-]+\.[a-z]{2,})(?::\d+)?/i);
       return host ? host[1] : "";
     }
 
     if(/rnode|lora|serial|kiss|ax\.25|ax25/.test(lower)){
-      return {
-        kind:"radio",
-        short:"LOCAL RADIO",
-        origin:"direkt/lokal über Funk",
-        confidence:"hoch",
-        gateway:""
-      };
+      return {kind:"radio",short:"RADIO",origin:"direkt/lokal über Funk",confidence:"hoch"};
     }
-
     if(/backbone|tcp|internet|sideband|one-big|noderage|nepamesh|washmesh|reticulum\.world|not-a-number/.test(lower)){
       var gateway=gatewayFromInterface(iface);
       return {
         kind:"internet",
         short:"INTERNET",
-        origin:gateway
-          ? "Einstieg über "+gateway
-          : "Einstieg über Internet-Gateway",
-        confidence:gateway ? "mittel" : "niedrig",
-        gateway:gateway
+        origin:gateway ? "via "+gateway : "Internet-Gateway",
+        confidence:gateway ? "mittel" : "niedrig"
       };
     }
-
     if(/auto(interface)?|lan|ethernet|wifi|wlan|udp/.test(lower)){
-      return {
-        kind:"localnet",
-        short:"LOCAL NET",
-        origin:"lokales LAN/WLAN/AutoInterface",
-        confidence:"mittel",
-        gateway:""
-      };
+      return {kind:"localnet",short:"LOCAL",origin:"LAN/WLAN/AutoInterface",confidence:"mittel"};
     }
-
     if(pathKnown && Number.isFinite(hops) && hops===1){
-      return {
-        kind:"direct",
-        short:"DIRECT",
-        origin:"direkter Reticulum-Pfad",
-        confidence:"mittel",
-        gateway:""
-      };
+      return {kind:"direct",short:"DIRECT",origin:"direkter Reticulum-Pfad",confidence:"mittel"};
     }
-
-    return {
-      kind:"unknown",
-      short:"UNKNOWN",
-      origin:"Herkunft nicht bestimmbar",
-      confidence:"niedrig",
-      gateway:""
-    };
-  }
-
-  function nodePosition(item,index,total){
-    var peer=String(item.destination_hash||"");
-    var a=hashNumber(peer,0);
-    var b=hashNumber(peer,7);
-
-    var x=60+(a%560);
-    var y=48+(b%264);
-
-    // Halte das Zentrum für den eigenen Core frei.
-    var dx=x-340;
-    var dy=y-180;
-    var d=Math.sqrt(dx*dx+dy*dy)||1;
-
-    if(d<82){
-      x=340+(dx/d)*92;
-      y=180+(dy/d)*92;
-    }
-
-    // Kleine deterministische Entzerrung gegen übereinanderliegende Nodes.
-    var jitter=((index%5)-2)*5;
-    x=Math.max(36,Math.min(644,x+jitter));
-    y=Math.max(34,Math.min(326,y-jitter));
-
-    return {x:x,y:y};
-  }
-
-  function classFor(item,isBurst){
-    var age=Number(item.age_seconds||0);
-    var c=["n2k-cnode"];
-
-    if(age<=120 || item.seen_during_scan===true) c.push("fresh");
-    else if(age<=3600) c.push("warm");
-    else c.push("cached");
-
-    if(isBurst) c.push("burst");
-    if(String(item.destination_hash||"")===selected) c.push("selected");
-
-    return c.join(" ");
+    return {kind:"unknown",short:"GHOST",origin:"Herkunft unbekannt",confidence:"niedrig"};
   }
 
   function filterItems(items){
     return items.filter(function(item){
       var age=Number(item&&item.age_seconds||0);
       if(filter==="live") return age<=120 || item.seen_during_scan===true;
-      if(filter==="hour") return age<=3600;
+      if(filter==="hour" || filter==="replay") return age<=3600;
       return age<=86400;
     });
   }
 
+  function activityScore(item){
+    var age=Math.max(0,Number(item&&item.age_seconds||0));
+    var fresh=Math.max(0,1-Math.min(age,3600)/3600);
+    var hop=Number(item&&item.hops);
+    var hopBonus=Number.isFinite(hop)&&hop<128 ? Math.max(0,1-hop/10) : .1;
+    var scan=item&&item.seen_during_scan===true ? 1 : 0;
+    return Math.max(.08,Math.min(1,(fresh*.62)+(hopBonus*.18)+(scan*.20)));
+  }
+
+  function position(item,index,total){
+    var peer=String(item.destination_hash||"");
+    var route=routeInfo(item);
+    var hop=Number(item.hops);
+    var ring=Number.isFinite(hop)&&hop>=0&&hop<128 ? Math.min(4,Math.max(1,hop+1)) : 3;
+    if(route.kind==="radio") ring=Math.min(ring,2);
+    if(route.kind==="internet") ring=Math.max(ring,2);
+
+    var radii=[0,112,184,255,318];
+    var base=radii[ring]||255;
+    var a=hashNumber(peer,0);
+    var angle=((a%360)/180)*Math.PI;
+    var spread=((hashNumber(peer,7)%35)-17);
+    var rr=base+spread;
+
+    var x=450+Math.cos(angle)*rr;
+    var y=260+Math.sin(angle)*rr*.72;
+
+    x=Math.max(45,Math.min(855,x));
+    y=Math.max(42,Math.min(478,y));
+    return {x:x,y:y,ring:ring};
+  }
+
+  function pathFor(pos,peer){
+    var bend=((hashNumber(peer,11)%70)-35);
+    var mx=(450+pos.x)/2;
+    var my=(260+pos.y)/2+bend;
+    return "M450 260 Q"+mx+" "+my+" "+pos.x+" "+pos.y;
+  }
+
   function render(data){
+    latestData=data;
     var svg=el("n2k-constellation-svg");
     var empty=el("n2k-constellation-empty");
     if(!svg) return;
@@ -11065,139 +11061,168 @@ if (
       return Number(a&&a.age_seconds||0)-Number(b&&b.age_seconds||0);
     });
 
-    var items=filterItems(raw).slice(0,32);
-
+    var items=filterItems(raw).slice(0,42);
     var live=raw.filter(function(item){
-      return Number(item&&item.age_seconds||0)<=120 ||
-        item&&item.seen_during_scan===true;
+      return Number(item&&item.age_seconds||0)<=120 || item&&item.seen_during_scan===true;
+    }).length;
+
+    var relays=items.filter(function(item){
+      return /backbone|tcp|internet|auto(interface)?|rnode|lora/i.test(String(item.interface||"")) &&
+        Number(item.hops||99)<=2;
     }).length;
 
     if(el("n2k-map-live")) el("n2k-map-live").textContent=String(live);
     if(el("n2k-map-visible")) el("n2k-map-visible").textContent=String(items.length);
     if(el("n2k-map-paths")) el("n2k-map-paths").textContent=String(Number(data&&data.rns_path_count||0));
-
+    if(el("n2k-map-relays")) el("n2k-map-relays").textContent=String(relays);
     if(empty) empty.hidden=items.length>0;
 
     var defs=
       '<defs>'+
         '<linearGradient id="n2k-flow-gradient" x1="0" y1="0" x2="1" y2="1">'+
-          '<stop offset="0%" stop-color="rgba(87,160,255,.08)"/>'+
-          '<stop offset="52%" stop-color="rgba(111,222,181,.62)"/>'+
-          '<stop offset="100%" stop-color="rgba(181,125,255,.15)"/>'+
+          '<stop offset="0%" stop-color="rgba(82,136,255,.05)"/>'+
+          '<stop offset="48%" stop-color="rgba(113,217,176,.78)"/>'+
+          '<stop offset="100%" stop-color="rgba(240,189,108,.14)"/>'+
         '</linearGradient>'+
-        '<filter id="n2k-soft-glow" x="-60%" y="-60%" width="220%" height="220%">'+
+        '<radialGradient id="n2k-core-gradient">'+
+          '<stop offset="0%" stop-color="rgba(255,247,223,.98)"/>'+
+          '<stop offset="32%" stop-color="rgba(240,189,108,.92)"/>'+
+          '<stop offset="100%" stop-color="rgba(240,189,108,.03)"/>'+
+        '</radialGradient>'+
+        '<filter id="n2k-soft-glow" x="-80%" y="-80%" width="260%" height="260%">'+
           '<feGaussianBlur stdDeviation="4" result="blur"/>'+
           '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>'+
         '</filter>'+
       '</defs>';
 
+    var orbitRings=
+      '<g class="n2k-u-orbits">'+
+        '<ellipse cx="450" cy="260" rx="112" ry="81"></ellipse>'+
+        '<ellipse cx="450" cy="260" rx="184" ry="132"></ellipse>'+
+        '<ellipse cx="450" cy="260" rx="255" ry="184"></ellipse>'+
+        '<ellipse cx="450" cy="260" rx="318" ry="229"></ellipse>'+
+      '</g>';
+
+    var clusterSvg="";
+    if(clusters){
+      clusterSvg=
+        '<g class="n2k-u-clusters">'+
+          '<ellipse class="radio" cx="360" cy="215" rx="150" ry="105"></ellipse>'+
+          '<ellipse class="internet" cx="575" cy="290" rx="190" ry="125"></ellipse>'+
+        '</g>';
+    }
+
     var links="";
     var nodes="";
+    var particles="";
 
     items.forEach(function(item,index){
       var peer=String(item.destination_hash||"");
       var name=String(item.display_name||"").trim() || (peer.slice(0,8)+"…");
-      var pos=nodePosition(item,index,items.length);
+      var pos=position(item,index,items.length);
       var age=Number(item.age_seconds||0);
+      var route=routeInfo(item);
+      var score=activityScore(item);
       var previous=previousSeen.get(peer);
       var lastSeen=Number(item.last_seen||0);
-      var burst=Boolean(
-        lastSeen &&
-        (
-          previous===undefined
-          ? age<=12
-          : lastSeen>previous
-        )
-      );
-
+      var burst=Boolean(lastSeen && (previous===undefined ? age<=12 : lastSeen>previous));
       previousSeen.set(peer,lastSeen);
 
-      var midX=(340+pos.x)/2 + ((hashNumber(peer,3)%35)-17);
-      var midY=(180+pos.y)/2 + ((hashNumber(peer,11)%35)-17);
-      var path='M340 180 Q'+midX+' '+midY+' '+pos.x+' '+pos.y;
-
-      var route=routeInfo(item);
-      var pathClass=(age<=120 ? "n2k-clink fresh" : "n2k-clink")+
-        " route-"+route.kind;
+      var path=pathFor(pos,peer);
+      var fresh=age<=120 || item.seen_during_scan===true;
+      var selectedNow=peer===selected;
+      var radius=(6+(score*7)).toFixed(1);
+      var halo=(16+(score*14)).toFixed(1);
 
       links +=
-        '<path class="'+pathClass+'" d="'+path+'" />';
+        '<path class="n2k-clink route-'+route.kind+(fresh?' fresh':'')+(selectedNow?' selected':'')+'" d="'+path+'" data-peer="'+esc(peer)+'" />';
 
-      var hops=item.hops;
-      var hopText="";
-      if(hops!==null && hops!==undefined && hops!=="" && Number(hops)<128){
-        hopText=String(Number(hops))+"H";
+      if(trails && fresh){
+        var duration=(1.8+((hashNumber(peer,4)%14)/10)).toFixed(1);
+        particles +=
+          '<circle class="n2k-u-particle route-'+route.kind+'" r="2.2">'+
+            '<animateMotion dur="'+duration+'s" repeatCount="indefinite" path="'+path+'" />'+
+          '</circle>';
       }
 
+      var hops=item.hops;
+      var hopText=(hops!==null&&hops!==undefined&&hops!==""&&Number(hops)<128)
+        ? String(Number(hops))+"H"
+        : "—";
+
       nodes +=
-        '<g class="'+classFor(item,burst)+' route-'+route.kind+'" data-peer="'+esc(peer)+'" tabindex="0" role="button" '+
-          'aria-label="'+esc(name)+', '+esc(route.short)+', '+esc(ageText(age))+'" transform="translate('+pos.x+' '+pos.y+')">'+
-          '<circle class="n2k-cnode-halo" r="18"></circle>'+
-          '<circle class="n2k-cnode-orb" r="8"></circle>'+
-          '<circle class="n2k-cnode-core" r="3"></circle>'+
-          '<text class="n2k-cnode-label" x="12" y="-10">'+esc(name.slice(0,18))+'</text>'+
-          '<text class="n2k-cnode-hop" x="12" y="5">'+esc(hopText||ageText(age))+'</text>'+
-          '<text class="n2k-cnode-route" x="12" y="18">'+esc(route.short)+'</text>'+
+        '<g class="n2k-cnode route-'+route.kind+(fresh?' fresh':'')+(age>3600?' cached':'')+(burst?' burst':'')+(selectedNow?' selected':'')+'" '+
+          'data-peer="'+esc(peer)+'" tabindex="0" role="button" transform="translate('+pos.x+' '+pos.y+')">'+
+          '<circle class="n2k-cnode-halo" r="'+halo+'"></circle>'+
+          '<circle class="n2k-cnode-orb" r="'+radius+'"></circle>'+
+          '<circle class="n2k-cnode-core" r="'+Math.max(2.4,Number(radius)*.34).toFixed(1)+'"></circle>'+
+          '<text class="n2k-cnode-label" x="'+(Number(radius)+8)+'" y="-9">'+esc(name.slice(0,20))+'</text>'+
+          '<text class="n2k-cnode-hop" x="'+(Number(radius)+8)+'" y="5">'+esc(hopText)+' · '+esc(ageText(age))+'</text>'+
+          '<text class="n2k-cnode-route" x="'+(Number(radius)+8)+'" y="18">'+esc(route.short)+'</text>'+
         '</g>';
     });
 
     var core=
-      '<g class="n2k-ccore" transform="translate(340 180)">'+
-        '<polygon class="n2k-ccore-glow" points="0,-27 27,0 0,27 -27,0"></polygon>'+
-        '<polygon class="n2k-ccore-body" points="0,-18 18,0 0,18 -18,0"></polygon>'+
+      '<g class="n2k-ccore" transform="translate(450 260)">'+
+        '<circle class="n2k-u-core-aura" r="44"></circle>'+
+        '<circle class="n2k-u-core-pulse" r="34"></circle>'+
+        '<polygon class="n2k-ccore-glow" points="0,-31 31,0 0,31 -31,0"></polygon>'+
+        '<polygon class="n2k-ccore-body" points="0,-19 19,0 0,19 -19,0"></polygon>'+
         '<circle class="n2k-ccore-dot" r="4"></circle>'+
-        '<text x="0" y="43" text-anchor="middle">N2K CORE</text>'+
+        '<text x="0" y="52" text-anchor="middle">N2K CORE</text>'+
+        '<text class="n2k-u-core-sub" x="0" y="66" text-anchor="middle">HOME ASSISTANT</text>'+
       '</g>';
 
-    svg.innerHTML=defs+
+    svg.innerHTML=defs+clusterSvg+orbitRings+
       '<g class="n2k-constellation-links">'+links+'</g>'+
+      '<g class="n2k-u-particles">'+particles+'</g>'+
       core+
       '<g class="n2k-constellation-nodes">'+nodes+'</g>';
 
     svg.querySelectorAll(".n2k-cnode").forEach(function(node){
       function choose(){
         var peer=node.getAttribute("data-peer")||"";
-        var item=items.find(function(x){
-          return String(x.destination_hash||"")===peer;
-        });
+        var item=items.find(function(x){return String(x.destination_hash||"")===peer;});
         if(!item) return;
-
         selected=peer;
         showDetail(item);
         render(data);
       }
-
       node.addEventListener("click",choose);
       node.addEventListener("keydown",function(e){
-        if(e.key==="Enter"||e.key===" "){
-          e.preventDefault();
-          choose();
-        }
+        if(e.key==="Enter"||e.key===" "){e.preventDefault();choose();}
       });
     });
+
+    startAmbientAnimation();
   }
 
   function showDetail(item){
     var name=String(item.display_name||"").trim() ||
       String(item.destination_hash||"").slice(0,10)+"…";
-
     var route=routeInfo(item);
-
-    var meta=[
-      route.short,
-      route.origin,
-      "Vertrauen "+route.confidence,
-      ageText(item.age_seconds),
-      item.hops!==null && item.hops!==undefined && Number(item.hops)<128
-        ? String(Number(item.hops))+" Hop"+(Number(item.hops)===1?"":"s")
-        : "Hops unbekannt",
-      item.interface ? String(item.interface) : "Interface unbekannt",
-      item.next_hop ? "Gateway "+String(item.next_hop).slice(0,8)+"…" : "",
-      String(item.destination_hash||"").slice(0,10)+"…"+String(item.destination_hash||"").slice(-6)
-    ].filter(Boolean);
+    var hops=item.hops!==null&&item.hops!==undefined&&Number(item.hops)<128
+      ? String(Number(item.hops))
+      : "—";
 
     if(el("n2k-map-detail-name")) el("n2k-map-detail-name").textContent=name;
-    if(el("n2k-map-detail-meta")) el("n2k-map-detail-meta").textContent=meta.join(" · ");
+    if(el("n2k-map-detail-meta")){
+      el("n2k-map-detail-meta").textContent=
+        route.origin+" · "+String(item.destination_hash||"").slice(0,10)+"…";
+    }
+    if(el("n2k-focus-route")) el("n2k-focus-route").textContent=route.short;
+    if(el("n2k-focus-seen")) el("n2k-focus-seen").textContent=ageText(item.age_seconds);
+    if(el("n2k-focus-hops")) el("n2k-focus-hops").textContent=hops;
+    if(el("n2k-focus-interface")) el("n2k-focus-interface").textContent=String(item.interface||"—").split("/").pop();
+
+    var tags=el("n2k-focus-tags");
+    if(tags){
+      var list=[route.short];
+      if(Number(item.age_seconds||0)<=120) list.push("LIVE");
+      if(item.seen_during_scan===true) list.push("SCAN");
+      if(Number(item.hops||99)<=1) list.push("NEAR");
+      tags.innerHTML=list.map(function(t){return '<span>'+esc(t)+'</span>';}).join("");
+    }
 
     var chat=el("n2k-map-chat");
     if(chat){
@@ -11206,41 +11231,41 @@ if (
     }
   }
 
-  async function load(){
-    /*
-     * Contacts are the primary source because this endpoint already
-     * drives the visible contact list and is therefore the most robust
-     * source for the map. Nearby/path data is optional enrichment.
-     * A failure in the enrichment endpoint must never blank the map.
-     */
-    try{
-      var contactsRes=await fetch(
-        "api/messenger/contacts?ts="+Date.now(),
-        {cache:"no-store"}
-      );
-      var contactsData=await contactsRes.json();
+  function startAmbientAnimation(){
+    cancelAnimationFrame(animationFrame);
+    var svg=el("n2k-constellation-svg");
+    if(!svg) return;
 
+    function frame(now){
+      if(filter==="replay"){
+        if(!replayStarted) replayStarted=now;
+        var progress=((now-replayStarted)%12000)/12000;
+        svg.style.setProperty("--n2k-replay",progress.toFixed(4));
+      }else{
+        replayStarted=0;
+        svg.style.removeProperty("--n2k-replay");
+      }
+      animationFrame=requestAnimationFrame(frame);
+    }
+    animationFrame=requestAnimationFrame(frame);
+  }
+
+  async function load(){
+    try{
+      var contactsRes=await fetch("api/messenger/contacts?ts="+Date.now(),{cache:"no-store"});
+      var contactsData=await contactsRes.json();
       if(!contactsRes.ok || !contactsData || !contactsData.ok){
-        throw new Error(
-          (contactsData&&contactsData.error) ||
-          ("HTTP "+contactsRes.status)
-        );
+        throw new Error((contactsData&&contactsData.error)||("HTTP "+contactsRes.status));
       }
 
-      var contacts=Array.isArray(contactsData.contacts)
-        ? contactsData.contacts
-        : [];
-
+      var contacts=Array.isArray(contactsData.contacts)?contactsData.contacts:[];
       var now=Math.floor(Date.now()/1000);
-
       var data={
         ok:true,
         contacts:contacts.map(function(item){
           var lastSeen=Number(item&&item.last_seen||0);
           return Object.assign({},item,{
-            age_seconds:lastSeen
-              ? Math.max(0,now-lastSeen)
-              : 86401,
+            age_seconds:lastSeen?Math.max(0,now-lastSeen):86401,
             seen_during_scan:false,
             hops:null,
             interface:"",
@@ -11251,65 +11276,42 @@ if (
       };
 
       try{
-        var since=now-120;
         var nearbyRes=await fetch(
-          "api/messenger/nearby?since="+
-          encodeURIComponent(since)+
-          "&ts="+Date.now(),
+          "api/messenger/nearby?since="+encodeURIComponent(now-120)+"&ts="+Date.now(),
           {cache:"no-store"}
         );
-
         if(nearbyRes.ok){
           var nearbyData=await nearbyRes.json();
-
           if(nearbyData&&nearbyData.ok){
-            data.rns_path_count=
-              Number(nearbyData.rns_path_count||0);
-
+            data.rns_path_count=Number(nearbyData.rns_path_count||0);
             var enrichment=new Map();
-
-            (Array.isArray(nearbyData.contacts)
-              ? nearbyData.contacts
-              : []
-            ).forEach(function(item){
-              enrichment.set(
-                String(item.destination_hash||""),
-                item
-              );
+            (Array.isArray(nearbyData.contacts)?nearbyData.contacts:[]).forEach(function(item){
+              enrichment.set(String(item.destination_hash||""),item);
             });
-
             data.contacts=data.contacts.map(function(item){
-              var peer=String(item.destination_hash||"");
-              var extra=enrichment.get(peer);
-              return extra
-                ? Object.assign({},item,extra)
-                : item;
+              var extra=enrichment.get(String(item.destination_hash||""));
+              return extra?Object.assign({},item,extra):item;
             });
           }
         }
-      }catch(_enrichmentError){
-        // Contacts-only map remains fully usable.
-      }
+      }catch(_ignore){}
 
       render(data);
-
     }catch(e){
       var empty=el("n2k-constellation-empty");
       var svg=el("n2k-constellation-svg");
-
       if(svg){
         svg.innerHTML=
-          '<g class="n2k-ccore" transform="translate(340 180)">'+
-            '<polygon class="n2k-ccore-body" points="0,-18 18,0 0,18 -18,0"></polygon>'+
+          '<g class="n2k-ccore" transform="translate(450 260)">'+
+            '<circle class="n2k-u-core-aura" r="44"></circle>'+
+            '<polygon class="n2k-ccore-body" points="0,-19 19,0 0,19 -19,0"></polygon>'+
             '<circle class="n2k-ccore-dot" r="4"></circle>'+
-            '<text x="0" y="43" text-anchor="middle">N2K CORE</text>'+
+            '<text x="0" y="52" text-anchor="middle">N2K CORE</text>'+
           '</g>';
       }
-
       if(empty){
         empty.hidden=false;
-        empty.textContent=
-          "Kontaktdaten momentan nicht erreichbar.";
+        empty.textContent="Kontaktdaten momentan nicht erreichbar.";
       }
     }
   }
@@ -11321,9 +11323,28 @@ if (
         document.querySelectorAll("[data-n2k-map-filter]").forEach(function(other){
           other.classList.toggle("active",other===btn);
         });
+        if(filter==="replay") replayStarted=performance.now();
         load();
       });
     });
+
+    var trailButton=el("n2k-universe-trails");
+    if(trailButton){
+      trailButton.addEventListener("click",function(){
+        trails=!trails;
+        trailButton.classList.toggle("active",trails);
+        if(latestData) render(latestData);
+      });
+    }
+
+    var clusterButton=el("n2k-universe-clusters");
+    if(clusterButton){
+      clusterButton.addEventListener("click",function(){
+        clusters=!clusters;
+        clusterButton.classList.toggle("active",clusters);
+        if(latestData) render(latestData);
+      });
+    }
 
     var chat=el("n2k-map-chat");
     if(chat){
@@ -11541,6 +11562,282 @@ if (
 })();
 </script>
 
+
+<style id="n2k-mesh-universe-css-12126">
+/* 1.21.26-beta1 · N2K MESH UNIVERSE */
+.n2k-universe-card{
+  padding:0 !important;
+  border-radius:18px !important;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(48,93,164,.12),transparent 34%),
+    radial-gradient(circle at 88% 100%,rgba(113,217,176,.075),transparent 38%),
+    linear-gradient(180deg,rgba(14,20,25,.99),rgba(7,11,15,.99)) !important;
+  box-shadow:0 20px 55px rgba(0,0,0,.22) !important;
+}
+
+.n2k-universe-head{padding:15px 16px 8px;}
+.n2k-universe-title{font-size:17px !important;letter-spacing:-.02em;}
+.n2k-universe-sub{font-size:10px !important;letter-spacing:.04em;text-transform:uppercase;}
+
+.n2k-universe-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:0 16px 12px;
+  flex-wrap:wrap;
+}
+
+.n2k-universe-actions{display:flex;gap:6px;}
+.n2k-universe-actions button{
+  min-height:28px;
+  padding:4px 9px;
+  border:1px solid rgba(255,255,255,.065);
+  border-radius:8px;
+  background:rgba(255,255,255,.02);
+  color:rgba(190,203,210,.62);
+  font:inherit;
+  font-size:9px;
+  font-weight:700;
+  cursor:pointer;
+}
+.n2k-universe-actions button.active{
+  border-color:rgba(240,189,108,.22);
+  background:rgba(240,189,108,.075);
+  color:#f0bd6c;
+}
+
+.n2k-universe-shell{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 215px;
+  border-top:1px solid rgba(255,255,255,.05);
+}
+
+.n2k-universe-stage{
+  margin:0 !important;
+  min-height:430px;
+  border:0 !important;
+  border-radius:0 !important;
+  background:
+    linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px),
+    radial-gradient(circle at 50% 50%,rgba(75,130,205,.09),transparent 42%),
+    #070c11 !important;
+  background-size:44px 44px,44px 44px,auto,auto !important;
+}
+
+#n2k-constellation-svg{
+  min-height:430px !important;
+  max-height:520px !important;
+}
+
+.n2k-u-orbits ellipse{
+  fill:none;
+  stroke:rgba(145,170,190,.07);
+  stroke-width:1;
+  stroke-dasharray:2 10;
+}
+
+.n2k-u-clusters ellipse{
+  stroke-width:1;
+  stroke-dasharray:5 12;
+}
+.n2k-u-clusters .radio{
+  fill:rgba(76,212,163,.018);
+  stroke:rgba(76,212,163,.08);
+}
+.n2k-u-clusters .internet{
+  fill:rgba(92,151,255,.018);
+  stroke:rgba(92,151,255,.07);
+}
+
+.n2k-u-core-aura{
+  fill:url(#n2k-core-gradient);
+  opacity:.28;
+  filter:url(#n2k-soft-glow);
+  animation:n2k-u-aura 3.2s ease-in-out infinite;
+}
+.n2k-u-core-pulse{
+  fill:none;
+  stroke:rgba(240,189,108,.34);
+  stroke-width:1.2;
+  animation:n2k-u-pulse 2.5s ease-out infinite;
+}
+@keyframes n2k-u-aura{
+  0%,100%{transform:scale(.88);opacity:.20;}
+  50%{transform:scale(1.12);opacity:.42;}
+}
+@keyframes n2k-u-pulse{
+  0%{r:24;opacity:.65;}
+  100%{r:55;opacity:0;}
+}
+.n2k-ccore,.n2k-u-core-aura,.n2k-u-core-pulse{
+  transform-box:fill-box;
+  transform-origin:center;
+}
+.n2k-u-core-sub{
+  fill:rgba(240,189,108,.42) !important;
+  font-size:6.5px !important;
+  letter-spacing:.18em !important;
+}
+
+.n2k-clink{
+  opacity:.18 !important;
+  stroke-width:1.15 !important;
+}
+.n2k-clink.fresh{
+  opacity:.58 !important;
+  stroke-width:1.65 !important;
+}
+.n2k-clink.selected{
+  opacity:.92 !important;
+  stroke-width:2.3 !important;
+  filter:url(#n2k-soft-glow);
+}
+
+.n2k-u-particle{
+  fill:#f0bd6c;
+  opacity:.9;
+  filter:url(#n2k-soft-glow);
+}
+.n2k-u-particle.route-radio{fill:#71d9b0;}
+.n2k-u-particle.route-internet{fill:#7fb7ff;}
+.n2k-u-particle.route-localnet{fill:#f0bd6c;}
+
+.n2k-cnode-halo{opacity:.48;}
+.n2k-cnode.fresh .n2k-cnode-halo{
+  fill:rgba(113,217,176,.018);
+  stroke:rgba(113,217,176,.2);
+}
+.n2k-cnode.selected .n2k-cnode-halo{
+  fill:rgba(240,189,108,.035);
+  stroke:#f0bd6c;
+  stroke-width:1.4;
+  filter:url(#n2k-soft-glow);
+}
+.n2k-cnode.selected .n2k-cnode-orb{stroke:#f0bd6c !important;}
+.n2k-cnode-label{font-size:8px !important;}
+.n2k-cnode-hop{font-size:6.3px !important;}
+.n2k-cnode-route{font-size:6.2px !important;}
+
+.n2k-universe-focus{
+  padding:15px 13px;
+  border-left:1px solid rgba(255,255,255,.05);
+  background:rgba(255,255,255,.018);
+}
+.n2k-universe-focus-kicker{
+  color:rgba(113,217,176,.64);
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.14em;
+}
+.n2k-universe-focus > strong{
+  display:block;
+  margin-top:7px;
+  color:rgba(240,245,247,.96);
+  font-size:13px;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+.n2k-universe-focus > span{
+  display:block;
+  margin-top:5px;
+  color:rgba(179,193,201,.55);
+  font-size:8px;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+.n2k-universe-focus-grid{
+  display:grid;
+  gap:6px;
+  margin-top:14px;
+}
+.n2k-universe-focus-grid div{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:7px 8px;
+  border:1px solid rgba(255,255,255,.045);
+  border-radius:8px;
+  background:rgba(255,255,255,.018);
+}
+.n2k-universe-focus-grid span{
+  color:rgba(176,191,199,.52);
+  font-size:7.5px;
+}
+.n2k-universe-focus-grid b{
+  max-width:115px;
+  color:rgba(230,237,240,.86);
+  font-size:8px;
+  text-align:right;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.n2k-universe-focus-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:10px;
+}
+.n2k-universe-focus-tags span{
+  padding:4px 6px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:999px;
+  background:rgba(255,255,255,.025);
+  color:rgba(207,218,223,.70);
+  font-size:7px;
+  font-weight:750;
+  letter-spacing:.05em;
+}
+.n2k-universe-focus #n2k-map-chat{
+  width:100%;
+  margin-top:12px;
+}
+
+.n2k-universe-legend{
+  position:absolute;
+  left:10px;
+  bottom:8px;
+  display:flex;
+  gap:9px;
+  padding:5px 7px;
+  border:1px solid rgba(255,255,255,.045);
+  border-radius:7px;
+  background:rgba(5,8,11,.68);
+  color:rgba(173,187,195,.46);
+  font-size:6.5px;
+  pointer-events:none;
+}
+.n2k-universe-legend span{display:flex;align-items:center;gap:4px;}
+.n2k-universe-legend i{
+  width:5px;height:5px;border-radius:50%;background:#8d9baa;
+}
+.n2k-universe-legend i.radio{background:#71d9b0;}
+.n2k-universe-legend i.internet{background:#7fb7ff;}
+.n2k-universe-legend i.local{background:#f0bd6c;}
+.n2k-universe-legend i.ghost{background:#8d9baa;}
+
+#n2k-constellation-svg[style*="--n2k-replay"] .n2k-cnode{
+  opacity:calc(.22 + var(--n2k-replay) * .78);
+}
+
+@media (max-width:900px) and (pointer:coarse){
+  .n2k-universe-shell{grid-template-columns:1fr;}
+  .n2k-universe-stage{min-height:310px;}
+  #n2k-constellation-svg{min-height:310px !important;max-height:360px !important;}
+  .n2k-universe-focus{
+    border-left:0;
+    border-top:1px solid rgba(255,255,255,.05);
+  }
+  .n2k-universe-focus-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .n2k-universe-legend{display:none;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .n2k-u-core-aura,.n2k-u-core-pulse,.n2k-u-particle{animation:none !important;}
+}
+</style>
 </body>
 </html>
 
