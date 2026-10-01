@@ -2241,7 +2241,7 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway DEV</h1>
+        <h1>N2K RNS Gateway · 1.21.38-beta1</h1>
 
         <div class="n2k-header-stack" aria-label="Core services">
           <span id="n2k-chip-rns" class="n2k-stack-chip n2k-chip-rns is-wait">
@@ -3272,7 +3272,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway DEV</strong>
+      <strong>N2K RNS Gateway · 1.21.38-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -3306,15 +3306,6 @@ code {
 
 </div>
 
-
-<div class="messenger-search-wrap">
-  <input
-    id="messenger-search"
-    class="messenger-search"
-    type="search"
-    autocomplete="off"
-    placeholder="Chats durchsuchen…">
-</div>
 
 <div id="messenger-chat-list"
        class="messenger-chat-list">
@@ -13540,6 +13531,95 @@ if (
   }
 })();
 </script>
+
+
+<style id="n2k-makeover-12138">
+/* 1.21.38-beta1 · CLEANUP / MAKEOVER */
+
+.n2k-main-header h1{
+  font-size:16.5px !important;
+  letter-spacing:-.02em !important;
+}
+
+.n2k-title-row{
+  gap:9px !important;
+}
+
+/* Search is retired: also suppress any stale/cached duplicate shell. */
+.messenger-search-wrap,
+#n2k-mobile-real-content .messenger-search-wrap{
+  display:none !important;
+  height:0 !important;
+  min-height:0 !important;
+  max-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  overflow:hidden !important;
+}
+
+/* Chats now begin immediately under the live status strip. */
+#n2k-mobile-real-content #messenger-chat-list{
+  padding-top:8px !important;
+}
+
+/* Remove the visible light line at the bottom of the app surface. */
+.n2k-mobile-real-stage{
+  border-bottom:0 !important;
+}
+
+#n2k-mobile-real-content,
+#n2k-mobile-real-content #messenger-chat-list,
+#n2k-mobile-real-content #msg-contacts-view,
+#n2k-mobile-real-content #msg-settings-view,
+#n2k-mobile-real-content #msg-mesh-view{
+  border-bottom:0 !important;
+  box-shadow:none;
+}
+
+.wrap > hr,
+#n2k-mobile-real-content > hr,
+.n2k-mobile-real-stage > hr{
+  display:none !important;
+  border:0 !important;
+  height:0 !important;
+  margin:0 !important;
+}
+
+/* Keep the bottom edge visually soft instead of drawing a hard divider. */
+.n2k-mobile-real-stage{
+  box-shadow:
+    0 16px 42px rgba(0,0,0,.16),
+    inset 0 -18px 28px -30px rgba(0,0,0,.75) !important;
+}
+
+/* Slightly calmer chat canvas for the cleaner top. */
+#n2k-mobile-real-content #messenger-chat-list{
+  background:
+    linear-gradient(180deg,rgba(17,22,26,.98),rgba(12,16,20,.98)) !important;
+}
+
+@media (pointer:fine){
+  .n2k-main-header{
+    min-height:50px !important;
+    padding:6px 11px !important;
+  }
+
+  #n2k-mobile-real-content #messenger-chat-list{
+    padding:8px 16px 18px !important;
+  }
+}
+
+@media (max-width:900px) and (pointer:coarse){
+  .n2k-main-header h1{
+    font-size:12.5px !important;
+  }
+
+  #n2k-mobile-real-content #messenger-chat-list{
+    padding-top:6px !important;
+  }
+}
+</style>
 
 </body>
 </html>
