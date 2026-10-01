@@ -3715,31 +3715,3 @@
     decorateContacts
   };
 })();
-
-
-/* =====================================================
-   N2K nearby active probe hook
-   ===================================================== */
-(() => {
-  "use strict";
-
-  function installNearbyProbe() {
-    const button = document.getElementById("n2k-nearby-start");
-    if (!button || button.dataset.n2kProbeBound === "1") return;
-
-    button.dataset.n2kProbeBound = "1";
-
-    button.addEventListener("click", () => {
-      fetch(
-        "api/messenger/nearby?probe=1&ts=" + Date.now(),
-        {cache: "no-store"}
-      ).catch(() => {});
-    });
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", installNearbyProbe, {once:true});
-  } else {
-    installNearbyProbe();
-  }
-})();
