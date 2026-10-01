@@ -1,3 +1,13 @@
+## 1.21.43-beta1
+
+- Make the unified Chat view more readable with stronger hierarchy, contrast and spacing.
+- Add a premium layered system header with subtle depth and glass treatment.
+- Split the app title and version into separate visual elements while keeping the canonical title as the version source.
+- Improve chat avatars, active conversation highlighting, unread badges and list rhythm.
+- Modernize the open conversation header, message area and composer.
+- Simplify clock and online-status presentation in the top bar.
+- Preserve the stable Chat / Status / Living Mesh navigation and existing LXMF behavior.
+
 ## 1.21.42-beta1
 
 - Restore the missing modern Messenger controls in the unified Chat view.
