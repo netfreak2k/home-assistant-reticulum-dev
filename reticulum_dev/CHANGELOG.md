@@ -1,3 +1,11 @@
+## 1.21.42-beta1
+
+- Restore the missing modern Messenger controls in the unified Chat view.
+- Add compact + New Contact/Chat action and a small options menu for QR, Export and Import.
+- Add All, Unread and Contacts filters without DOM re-parenting.
+- Extend the search field across both conversations and contacts.
+- Keep the stable Chat/Status/Living Mesh shell and avoid the browser hang from 1.21.40.
+
 ## 1.21.41-beta1
 
 - Fix the browser hang introduced by the first unified Chat/Contacts implementation.
