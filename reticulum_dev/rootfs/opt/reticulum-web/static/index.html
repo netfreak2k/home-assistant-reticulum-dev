@@ -16750,11 +16750,17 @@ hr{
     setTimeout(function(){wrapExpertDetails();updateStatusSetup();},600);
     setTimeout(updateStatusSetup,1600);
 
-    var settings=byId("msg-settings-view");
-    if(settings){
-      new MutationObserver(function(){
-        updateStatusSetup();
-      }).observe(settings,{subtree:true,childList:true,characterData:true});
+    // Calm periodic sync avoids feedback loops while still keeping
+    // the Status & Setup overview current.
+    window.setInterval(updateStatusSetup,3000);
+
+    var settingsTab=document.querySelector('[data-real-tab="settings"]');
+    if(settingsTab && !settingsTab.dataset.n2kStatusBound){
+      settingsTab.dataset.n2kStatusBound="1";
+      settingsTab.addEventListener("click",function(){
+        setTimeout(updateStatusSetup,180);
+        setTimeout(wrapExpertDetails,220);
+      });
     }
   }
 
