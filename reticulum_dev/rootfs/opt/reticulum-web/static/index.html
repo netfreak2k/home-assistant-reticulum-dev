@@ -2241,11 +2241,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.21.45-beta1</h1>
+        <h1>N2K RNS Gateway · 1.21.46-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.45-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.46-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -3260,7 +3260,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.21.45-beta1</strong>
+      <strong>N2K RNS Gateway · 1.21.46-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -13556,7 +13556,7 @@ if (
 
 
 <style id="n2k-makeover-12138">
-/* 1.21.45-beta1 · CLEANUP / MAKEOVER */
+/* 1.21.46-beta1 · CLEANUP / MAKEOVER */
 
 .n2k-main-header h1{
   font-size:16.5px !important;
@@ -13710,7 +13710,7 @@ if (
 
 
 <style id="n2k-unified-chat-safe-12141">
-/* 1.21.45-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
+/* 1.21.46-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
 
 .n2k-mobile-real-nav{
   grid-template-columns:repeat(3,1fr) !important;
@@ -13807,7 +13807,7 @@ if (
 
 
 <style id="n2k-chat-controls-12142">
-/* 1.21.45-beta1 · SAFE MODERN MESSENGER CONTROLS */
+/* 1.21.46-beta1 · SAFE MODERN MESSENGER CONTROLS */
 
 #n2k-mobile-real-content .messenger-search-wrap{
   padding-top:8px !important;
@@ -14144,7 +14144,7 @@ if (
 
 
 <style id="n2k-premium-messenger-header-12143">
-/* 1.21.45-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
+/* 1.21.46-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
 
 /* ---------- SYSTEM HEADER ---------- */
 
@@ -14845,7 +14845,7 @@ if (
 
 
 <style id="n2k-readability-boost-12144">
-/* 1.21.45-beta1 · READABILITY BOOST */
+/* 1.21.46-beta1 · READABILITY BOOST */
 
 :root{
   --n2k-rb-text-strong:rgba(244,247,249,.98);
@@ -15118,7 +15118,7 @@ if (
 
 
 <style id="n2k-readability-final-12145">
-/* 1.21.45-beta1 · READABILITY FINAL */
+/* 1.21.46-beta1 · READABILITY FINAL */
 
 /* Stronger section hierarchy without increasing overall density too much */
 #n2k-mobile-real-content #messenger-chat-list::before,
@@ -15285,6 +15285,158 @@ hr{
 
   #n2k-clock-date{
     font-size:7px !important;
+  }
+}
+</style>
+
+
+<style id="n2k-desktop-readability-scale-12146">
+/* 1.21.46-beta1 · DESKTOP READABILITY SCALE */
+
+@media (pointer:fine){
+
+  /* Use the HA canvas more effectively without touching mobile */
+  body{
+    padding-left:10px !important;
+    padding-right:10px !important;
+  }
+
+  .wrap{
+    width:100% !important;
+    max-width:none !important;
+    grid-template-columns:126px minmax(0,1fr) !important;
+    gap:10px 12px !important;
+  }
+
+  .n2k-mobile-real-nav{
+    width:126px !important;
+  }
+
+  /* Give the actual messenger more breathing room */
+  .n2k-mobile-real-stage,
+  #n2k-mobile-real-content{
+    min-width:0 !important;
+    width:100% !important;
+  }
+
+  #n2k-mobile-real-content .messenger-search-wrap{
+    padding-left:18px !important;
+    padding-right:18px !important;
+  }
+
+  #n2k-mobile-real-content #messenger-chat-list,
+  #n2k-mobile-real-content #msg-contact-list{
+    padding-left:18px !important;
+    padding-right:18px !important;
+  }
+
+  /* Desktop text scale */
+  #n2k-mobile-real-content .messenger-contact-name{
+    font-size:15px !important;
+    line-height:19px !important;
+    font-weight:740 !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact-preview{
+    font-size:11.5px !important;
+    line-height:15.5px !important;
+  }
+
+  #n2k-mobile-real-content .m80-peer-subtitle{
+    font-size:9.5px !important;
+    line-height:13px !important;
+    color:rgba(185,198,205,.74) !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact-time{
+    font-size:9.5px !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact{
+    min-height:76px !important;
+    padding-top:12px !important;
+    padding-bottom:12px !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact-avatar{
+    width:46px !important;
+    height:46px !important;
+    flex:0 0 46px !important;
+    font-size:13.5px !important;
+  }
+
+  /* Make section hierarchy clearer on a large desktop canvas */
+  #n2k-mobile-real-content #messenger-chat-list::before,
+  #n2k-mobile-real-content #msg-contact-list::before{
+    font-size:10px !important;
+    padding-top:10px !important;
+    padding-bottom:10px !important;
+  }
+
+  /* Search slightly larger on desktop only */
+  #n2k-mobile-real-content .messenger-search{
+    min-height:46px !important;
+    font-size:12.5px !important;
+  }
+
+  .n2k-chat-toolbar-title strong{
+    font-size:14px !important;
+  }
+
+  .n2k-chat-toolbar-title span{
+    font-size:9.5px !important;
+  }
+
+  .n2k-chat-filterbar button{
+    min-height:25px !important;
+    font-size:8.8px !important;
+  }
+
+  #n2k-chat-summary{
+    font-size:8.8px !important;
+  }
+
+  /* Open conversation desktop scale */
+  #lxmf-chat-name{
+    font-size:15px !important;
+  }
+
+  #lxmf-chat-peer{
+    font-size:9.5px !important;
+  }
+
+  #lxmf-inbox .lxmf-bubble-content{
+    font-size:12.5px !important;
+    line-height:1.5 !important;
+  }
+
+  #lxmf-chat-content{
+    min-height:42px !important;
+    font-size:12.5px !important;
+  }
+}
+
+/* Larger desktop monitors: use even more width, not more height */
+@media (pointer:fine) and (min-width:1400px){
+  .wrap{
+    grid-template-columns:132px minmax(0,1fr) !important;
+    gap:10px 14px !important;
+  }
+
+  .n2k-mobile-real-nav{
+    width:132px !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact-name{
+    font-size:15.5px !important;
+  }
+
+  #n2k-mobile-real-content .messenger-contact-preview{
+    font-size:12px !important;
+  }
+
+  #n2k-mobile-real-content .m80-peer-subtitle{
+    font-size:10px !important;
   }
 }
 </style>
