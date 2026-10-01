@@ -320,6 +320,9 @@
     const settings =
       $("msg-settings-view");
 
+    const mesh =
+      $("msg-mesh-view");
+
     const chats =
       $("messenger-chat-list");
 
@@ -337,6 +340,15 @@
       settings.style.setProperty(
         "display",
         tab === "settings" ? "block" : "none",
+        "important"
+      );
+    }
+
+    if (mesh) {
+      mesh.hidden = tab !== "mesh";
+      mesh.style.setProperty(
+        "display",
+        tab === "mesh" ? "block" : "none",
         "important"
       );
     }
