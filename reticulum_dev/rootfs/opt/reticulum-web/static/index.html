@@ -2241,11 +2241,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.21.56-beta1</h1>
+        <h1>N2K RNS Gateway · 1.21.57-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.56-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.57-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -2976,14 +2976,84 @@ code {
     </nav>
   </section>
 
+  <section id="n2k-first-run-guide" class="n2k-first-run-guide">
+    <div class="n2k-first-run-main">
+      <div class="n2k-status-kicker">FÜR NEUE NUTZER</div>
+      <h2>So startest du</h2>
+      <p class="n2k-first-run-lead">
+        N2K RNS Gateway verbindet Home Assistant mit Reticulum und LXMF.
+        Für den Einstieg brauchst du nur ein laufendes Gateway, mindestens eine aktive Verbindung
+        und – wenn du LoRa nutzen willst – einen angeschlossenen RNode.
+      </p>
+
+      <div class="n2k-first-run-steps">
+        <div><span>1</span><p><b>Gateway starten</b><small>RNS und LXMF sollten oben als „Bereit“ erscheinen.</small></p></div>
+        <div><span>2</span><p><b>RNode anschließen</b><small>USB verbinden. Die App erkennt das Gerät und prüft die Firmware.</small></p></div>
+        <div><span>3</span><p><b>Funk prüfen</b><small>Bei bestätigtem RNode werden die vorhandenen Funkwerte verwendet und der Live-Status geprüft.</small></p></div>
+        <div><span>4</span><p><b>Messenger prüfen</b><small>Identity und LXMF müssen bereit sein. Danach kannst du Kontakte und Chats verwenden.</small></p></div>
+        <div><span>5</span><p><b>Systemcheck starten</b><small>Der Abschlusstest bestätigt, dass die wichtigsten Komponenten funktionieren.</small></p></div>
+      </div>
+    </div>
+
+    <aside id="n2k-next-action" class="n2k-next-action is-wait">
+      <div class="n2k-next-action-ring"><span id="n2k-next-action-icon">→</span></div>
+      <div class="n2k-next-action-copy">
+        <small>WAS IST JETZT ZU TUN?</small>
+        <strong id="n2k-next-action-title">Status wird geprüft…</strong>
+        <p id="n2k-next-action-text">Einen Moment – die vorhandenen Dienste werden ausgewertet.</p>
+        <button id="n2k-next-action-button" type="button" hidden>Zum nächsten Schritt</button>
+      </div>
+    </aside>
+  </section>
+
+  <section id="n2k-radio-widget" class="n2k-radio-widget">
+    <div class="n2k-radio-widget-head">
+      <div>
+        <div class="n2k-status-kicker">LIVE-FUNKSTATUS</div>
+        <h2>RNode / LoRa</h2>
+        <p>Die wichtigsten Funkwerte auf einen Blick. Technische Details bleiben weiter unten verfügbar.</p>
+      </div>
+      <span id="n2k-radio-widget-state" class="n2k-radio-widget-state is-wait">PRÜFE…</span>
+    </div>
+
+    <div class="n2k-radio-dashboard">
+      <div class="n2k-radio-orbit">
+        <div class="n2k-radio-orbit-ring ring-a"></div>
+        <div class="n2k-radio-orbit-ring ring-b"></div>
+        <div class="n2k-radio-orbit-core">
+          <span>RNode</span>
+          <strong id="n2k-radio-main-state">—</strong>
+        </div>
+      </div>
+
+      <div class="n2k-radio-metrics">
+        <div><small>Datenrate</small><strong id="n2k-radio-rate">—</strong></div>
+        <div><small>Noise Floor</small><strong id="n2k-radio-noise">—</strong></div>
+        <div><small>RX</small><strong id="n2k-radio-rx">—</strong></div>
+        <div><small>TX</small><strong id="n2k-radio-tx">—</strong></div>
+      </div>
+
+      <div class="n2k-radio-bars">
+        <div>
+          <span><b>Airtime</b><em id="n2k-radio-airtime-text">—</em></span>
+          <i><u id="n2k-radio-airtime-bar"></u></i>
+        </div>
+        <div>
+          <span><b>Channel Load</b><em id="n2k-radio-channel-text">—</em></span>
+          <i><u id="n2k-radio-channel-bar"></u></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="n2k-setup-assistant" class="n2k-setup-assistant">
     <div class="n2k-setup-assistant-head">
       <div>
         <div class="n2k-status-kicker">EINRICHTUNG</div>
         <h2>Setup-Assistent</h2>
-        <p>Vier Schritte bis zum einsatzbereiten Gateway. Bereits fertige Schritte werden automatisch markiert.</p>
+        <p>Fünf einfache Schritte bis zum einsatzbereiten Gateway. Fertige Schritte werden automatisch markiert.</p>
       </div>
-      <span id="n2k-setup-progress" class="n2k-setup-progress">0 / 4</span>
+      <span id="n2k-setup-progress" class="n2k-setup-progress">0 / 5</span>
     </div>
 
     <div class="n2k-setup-steps">
@@ -3015,8 +3085,17 @@ code {
         </div>
       </article>
 
-      <article id="n2k-setup-step-test" class="n2k-setup-step is-wait">
+      <article id="n2k-setup-step-identity" class="n2k-setup-step is-wait">
         <span class="n2k-setup-number">4</span>
+        <div>
+          <strong>Identity &amp; Messenger</strong>
+          <p>Deine lokale Identität macht Chats und Kontakte dauerhaft nutzbar.</p>
+          <small id="n2k-setup-identity-note">Wird geprüft…</small>
+        </div>
+      </article>
+
+      <article id="n2k-setup-step-test" class="n2k-setup-step is-wait">
+        <span class="n2k-setup-number">5</span>
         <div>
           <strong>Abschlusstest</strong>
           <p>Identity, LXMF, Netzwerk und RNode gemeinsam prüfen.</p>
@@ -3034,6 +3113,16 @@ code {
         <div class="n2k-hardware-usb-sub">USB-Gerät erkennen · Funkprofil automatisch einrichten · Funktion prüfen</div>
       </div>
       <span class="n2k-hardware-usb-badge">RNode</span>
+    </div>
+    <div class="n2k-rnode-help-strip">
+      <span class="n2k-rnode-help-icon">i</span>
+      <div>
+        <strong>Was passiert hier?</strong>
+        <p>
+          Das Gateway sucht dein USB-Funkgerät, prüft ob es als RNode antwortet und zeigt danach,
+          ob der Funk wirklich aktiv ist. Wenn alles grün ist, musst du hier normalerweise nichts mehr ändern.
+        </p>
+      </div>
     </div>
     <div id="n2k-hardware-usb-slot"></div>
   </section>
@@ -3237,6 +3326,18 @@ code {
       Keine passende Hilfe gefunden. Suchbegriff kürzen oder anderes Stichwort verwenden.
     </div>
 
+    <details id="n2k-beginner-glossary" class="n2k-beginner-glossary">
+      <summary>Begriffe einfach erklärt</summary>
+      <div class="n2k-beginner-glossary-grid">
+        <div><b>RNode</b><span>Das USB-Funkgerät, das Reticulum über LoRa senden und empfangen lässt.</span></div>
+        <div><b>Reticulum / RNS</b><span>Das Netzwerk unter dem Messenger. Es findet Wege zwischen Geräten.</span></div>
+        <div><b>LXMF</b><span>Das Nachrichtensystem für Chats und Mitteilungen über Reticulum.</span></div>
+        <div><b>Identity</b><span>Deine dauerhafte lokale Identität. Sie sollte nicht ohne Grund gelöscht werden.</span></div>
+        <div><b>Announce</b><span>Eine kurze Bekanntmachung, damit andere Geräte deine Destination kennenlernen können.</span></div>
+        <div><b>Store &amp; Forward</b><span>Nachrichten können zwischengespeichert werden, wenn kein direkter Weg vorhanden ist.</span></div>
+      </div>
+    </details>
+
     <div class="n2k-help-list" id="n2k-help-list">
       <details class="n2k-help-item" data-help="start installation repository addon starten home assistant">
         <summary>1 · Installation &amp; Start</summary>
@@ -3360,7 +3461,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.21.56-beta1</strong>
+      <strong>N2K RNS Gateway · 1.21.57-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -13790,7 +13891,7 @@ if (
 
 
 <style id="n2k-makeover-12138">
-/* 1.21.56-beta1 · CLEANUP / MAKEOVER */
+/* 1.21.57-beta1 · CLEANUP / MAKEOVER */
 
 .n2k-main-header h1{
   font-size:16.5px !important;
@@ -13944,7 +14045,7 @@ if (
 
 
 <style id="n2k-unified-chat-safe-12141">
-/* 1.21.56-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
+/* 1.21.57-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
 
 .n2k-mobile-real-nav{
   grid-template-columns:repeat(3,1fr) !important;
@@ -14041,7 +14142,7 @@ if (
 
 
 <style id="n2k-chat-controls-12142">
-/* 1.21.56-beta1 · SAFE MODERN MESSENGER CONTROLS */
+/* 1.21.57-beta1 · SAFE MODERN MESSENGER CONTROLS */
 
 #n2k-mobile-real-content .messenger-search-wrap{
   padding-top:8px !important;
@@ -14378,7 +14479,7 @@ if (
 
 
 <style id="n2k-premium-messenger-header-12143">
-/* 1.21.56-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
+/* 1.21.57-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
 
 /* ---------- SYSTEM HEADER ---------- */
 
@@ -15079,7 +15180,7 @@ if (
 
 
 <style id="n2k-readability-boost-12144">
-/* 1.21.56-beta1 · READABILITY BOOST */
+/* 1.21.57-beta1 · READABILITY BOOST */
 
 :root{
   --n2k-rb-text-strong:rgba(244,247,249,.98);
@@ -15352,7 +15453,7 @@ if (
 
 
 <style id="n2k-readability-final-12145">
-/* 1.21.56-beta1 · READABILITY FINAL */
+/* 1.21.57-beta1 · READABILITY FINAL */
 
 /* Stronger section hierarchy without increasing overall density too much */
 #n2k-mobile-real-content #messenger-chat-list::before,
@@ -15525,7 +15626,7 @@ hr{
 
 
 <style id="n2k-desktop-readability-scale-12146">
-/* 1.21.56-beta1 · DESKTOP READABILITY SCALE */
+/* 1.21.57-beta1 · DESKTOP READABILITY SCALE */
 
 @media (pointer:fine){
 
@@ -15677,7 +15778,7 @@ hr{
 
 
 <style id="n2k-hardware-usb-restore-12147">
-/* 1.21.56-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
+/* 1.21.57-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
 
 .n2k-hardware-usb-card{
   margin:0 0 12px;
@@ -15863,7 +15964,7 @@ hr{
 
 
 <style id="n2k-rnode-layout-12148">
-/* 1.21.56-beta1 · RNODE / USB LAYOUT CLEANUP */
+/* 1.21.57-beta1 · RNODE / USB LAYOUT CLEANUP */
 
 #n2k-hardware-usb-slot .grid{
   grid-template-columns:repeat(12,minmax(0,1fr)) !important;
@@ -16118,7 +16219,7 @@ hr{
 
 
 <style id="n2k-status-setup-v2-12154">
-/* 1.21.56-beta1 · STATUS & SETUP 2.0 */
+/* 1.21.57-beta1 · STATUS & SETUP 2.0 */
 
 #msg-settings-view{
   --status-bg:#0d1317;
@@ -16762,6 +16863,639 @@ hr{
         setTimeout(wrapExpertDetails,220);
       });
     }
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
+
+
+<style id="n2k-first-run-ux-12157">
+/* 1.21.57-beta1 · FIRST-RUN UX */
+
+.n2k-first-run-guide{
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(260px,.65fr);
+  gap:10px;
+  margin:0 0 12px;
+}
+
+.n2k-first-run-main,
+.n2k-next-action,
+.n2k-radio-widget{
+  border:1px solid rgba(255,255,255,.065);
+  border-radius:13px;
+  background:
+    radial-gradient(circle at 0 0,rgba(113,217,176,.03),transparent 28%),
+    linear-gradient(180deg,rgba(18,24,29,.96),rgba(11,16,20,.98));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.n2k-first-run-main{
+  padding:14px;
+}
+
+.n2k-first-run-main h2,
+.n2k-radio-widget h2{
+  margin:0;
+  color:rgba(240,245,247,.96);
+  font-size:15px;
+  line-height:1.2;
+}
+
+.n2k-first-run-lead{
+  margin:5px 0 12px;
+  max-width:820px;
+  color:rgba(177,191,199,.72);
+  font-size:9px;
+  line-height:1.5;
+}
+
+.n2k-first-run-steps{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:6px;
+}
+
+.n2k-first-run-steps > div{
+  display:flex;
+  gap:7px;
+  min-width:0;
+  padding:8px;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:9px;
+  background:rgba(255,255,255,.014);
+}
+
+.n2k-first-run-steps > div > span{
+  display:grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  border-radius:50%;
+  background:rgba(113,217,176,.055);
+  border:1px solid rgba(113,217,176,.12);
+  color:#78deb7;
+  font-size:8px;
+  font-weight:850;
+}
+
+.n2k-first-run-steps p{
+  margin:0;
+  min-width:0;
+}
+
+.n2k-first-run-steps b{
+  display:block;
+  color:rgba(234,241,244,.92);
+  font-size:8.5px;
+}
+
+.n2k-first-run-steps small{
+  display:block;
+  margin-top:3px;
+  color:rgba(166,181,190,.64);
+  font-size:7.5px;
+  line-height:1.4;
+}
+
+.n2k-next-action{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+}
+
+.n2k-next-action-ring{
+  display:grid;
+  place-items:center;
+  width:58px;
+  height:58px;
+  flex:0 0 58px;
+  border:1px solid rgba(231,188,120,.18);
+  border-radius:50%;
+  background:
+    radial-gradient(circle,rgba(231,188,120,.12),rgba(231,188,120,.02) 58%,transparent 60%);
+  box-shadow:0 0 26px rgba(231,188,120,.05);
+}
+
+.n2k-next-action-ring span{
+  color:#e5ba78;
+  font-size:18px;
+  font-weight:800;
+}
+
+.n2k-next-action.is-ok .n2k-next-action-ring{
+  border-color:rgba(116,221,180,.2);
+  background:
+    radial-gradient(circle,rgba(116,221,180,.13),rgba(116,221,180,.02) 58%,transparent 60%);
+}
+.n2k-next-action.is-ok .n2k-next-action-ring span{color:#74ddb4;}
+.n2k-next-action.is-bad .n2k-next-action-ring span{color:#ef8e8e;}
+
+.n2k-next-action-copy{
+  min-width:0;
+}
+
+.n2k-next-action-copy small{
+  display:block;
+  color:rgba(168,183,191,.56);
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.11em;
+}
+
+.n2k-next-action-copy strong{
+  display:block;
+  margin-top:4px;
+  color:rgba(241,245,247,.96);
+  font-size:11px;
+  line-height:1.25;
+}
+
+.n2k-next-action-copy p{
+  margin:4px 0 0;
+  color:rgba(177,191,199,.7);
+  font-size:8px;
+  line-height:1.45;
+}
+
+.n2k-next-action-copy button{
+  min-height:28px;
+  margin-top:8px;
+  padding:0 9px;
+  border:1px solid rgba(113,217,176,.13);
+  border-radius:8px;
+  background:rgba(113,217,176,.045);
+  color:#82dfbb;
+  font:inherit;
+  font-size:8px;
+  cursor:pointer;
+}
+
+.n2k-radio-widget{
+  margin:0 0 12px;
+  padding:14px;
+}
+
+.n2k-radio-widget-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.n2k-radio-widget-head p{
+  margin:4px 0 0;
+  color:rgba(169,184,192,.64);
+  font-size:8px;
+}
+
+.n2k-radio-widget-state{
+  display:inline-flex;
+  align-items:center;
+  min-height:23px;
+  padding:0 8px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:999px;
+  color:rgba(178,191,199,.7);
+  font-size:7px;
+  font-weight:850;
+  letter-spacing:.07em;
+}
+
+.n2k-radio-widget-state.is-ok{
+  color:#74ddb4;
+  border-color:rgba(116,221,180,.18);
+  background:rgba(116,221,180,.05);
+}
+
+.n2k-radio-widget-state.is-warn{
+  color:#e7bc78;
+  border-color:rgba(231,188,120,.18);
+  background:rgba(231,188,120,.05);
+}
+
+.n2k-radio-dashboard{
+  display:grid;
+  grid-template-columns:150px minmax(0,1fr) minmax(220px,.8fr);
+  gap:14px;
+  align-items:center;
+  margin-top:12px;
+}
+
+.n2k-radio-orbit{
+  position:relative;
+  display:grid;
+  place-items:center;
+  min-height:118px;
+}
+
+.n2k-radio-orbit-ring{
+  position:absolute;
+  border:1px solid rgba(113,217,176,.10);
+  border-radius:50%;
+}
+
+.n2k-radio-orbit-ring.ring-a{
+  width:92px;
+  height:92px;
+}
+
+.n2k-radio-orbit-ring.ring-b{
+  width:118px;
+  height:118px;
+  border-style:dashed;
+  opacity:.55;
+}
+
+.n2k-radio-orbit-core{
+  position:relative;
+  z-index:2;
+  display:grid;
+  place-items:center;
+  width:66px;
+  height:66px;
+  border:1px solid rgba(113,217,176,.17);
+  border-radius:50%;
+  background:
+    radial-gradient(circle,rgba(113,217,176,.11),rgba(9,15,18,.94) 66%);
+  box-shadow:0 0 24px rgba(113,217,176,.06);
+}
+
+.n2k-radio-orbit-core span{
+  color:rgba(166,181,190,.58);
+  font-size:7px;
+}
+
+.n2k-radio-orbit-core strong{
+  max-width:54px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:#76dcb5;
+  font-size:8px;
+  white-space:nowrap;
+}
+
+.n2k-radio-metrics{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+}
+
+.n2k-radio-metrics > div{
+  padding:9px;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:9px;
+  background:rgba(255,255,255,.014);
+}
+
+.n2k-radio-metrics small{
+  display:block;
+  color:rgba(165,180,188,.6);
+  font-size:7px;
+}
+
+.n2k-radio-metrics strong{
+  display:block;
+  margin-top:3px;
+  color:rgba(230,238,242,.9);
+  font-size:10px;
+}
+
+.n2k-radio-bars{
+  display:grid;
+  gap:10px;
+}
+
+.n2k-radio-bars > div > span{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:4px;
+}
+
+.n2k-radio-bars b,
+.n2k-radio-bars em{
+  color:rgba(185,198,205,.72);
+  font-size:7.5px;
+  font-style:normal;
+}
+
+.n2k-radio-bars i{
+  display:block;
+  height:7px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.045);
+}
+
+.n2k-radio-bars u{
+  display:block;
+  width:0;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,rgba(113,217,176,.48),rgba(113,217,176,.92));
+  text-decoration:none;
+  transition:width .35s ease;
+}
+
+.n2k-rnode-help-strip{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  margin:10px 0 12px;
+  padding:9px 10px;
+  border:1px solid rgba(113,217,176,.075);
+  border-radius:9px;
+  background:rgba(113,217,176,.025);
+}
+
+.n2k-rnode-help-icon{
+  display:grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  border-radius:50%;
+  background:rgba(113,217,176,.08);
+  color:#78deb7;
+  font-size:9px;
+  font-weight:850;
+}
+
+.n2k-rnode-help-strip strong{
+  display:block;
+  color:rgba(232,239,242,.9);
+  font-size:8.5px;
+}
+
+.n2k-rnode-help-strip p{
+  margin:3px 0 0;
+  color:rgba(170,185,193,.65);
+  font-size:7.8px;
+  line-height:1.45;
+}
+
+.n2k-beginner-glossary{
+  margin:10px 0 12px !important;
+  padding:0 !important;
+  border:1px solid rgba(255,255,255,.055) !important;
+  border-radius:10px !important;
+  background:rgba(255,255,255,.012) !important;
+}
+
+.n2k-beginner-glossary > summary{
+  min-height:34px;
+  padding:0 10px;
+  display:flex;
+  align-items:center;
+  color:rgba(213,222,227,.82);
+  font-size:8.5px;
+  font-weight:750;
+}
+
+.n2k-beginner-glossary-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+  padding:0 10px 10px;
+}
+
+.n2k-beginner-glossary-grid > div{
+  padding:8px;
+  border:1px solid rgba(255,255,255,.045);
+  border-radius:8px;
+  background:rgba(255,255,255,.012);
+}
+
+.n2k-beginner-glossary-grid b{
+  display:block;
+  color:rgba(235,241,244,.9);
+  font-size:8px;
+}
+
+.n2k-beginner-glossary-grid span{
+  display:block;
+  margin-top:3px;
+  color:rgba(167,182,190,.64);
+  font-size:7.5px;
+  line-height:1.45;
+}
+
+/* five setup steps */
+.n2k-setup-steps{
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+}
+
+@media(max-width:1100px){
+  .n2k-first-run-guide{
+    grid-template-columns:1fr;
+  }
+  .n2k-first-run-steps,
+  .n2k-setup-steps{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .n2k-radio-dashboard{
+    grid-template-columns:130px minmax(0,1fr);
+  }
+  .n2k-radio-bars{
+    grid-column:1/-1;
+  }
+}
+
+@media(max-width:620px){
+  .n2k-first-run-steps,
+  .n2k-setup-steps,
+  .n2k-beginner-glossary-grid{
+    grid-template-columns:1fr !important;
+  }
+  .n2k-radio-dashboard{
+    grid-template-columns:1fr;
+  }
+  .n2k-radio-orbit{
+    min-height:108px;
+  }
+}
+</style>
+
+<script id="n2k-first-run-ux-js-12157">
+(function(){
+  "use strict";
+
+  function id(name){return document.getElementById(name);}
+  function val(name){
+    var e=id(name);
+    return e ? String(e.textContent||"").trim() : "";
+  }
+  function upper(v){return String(v||"").trim().toUpperCase();}
+  function isOk(v){
+    var t=upper(v);
+    return /UP|ONLINE|BEREIT|AKTIV|READY|CONNECTED|PASS/.test(t) &&
+           !/NICHT|KEIN|AUS|DOWN|OFFLINE|FEHLER|FAIL/.test(t);
+  }
+  function numericPercent(v){
+    var m=String(v||"").replace(",",".").match(/([0-9]+(?:\.[0-9]+)?)\s*%/);
+    if(!m) return 0;
+    return Math.max(0,Math.min(100,Number(m[1])||0));
+  }
+
+  function copyText(from,to){
+    var a=id(from),b=id(to);
+    if(a&&b) b.textContent=String(a.textContent||"").trim()||"—";
+  }
+
+  function updateRadioWidget(){
+    var live=val("rnode-live-status");
+    var ok=isOk(live);
+    var state=id("n2k-radio-widget-state");
+    var main=id("n2k-radio-main-state");
+
+    if(state){
+      state.classList.remove("is-ok","is-warn");
+      state.classList.add(ok?"is-ok":"is-warn");
+      state.textContent=ok?"AKTIV":"PRÜFEN";
+    }
+    if(main) main.textContent=live||"—";
+
+    copyText("rnode-live-rate","n2k-radio-rate");
+    copyText("rnode-live-noise","n2k-radio-noise");
+    copyText("rnode-live-rx","n2k-radio-rx");
+    copyText("rnode-live-tx","n2k-radio-tx");
+    copyText("rnode-live-airtime","n2k-radio-airtime-text");
+    copyText("rnode-live-channel","n2k-radio-channel-text");
+
+    var airtime=numericPercent(val("rnode-live-airtime"));
+    var channel=numericPercent(val("rnode-live-channel"));
+    var ab=id("n2k-radio-airtime-bar");
+    var cb=id("n2k-radio-channel-bar");
+    if(ab) ab.style.width=airtime+"%";
+    if(cb) cb.style.width=channel+"%";
+  }
+
+  function updateBeginnerFlow(){
+    var rns=isOk(val("n2k-status-rns")) || isOk(val("n2k-resilience-rns"));
+    var lxmf=isOk(val("n2k-status-lxmf")) || isOk(val("n2k-resilience-lxmf"));
+    var rnode=isOk(val("rnode-live-status")) || isOk(val("n2k-status-rnode"));
+    var ifaceText=val("n2k-status-ifaces") || val("n2k-resilience-interfaces");
+    var network=/[1-9]\d*\s*\//.test(ifaceText) || isOk(ifaceText);
+
+    var identityText=val("identity-status");
+    var identityReady=isOk(identityText) || (!!val("identity-hash") && val("identity-hash")!=="—");
+
+    var self=upper(val("n2k-selftest-summary"));
+    var testOk=/PASS|BESTANDEN|ERFOLGREICH|BEREIT/.test(self) && !/FAIL|FEHLER/.test(self);
+
+    var identityStep=id("n2k-setup-step-identity");
+    var identityNote=id("n2k-setup-identity-note");
+    if(identityStep){
+      identityStep.classList.remove("is-ok","is-warn","is-bad","is-wait");
+      identityStep.classList.add(identityReady?"is-ok":"is-warn");
+    }
+    if(identityNote){
+      identityNote.textContent=identityReady
+        ? "Persistente Identity ist bereit."
+        : "Identity wird noch geprüft.";
+    }
+
+    var done=[rns&&lxmf,rnode,network,identityReady,testOk].filter(Boolean).length;
+    var progress=id("n2k-setup-progress");
+    if(progress) progress.textContent=done+" / 5";
+
+    var box=id("n2k-next-action");
+    var title=id("n2k-next-action-title");
+    var text=id("n2k-next-action-text");
+    var button=id("n2k-next-action-button");
+    var icon=id("n2k-next-action-icon");
+
+    if(!box||!title||!text||!button||!icon) return;
+
+    box.classList.remove("is-ok","is-warn","is-bad");
+    button.hidden=false;
+
+    if(!rns || !lxmf){
+      box.classList.add("is-bad");
+      icon.textContent="!";
+      title.textContent="Grundsystem prüfen";
+      text.textContent="Reticulum oder LXMF ist noch nicht bereit. Starte zuerst den Systemcheck.";
+      button.textContent="Systemcheck öffnen";
+      button.dataset.target="n2k-selftest-card";
+    }else if(!rnode){
+      box.classList.add("is-warn");
+      icon.textContent="2";
+      title.textContent="RNode Setup abschließen";
+      text.textContent="Das Gateway läuft, aber der LoRa-Funk ist noch nicht als aktives Live-Interface bestätigt.";
+      button.textContent="RNode Setup öffnen";
+      button.dataset.target="n2k-hardware-usb-card";
+    }else if(!network){
+      box.classList.add("is-warn");
+      icon.textContent="3";
+      title.textContent="Verbindung prüfen";
+      text.textContent="Der RNode ist bereit. Prüfe jetzt, ob mindestens ein Reticulum-Interface aktiv ist.";
+      button.textContent="Status prüfen";
+      button.dataset.target="n2k-resilience-card";
+    }else if(!identityReady){
+      box.classList.add("is-warn");
+      icon.textContent="4";
+      title.textContent="Messenger vorbereiten";
+      text.textContent="Netzwerk und Funk sind bereit. Jetzt muss deine persistente Identity verfügbar sein.";
+      button.textContent="Hilfe öffnen";
+      button.dataset.target="n2k-help";
+    }else if(!testOk){
+      box.classList.add("is-warn");
+      icon.textContent="5";
+      title.textContent="Abschlusstest starten";
+      text.textContent="Die wichtigen Komponenten sehen gut aus. Ein Systemcheck bestätigt den fertigen Zustand.";
+      button.textContent="Systemcheck starten";
+      button.dataset.target="n2k-selftest-card";
+    }else{
+      box.classList.add("is-ok");
+      icon.textContent="✓";
+      title.textContent="Alles bereit";
+      text.textContent="Gateway, Funk, Netzwerk und Messenger sind einsatzbereit. Du kannst jetzt Kontakte öffnen und chatten.";
+      button.textContent="Zum Chat";
+      button.dataset.target="chat";
+    }
+  }
+
+  function bindNextAction(){
+    var button=id("n2k-next-action-button");
+    if(!button || button.dataset.bound) return;
+    button.dataset.bound="1";
+    button.addEventListener("click",function(){
+      var target=button.dataset.target;
+      if(target==="chat"){
+        var chat=document.querySelector('[data-real-tab="chat"]');
+        if(chat) chat.click();
+        return;
+      }
+      var el=id(target);
+      if(el){
+        el.scrollIntoView({behavior:"smooth",block:"start"});
+        el.classList.remove("n2k-status-flash");
+        void el.offsetWidth;
+        el.classList.add("n2k-status-flash");
+      }
+      if(target==="n2k-selftest-card"){
+        var test=id("n2k-selftest-button");
+        if(test && /STARTEN/.test(upper(button.textContent))) test.click();
+      }
+    });
+  }
+
+  function boot(){
+    bindNextAction();
+    updateRadioWidget();
+    updateBeginnerFlow();
+    window.setInterval(function(){
+      updateRadioWidget();
+      updateBeginnerFlow();
+    },3000);
   }
 
   if(document.readyState==="loading"){
