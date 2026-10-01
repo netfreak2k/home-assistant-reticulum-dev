@@ -290,7 +290,12 @@ def get_serial_devices():
 
 
 def probe_rnode(port):
-    """Read-only probe of a serial device using rnodeconf."""
+    """Read-only probe of a serial device using rnodeconf.
+
+    Important: rnodeconf can return exit code 0 even when the serial
+    device opened successfully but did not answer as a valid RNode.
+    Therefore confirmation must be based on both exit code and output.
+    """
     try:
         result = subprocess.run(
             ["rnodeconf", "-i", port],
@@ -300,15 +305,70 @@ def probe_rnode(port):
         )
 
         output = (result.stdout + "\n" + result.stderr).strip()
+        low = output.lower()
 
-        detected = result.returncode == 0
+        negative_markers = (
+            "did not respond",
+            "invalid response",
+            "is a valid firmware installed",
+            "could not open serial port",
+            "failed to open serial port",
+            "no rnode response",
+            "timed out",
+            "timeout",
+            "not responding",
+            "device did not respond",
+        )
+
+        has_negative = any(
+            marker in low
+            for marker in negative_markers
+        )
+
+        # Positive hints seen in successful RNode interactions.
+        positive_markers = (
+            "rnode",
+            "firmware",
+            "platform",
+            "mcu",
+            "frequency",
+            "bandwidth",
+            "tx power",
+            "spreading factor",
+            "coding rate",
+        )
+
+        positive_hits = sum(
+            1 for marker in positive_markers
+            if marker in low
+        )
+
+        # Never accept a probe with a known failure signature.
+        detected = (
+            result.returncode == 0
+            and not has_negative
+            and positive_hits >= 2
+        )
+
+        if detected:
+            state = "RNODE_CONFIRMED"
+        elif has_negative:
+            state = "NO_RNODE_RESPONSE"
+        elif result.returncode != 0:
+            state = "NO_RNODE_RESPONSE"
+        else:
+            state = "PROBE_INCONCLUSIVE"
 
         return {
             "detected": detected,
             "device_present": True,
-            "result": "RNODE_CONFIRMED" if detected else "NO_RNODE_RESPONSE",
+            "result": state,
             "returncode": result.returncode,
             "info": output,
+            "probe_evidence": {
+                "negative_signature": has_negative,
+                "positive_hits": positive_hits,
+            },
         }
 
     except subprocess.TimeoutExpired:
