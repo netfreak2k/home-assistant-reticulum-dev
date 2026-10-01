@@ -1,3 +1,15 @@
+## 1.21.57-beta1
+
+- Rework Status for first-time users while preserving the existing working backend and controls.
+- Add a beginner Quick Start guide with five plain-language setup steps.
+- Add a dynamic "What should I do next?" widget that points to the correct next action.
+- Add a graphical RNode / LoRa live-status widget with mirrored telemetry and utilization bars.
+- Expand the Setup Assistant from four to five stages, including Identity & Messenger.
+- Add beginner explanations to the RNode Setup area without changing existing IDs or RNode logic.
+- Add a local "terms explained simply" glossary for RNode, RNS, LXMF, Identity, Announce and Store & Forward.
+- Keep technical details and diagnostics available for advanced users.
+- No backend, API, RNode, Store & Forward or messaging behavior changes.
+
 ## 1.21.56-beta1
 
 - Fix the RNode self-test so configured USB is not mistaken for a live RNode interface.
