@@ -1950,6 +1950,7 @@ code {
     var chats=$("messenger-chat-list");
     var contacts=$("msg-contacts-view");
     var settings=$("msg-settings-view");
+    var mesh=$("msg-mesh-view");
     var search=document.querySelector(".messenger-search-wrap");
     var conversation=document.querySelector(".messenger-conversation");
 
@@ -1959,6 +1960,7 @@ code {
     show(search,name==="chats");
     show(contacts,name==="contacts");
     show(settings,name==="settings");
+    show(mesh,name==="mesh");
 
     document.querySelectorAll(".n2k-mobile-clean-nav button").forEach(function(btn){
       btn.classList.toggle("active",btn.dataset.cleanTab===name);
@@ -2293,6 +2295,9 @@ code {
     </button>
     <button type="button" data-real-tab="settings">
       <b>⌁</b><small>Status</small>
+    </button>
+    <button type="button" data-real-tab="mesh">
+      <b>◌</b><small>Living Mesh</small>
     </button>
   </nav>
 
@@ -2764,6 +2769,13 @@ code {
       <span class="msg-tab-icon">⚙</span>
       <span>Status</span>
     </button>
+
+    <button type="button"
+            class="msg-tab"
+            data-msg-tab="mesh">
+      <span class="msg-tab-icon">◌</span>
+      <span>Living Mesh</span>
+    </button>
   </nav>
 
   <div id="n2k-mobile-chat-entry" class="n2k-mobile-chat-entry">
@@ -2830,6 +2842,15 @@ code {
 
     </div>
 
+    
+
+    <div id="msg-contact-list"></div>
+
+  </div>
+
+  <div id="msg-mesh-view"
+       class="msg-secondary-view n2k-mesh-view"
+       hidden>
     <section class="n2k-constellation-card n2k-universe-card" id="n2k-constellation-card">
       <div class="n2k-constellation-head n2k-universe-head">
         <div>
@@ -2898,9 +2919,6 @@ code {
         </aside>
       </div>
     </section>
-
-    <div id="msg-contact-list"></div>
-
   </div>
 
   <div id="msg-settings-view"
@@ -11857,6 +11875,7 @@ if (
       byId("messenger-chat-list"),
       byId("msg-contacts-view"),
       byId("msg-settings-view"),
+      byId("msg-mesh-view"),
       document.querySelector(".messenger-conversation")
     ].forEach(function(el){
       if(el && el.parentElement!==stage){
@@ -11882,6 +11901,7 @@ if (
     var chats=byId("messenger-chat-list");
     var contacts=byId("msg-contacts-view");
     var settings=byId("msg-settings-view");
+    var mesh=byId("msg-mesh-view");
     var conversation=stage.querySelector(".messenger-conversation");
 
     if(conversation){
@@ -11894,6 +11914,8 @@ if (
     toggle(chats,name==="chats","block");
     toggle(contacts,name==="contacts","block");
     toggle(settings,name==="settings","block");
+    toggle(mesh,name==="mesh","block");
+    toggle(mesh,name==="mesh","block");
 
     document.querySelectorAll("#n2k-mobile-real-nav button").forEach(function(btn){
       btn.classList.toggle("active",btn.dataset.realTab===name);
@@ -11927,7 +11949,8 @@ if (
       stage.querySelector(".messenger-search-wrap"),
       byId("messenger-chat-list"),
       byId("msg-contacts-view"),
-      byId("msg-settings-view")
+      byId("msg-settings-view"),
+      byId("msg-mesh-view")
     ].forEach(function(el){
       toggle(el,false);
     });
@@ -13155,6 +13178,51 @@ if (
 @media(prefers-reduced-motion:reduce){
   .n2k-cnode{
     transition:none !important;
+  }
+}
+</style>
+
+
+<style id="n2k-living-mesh-view-12136">
+/* 1.21.36-beta1 · LIVING MESH AS FIRST-CLASS VIEW */
+
+.n2k-mesh-view{
+  width:100%;
+  min-width:0;
+}
+
+.n2k-mesh-view .n2k-universe-card{
+  margin:0 !important;
+}
+
+@media (max-width:900px) and (pointer:coarse){
+  .n2k-mobile-real-nav{
+    grid-template-columns:repeat(4,1fr) !important;
+  }
+
+  .n2k-mobile-real-nav button{
+    min-width:0;
+    padding-left:4px !important;
+    padding-right:4px !important;
+  }
+
+  .n2k-mobile-real-nav button small{
+    font-size:10px !important;
+  }
+
+  #n2k-mobile-real-content #msg-mesh-view{
+    width:100% !important;
+    min-height:0 !important;
+    height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+}
+
+@media (pointer:fine){
+  #n2k-mobile-real-content #msg-mesh-view{
+    width:100% !important;
+    min-height:650px !important;
   }
 }
 </style>
@@ -17875,6 +17943,7 @@ body {
     toggle(chats,name==="chats","block");
     toggle(contacts,name==="contacts","block");
     toggle(settings,name==="settings","block");
+    toggle(mesh,name==="mesh","block");
 
     document.querySelectorAll("#n2k-mobile-clean-tabs-top button").forEach(function(btn){
       btn.classList.toggle("active",btn.dataset.cleanTab===name);
@@ -18747,6 +18816,7 @@ body {
       byId("messenger-chat-list"),
       byId("msg-contacts-view"),
       byId("msg-settings-view"),
+      byId("msg-mesh-view"),
       document.querySelector(".messenger-conversation")
     ].forEach(function(el){
       if(el && el.parentElement!==stage){
@@ -18777,6 +18847,7 @@ body {
     var chats=byId("messenger-chat-list");
     var contacts=byId("msg-contacts-view");
     var settings=byId("msg-settings-view");
+    var mesh=byId("msg-mesh-view");
     var conversation=stage.querySelector(".messenger-conversation");
 
     if(conversation){
@@ -18789,6 +18860,7 @@ body {
     toggle(chats,name==="chats","block");
     toggle(contacts,name==="contacts","block");
     toggle(settings,name==="settings","block");
+    toggle(mesh,name==="mesh","block");
 
     document.querySelectorAll("#n2k-mobile-real-nav button").forEach(function(btn){
       btn.classList.toggle(
@@ -18834,7 +18906,8 @@ body {
       stage.querySelector(".messenger-search-wrap"),
       byId("messenger-chat-list"),
       byId("msg-contacts-view"),
-      byId("msg-settings-view")
+      byId("msg-settings-view"),
+      byId("msg-mesh-view")
     ].forEach(function(el){
       toggle(el,false);
     });
