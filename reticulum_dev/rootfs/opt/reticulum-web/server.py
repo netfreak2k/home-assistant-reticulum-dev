@@ -3314,32 +3314,67 @@ def get_messenger_nearby(since=0, probe=False):
     live_count = 0
     cached_count = 0
 
+    # The announce debug stream is written directly by the registered
+    # lxmf.delivery announce handler. Use it as the authoritative
+    # source for "heard during this scan". This avoids the old false-0
+    # result when contacts.json already contained the peer and its
+    # cached timestamp was not refreshed by a path probe.
+    live_peers = set()
+    live_events = 0
+    announce_debug_file = (
+        Path("/config/reticulum/homeassistant-node")
+        / "announce-debug.json"
+    )
+
+    if since and announce_debug_file.exists():
+        try:
+            debug_entries = json.loads(
+                announce_debug_file.read_text(
+                    encoding="utf-8"
+                )
+            )
+
+            if isinstance(debug_entries, list):
+                for event in debug_entries:
+                    if not isinstance(event, dict):
+                        continue
+
+                    event_ts = int(
+                        event.get("timestamp") or 0
+                    )
+
+                    if event_ts < since:
+                        continue
+
+                    peer = str(
+                        event.get(
+                            "destination_hash"
+                        ) or ""
+                    ).strip().lower()
+
+                    if len(peer) != 32:
+                        continue
+
+                    live_events += 1
+                    live_peers.add(peer)
+
+        except Exception:
+            # Scanner output must remain available even if the
+            # optional diagnostics file is temporarily unreadable.
+            live_peers = set()
+            live_events = 0
+
     for item in contacts:
         if not isinstance(item, dict):
             continue
 
-        # The nearby scanner must only expose contacts that were
-        # actually learned from LXMF announces. Manually imported or
-        # manually created contacts belong in the normal contact list.
         source = str(
             item.get("source") or ""
         ).strip()
 
-        if source != "lxmf_announce":
-            continue
-
-        last_seen = int(item.get("last_seen") or 0)
-
-        if not last_seen:
-            continue
-
-        age_seconds = max(0, now - last_seen)
-
-        # Keep a useful rolling cache, like propagation discovery.
-        # Older contacts remain in the normal contact list but are not
-        # presented as "nearby".
-        if age_seconds > cache_ttl:
-            continue
+        discovery_source = str(
+            item.get("discovery_source") or ""
+        ).strip()
 
         peer = str(
             item.get("destination_hash") or ""
@@ -3348,9 +3383,48 @@ def get_messenger_nearby(since=0, probe=False):
         if len(peer) != 32:
             continue
 
+        # Accept both current and older contact-cache records. Earlier
+        # builds did not always persist source="lxmf_announce", which
+        # made the UI report 0 known LXMF peers although the contact
+        # list was populated.
+        announce_like = bool(
+            source == "lxmf_announce"
+            or discovery_source in (
+                "announce",
+                "known_destinations_cache",
+            )
+            or peer in live_peers
+        )
+
+        if not announce_like:
+            continue
+
+        last_seen = int(item.get("last_seen") or 0)
+
+        if not last_seen and peer not in live_peers:
+            continue
+
+        age_seconds = (
+            max(0, now - last_seen)
+            if last_seen
+            else 0
+        )
+
+        if (
+            last_seen
+            and age_seconds > cache_ttl
+            and peer not in live_peers
+        ):
+            continue
+
         path_info = path_map.get(peer) or {}
+
         seen_during_scan = bool(
-            since and last_seen >= since
+            since
+            and (
+                peer in live_peers
+                or last_seen >= since
+            )
         )
 
         if seen_during_scan:
@@ -3369,6 +3443,7 @@ def get_messenger_nearby(since=0, probe=False):
             "last_seen": last_seen,
             "age_seconds": age_seconds,
             "source": source,
+            "discovery_source": discovery_source,
             "hops": path_info.get("hops"),
             "interface": str(
                 path_info.get("interface") or ""
@@ -3406,6 +3481,8 @@ def get_messenger_nearby(since=0, probe=False):
         "cache_ttl_seconds": cache_ttl,
         "count": len(nearby),
         "live_count": live_count,
+        "live_event_count": live_events,
+        "live_peer_count": len(live_peers),
         "cached_count": cached_count,
         "contacts": nearby,
         "network_ok": bool(network.get("ok")),
