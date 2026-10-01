@@ -31,6 +31,11 @@ LOGLEVEL="$(bashio::config 'loglevel' 2>/dev/null || true)"
 [ -n "${TCP_INTERFACE}" ] || TCP_INTERFACE="false"
 [ -n "${TCP_PORT}" ] || TCP_PORT="4242"
 [ -n "${RNODE_INTERFACE}" ] || RNODE_INTERFACE="false"
+[ -n "${RNODE_FREQUENCY}" ] || RNODE_FREQUENCY="868100000"
+[ -n "${RNODE_BANDWIDTH}" ] || RNODE_BANDWIDTH="125000"
+[ -n "${RNODE_TXPOWER}" ] || RNODE_TXPOWER="14"
+[ -n "${RNODE_SF}" ] || RNODE_SF="10"
+[ -n "${RNODE_CR}" ] || RNODE_CR="5"
 [ -n "${TRANSPORT}" ] || TRANSPORT="false"
 [ -n "${LOGLEVEL}" ] || LOGLEVEL="info"
 
@@ -226,37 +231,42 @@ fi
 sed -i '/# BEGIN HOMEASSISTANT RETICULUM MANAGED RNODE/,/# END HOMEASSISTANT RETICULUM MANAGED RNODE/d' "${CONFIG_FILE}"
 
 if bashio::var.true "${RNODE_INTERFACE}"; then
-
-    # Never auto-select a serial device.
-    # The user must explicitly configure an existing local serial port.
     if [ -z "${RNODE_PORT}" ]; then
         bashio::log.error "RNode enabled but no serial port is configured"
         bashio::log.error "RNodeInterface will NOT be created"
-
-    elif [[ "${RNODE_PORT}" != /dev/* ]] || [ ! -c "${RNODE_PORT}" ]; then
-        bashio::log.error "Configured RNode port is not an accessible serial device: ${RNODE_PORT}"
-        bashio::log.error "RNodeInterface will NOT be created"
-
-    elif [ "${RNODE_FREQUENCY:-0}" -le 0 ]; then
-        bashio::log.error "RNode enabled but frequency is invalid"
-        bashio::log.error "RNodeInterface will NOT be created"
-
     else
-        bashio::log.info "RNode configuration validated"
-        bashio::log.info "RNode port: ${RNODE_PORT}"
-        bashio::log.info "RNode frequency: ${RNODE_FREQUENCY}"
-        bashio::log.info "RNode bandwidth: ${RNODE_BANDWIDTH}"
-        bashio::log.info "RNode TX power: ${RNODE_TXPOWER}"
-        bashio::log.info "RNode SF: ${RNODE_SF}"
-        bashio::log.info "RNode CR: ${RNODE_CR}"
+        # Keep the stable by-id path in Home Assistant options, but resolve it
+        # to the actual tty device for pyserial/RNodeInterface.
+        RNODE_RUNTIME_PORT="$(readlink -f "${RNODE_PORT}" 2>/dev/null || true)"
 
-    cat >> "${CONFIG_FILE}" <<CONFIG
+        if [ -z "${RNODE_RUNTIME_PORT}" ]; then
+            RNODE_RUNTIME_PORT="${RNODE_PORT}"
+        fi
+
+        bashio::log.info "RNode configured port: ${RNODE_PORT}"
+        bashio::log.info "RNode runtime port: ${RNODE_RUNTIME_PORT}"
+
+        if [[ "${RNODE_RUNTIME_PORT}" != /dev/* ]] || [ ! -c "${RNODE_RUNTIME_PORT}" ]; then
+            bashio::log.error "Resolved RNode port is not an accessible character device: ${RNODE_RUNTIME_PORT}"
+            bashio::log.error "RNodeInterface will NOT be created"
+        elif ! [[ "${RNODE_FREQUENCY}" =~ ^[0-9]+$ ]] || [ "${RNODE_FREQUENCY}" -le 0 ]; then
+            bashio::log.error "RNode frequency is invalid: ${RNODE_FREQUENCY}"
+            bashio::log.error "RNodeInterface will NOT be created"
+        else
+            bashio::log.info "RNode configuration validated"
+            bashio::log.info "RNode frequency: ${RNODE_FREQUENCY}"
+            bashio::log.info "RNode bandwidth: ${RNODE_BANDWIDTH}"
+            bashio::log.info "RNode TX power: ${RNODE_TXPOWER}"
+            bashio::log.info "RNode SF: ${RNODE_SF}"
+            bashio::log.info "RNode CR: ${RNODE_CR}"
+
+            cat >> "${CONFIG_FILE}" <<CONFIG
 
   # BEGIN HOMEASSISTANT RETICULUM MANAGED RNODE
   [[Home Assistant RNode]]
     type = RNodeInterface
     enabled = Yes
-    port = ${RNODE_PORT}
+    port = ${RNODE_RUNTIME_PORT}
     frequency = ${RNODE_FREQUENCY}
     bandwidth = ${RNODE_BANDWIDTH}
     txpower = ${RNODE_TXPOWER}
@@ -264,7 +274,18 @@ if bashio::var.true "${RNODE_INTERFACE}"; then
     codingrate = ${RNODE_CR}
   # END HOMEASSISTANT RETICULUM MANAGED RNODE
 CONFIG
+
+            bashio::log.info "Managed RNodeInterface written to Reticulum config"
+        fi
     fi
+else
+    bashio::log.info "RNode interface disabled in add-on options"
+fi
+
+# Show only the managed RNode block in logs for startup diagnostics.
+if grep -q 'BEGIN HOMEASSISTANT RETICULUM MANAGED RNODE' "${CONFIG_FILE}"; then
+    bashio::log.info "Managed RNode configuration:"
+    sed -n '/# BEGIN HOMEASSISTANT RETICULUM MANAGED RNODE/,/# END HOMEASSISTANT RETICULUM MANAGED RNODE/p' "${CONFIG_FILE}" >&2
 fi
 
 if ! command -v rnsd >/dev/null 2>&1; then
