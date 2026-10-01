@@ -1,3 +1,10 @@
+## 1.21.36-beta1
+
+- Move N2K Mesh Universe out of Contacts into a dedicated **Living Mesh** main view.
+- Add Living Mesh as a fourth primary navigation item directly below Status.
+- Keep the view available in both desktop and mobile app shells.
+- Preserve existing realtime, Live-default and 3D-depth behavior.
+
 ## 1.21.35-beta1
 
 - Start N2K Mesh Universe directly in Live mode.
