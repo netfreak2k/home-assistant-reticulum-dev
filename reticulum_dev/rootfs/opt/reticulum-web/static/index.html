@@ -2240,12 +2240,20 @@ code {
         NETFREAK2K
       </div>
 
-      <h1>
-        N2K RNS Gateway DEV
-      </h1>
+      <div class="n2k-title-row">
+        <h1>N2K RNS Gateway DEV</h1>
 
-      <div class="sub">
-        RNS · LXMF · NODE
+        <div class="n2k-header-stack" aria-label="Core services">
+          <span id="n2k-chip-rns" class="n2k-stack-chip n2k-chip-rns is-wait">
+            <i></i>RNS
+          </span>
+          <span id="n2k-chip-lxmf" class="n2k-stack-chip n2k-chip-lxmf is-wait">
+            <i></i>LXMF
+          </span>
+          <span id="n2k-chip-node" class="n2k-stack-chip n2k-chip-node is-wait">
+            <i></i>NODE
+          </span>
+        </div>
       </div>
 
     </div>
@@ -13226,6 +13234,312 @@ if (
   }
 }
 </style>
+
+
+<style id="n2k-header-compact-live-12137">
+/* 1.21.37-beta1 · COMPACT LIVE HEADER */
+
+.n2k-main-header{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:10px !important;
+  min-height:56px !important;
+  margin-bottom:8px !important;
+  padding:7px 12px !important;
+  border:1px solid rgba(255,255,255,.06) !important;
+  border-radius:13px !important;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(70,126,185,.055),transparent 32%),
+    linear-gradient(180deg,rgba(18,25,30,.97),rgba(9,13,17,.99)) !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.16) !important;
+}
+
+.n2k-brand{
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  gap:3px !important;
+  min-width:0 !important;
+}
+
+.n2k-brand-kicker{
+  margin:0 !important;
+  color:rgba(240,189,108,.64) !important;
+  font-size:7px !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+  letter-spacing:.19em !important;
+}
+
+.n2k-title-row{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-width:0;
+}
+
+.n2k-main-header h1{
+  margin:0 !important;
+  color:rgba(240,244,246,.96) !important;
+  font-size:17px !important;
+  font-weight:760 !important;
+  line-height:1.05 !important;
+  letter-spacing:-.025em !important;
+  white-space:nowrap;
+}
+
+.n2k-main-header .sub{
+  display:none !important;
+}
+
+.n2k-header-stack{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+}
+
+.n2k-stack-chip{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-height:20px;
+  padding:0 7px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:999px;
+  background:rgba(255,255,255,.025);
+  color:rgba(194,205,211,.70);
+  font-size:7.5px;
+  font-weight:850;
+  line-height:1;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  transition:
+    color .18s ease,
+    border-color .18s ease,
+    background .18s ease,
+    box-shadow .18s ease,
+    opacity .18s ease;
+}
+
+.n2k-stack-chip > i{
+  width:5px;
+  height:5px;
+  flex:0 0 5px;
+  border-radius:50%;
+  background:currentColor;
+  opacity:.82;
+  box-shadow:0 0 7px currentColor;
+}
+
+.n2k-stack-chip::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255,255,255,.07) 48%,
+    transparent 72%
+  );
+  transform:translateX(-145%);
+  animation:n2k-header-chip-scan 6.8s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes n2k-header-chip-scan{
+  0%,62%{transform:translateX(-145%);}
+  100%{transform:translateX(145%);}
+}
+
+.n2k-stack-chip.is-online{
+  color:#79e2b6;
+  border-color:rgba(113,217,176,.20);
+  background:rgba(113,217,176,.065);
+  box-shadow:0 0 14px rgba(113,217,176,.06);
+}
+
+.n2k-stack-chip.is-warn{
+  color:#f0bd6c;
+  border-color:rgba(240,189,108,.22);
+  background:rgba(240,189,108,.065);
+}
+
+.n2k-stack-chip.is-offline{
+  color:#8b979e;
+  border-color:rgba(139,151,158,.12);
+  background:rgba(139,151,158,.025);
+  box-shadow:none;
+  opacity:.70;
+}
+
+.n2k-stack-chip.is-error{
+  color:#ef8c8c;
+  border-color:rgba(239,140,140,.20);
+  background:rgba(239,140,140,.055);
+}
+
+.n2k-stack-chip.is-wait{
+  color:#a8b3b9;
+  opacity:.72;
+}
+
+.n2k-header-right{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:7px !important;
+  min-width:0;
+}
+
+.n2k-clock{
+  margin:0 !important;
+  padding:0 !important;
+}
+
+.n2k-clock-date{
+  color:rgba(184,196,202,.62) !important;
+  font-size:8px !important;
+  line-height:1.1 !important;
+  letter-spacing:.03em !important;
+  white-space:nowrap;
+}
+
+#node-status.status{
+  min-height:22px !important;
+  padding:4px 8px !important;
+  border:1px solid rgba(113,217,176,.10) !important;
+  border-radius:999px !important;
+  background:rgba(113,217,176,.045) !important;
+  font-size:8px !important;
+  line-height:1 !important;
+}
+
+@media (pointer:fine){
+  .n2k-main-header{
+    min-height:52px !important;
+  }
+}
+
+@media (max-width:900px) and (pointer:coarse){
+  .n2k-main-header{
+    grid-template-columns:1fr auto !important;
+    min-height:54px !important;
+    padding:7px 9px !important;
+    gap:6px !important;
+  }
+
+  .n2k-brand-kicker{
+    display:none !important;
+  }
+
+  .n2k-title-row{
+    gap:6px;
+    flex-wrap:wrap;
+  }
+
+  .n2k-main-header h1{
+    font-size:13px !important;
+  }
+
+  .n2k-header-stack{
+    gap:3px;
+  }
+
+  .n2k-stack-chip{
+    min-height:18px;
+    padding:0 5px;
+    font-size:6.5px;
+  }
+
+  .n2k-clock-date{
+    font-size:7px !important;
+  }
+
+  #node-status.status{
+    display:none !important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .n2k-stack-chip::after{
+    animation:none !important;
+  }
+}
+</style>
+
+<script id="n2k-header-live-status-12137">
+(function(){
+  "use strict";
+
+  function byId(id){return document.getElementById(id);}
+
+  function classify(text){
+    var t=String(text||"").trim().toUpperCase();
+
+    if(!t || /PRÜF|LOADING|START|WART|—/.test(t)) return "is-wait";
+    if(/FEHLER|ERROR|NICHT ERREICH|DOWN|OFFLINE|AUSGEFALLEN/.test(t)) return "is-error";
+    if(/AUS|INAKTIV|DISABLED|STOP/.test(t)) return "is-offline";
+    if(/WARN|MANUELL|NOCH NICHT|KEIN/.test(t)) return "is-warn";
+    if(/ONLINE|BEREIT|AKTIV|UP|RUNNING|READY|SERVING/.test(t)) return "is-online";
+
+    return "is-wait";
+  }
+
+  function apply(chip,state,title){
+    if(!chip) return;
+    ["is-online","is-warn","is-offline","is-error","is-wait"]
+      .forEach(function(c){chip.classList.remove(c);});
+    chip.classList.add(state||"is-wait");
+    if(title) chip.title=title;
+  }
+
+  function refresh(){
+    var rnsSource=byId("hero-rns");
+    var lxmfSource=byId("messenger-status-text");
+    var nodeSource=byId("node-status") || byId("hero-node-state");
+
+    var rnsText=rnsSource ? rnsSource.textContent : "";
+    var lxmfText=lxmfSource ? lxmfSource.textContent : "";
+    var nodeText=nodeSource ? nodeSource.textContent : "";
+
+    apply(byId("n2k-chip-rns"),classify(rnsText),"RNS · "+String(rnsText||"Status unbekannt").trim());
+    apply(byId("n2k-chip-lxmf"),classify(lxmfText),"LXMF · "+String(lxmfText||"Status unbekannt").trim());
+    apply(byId("n2k-chip-node"),classify(nodeText),"NODE · "+String(nodeText||"Status unbekannt").trim());
+  }
+
+  function observe(id){
+    var target=byId(id);
+    if(!target) return;
+    new MutationObserver(refresh).observe(target,{
+      subtree:true,
+      childList:true,
+      characterData:true,
+      attributes:true,
+      attributeFilter:["class"]
+    });
+  }
+
+  function boot(){
+    ["hero-rns","messenger-status-text","node-status","hero-node-state"]
+      .forEach(observe);
+    refresh();
+    setTimeout(refresh,400);
+    setTimeout(refresh,1500);
+    setInterval(refresh,5000);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
 
 </body>
 </html>
