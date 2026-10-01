@@ -2846,8 +2846,8 @@ code {
 
       <div class="n2k-universe-toolbar">
         <div class="n2k-constellation-filters n2k-universe-filters" role="group" aria-label="Zeitraum">
-          <button type="button" data-n2k-map-filter="live">Live</button>
-          <button type="button" data-n2k-map-filter="hour" class="active">1 h</button>
+          <button type="button" data-n2k-map-filter="live" class="active">Live</button>
+          <button type="button" data-n2k-map-filter="hour">1 h</button>
           <button type="button" data-n2k-map-filter="day">24 h</button>
           <button type="button" data-n2k-map-filter="replay">Replay</button>
         </div>
@@ -10931,7 +10931,7 @@ if (
   "use strict";
 
   var refreshTimer=null;
-  var filter="hour";
+  var filter="live";
   var selected="";
   var previousSeen=new Map();
   var latestData=null;
@@ -11199,11 +11199,13 @@ if (
       var path=pathFor(pos,peer);
       var fresh=age<=120 || item.seen_during_scan===true;
       var selectedNow=peer===selected;
+      var depthClass=pos.ring<=1 ? "depth-near" : (pos.ring>=3 ? "depth-far" : "depth-mid");
+      if(score>.84) depthClass="depth-near";
       var radius=(6+(score*7)).toFixed(1);
       var halo=(16+(score*14)).toFixed(1);
 
       links +=
-        '<path class="n2k-clink route-'+route.kind+(fresh?' fresh':'')+(selectedNow?' selected':'')+'" style="--n2k-seq:'+index+'" d="'+path+'" data-peer="'+esc(peer)+'" />';
+        '<path class="n2k-clink '+depthClass+' route-'+route.kind+(fresh?' fresh':'')+(selectedNow?' selected':'')+'"  style="--n2k-seq:'+index+'" d="'+path+'" data-peer="'+esc(peer)+'" />';
 
       if(trails && fresh){
         var duration=(1.8+((hashNumber(peer,4)%14)/10)).toFixed(1);
@@ -11226,7 +11228,7 @@ if (
         : "—";
 
       nodes +=
-        '<g class="n2k-cnode ring-'+pos.ring+' route-'+route.kind+(fresh?' fresh':'')+(age>3600?' cached':'')+(burst?' burst':'')+(selectedNow?' selected':'')+'" '+
+        '<g class="n2k-cnode '+depthClass+' ring-'+pos.ring+' route-'+route.kind+(fresh?' fresh':'')+(age>3600?' cached':'')+(burst?' burst':'')+(selectedNow?' selected':'')+'" '+
           'data-peer="'+esc(peer)+'" data-age="'+age+'" data-score="'+score.toFixed(3)+'" data-focus="'+(selectedNow?'true':'false')+'" '+
           'style="--n2k-seq:'+index+'" tabindex="0" role="button" transform="translate('+pos.x+' '+pos.y+')">'+
           '<circle class="n2k-cnode-announce-wave" r="'+(Number(halo)+6)+'"></circle>'+
@@ -13021,6 +13023,138 @@ if (
   .n2k-cnode.n2k-realtime-event .n2k-cnode-announce-wave,
   .n2k-cnode.burst .n2k-cnode-announce-wave{
     animation:none !important;
+  }
+}
+</style>
+
+
+<style id="n2k-live-3d-depth-12135">
+/* 1.21.35-beta1 · LIVE DEFAULT + OPTICAL 3D DEPTH */
+
+.n2k-cnode{
+  transform-box:fill-box;
+  transform-origin:center;
+  transition:
+    opacity .18s ease,
+    filter .18s ease;
+}
+
+.n2k-cnode.depth-near{
+  opacity:1;
+  filter:
+    drop-shadow(0 0 8px rgba(113,217,176,.14))
+    drop-shadow(0 0 18px rgba(113,217,176,.05));
+}
+
+.n2k-cnode.depth-mid{
+  opacity:.82;
+  filter:
+    saturate(.92)
+    brightness(.94);
+}
+
+.n2k-cnode.depth-far{
+  opacity:.56;
+  filter:
+    saturate(.74)
+    brightness(.82)
+    blur(.32px);
+}
+
+.n2k-clink.depth-near{
+  opacity:.52;
+  stroke-width:1.7;
+}
+
+.n2k-clink.depth-mid{
+  opacity:.28;
+  stroke-width:1.25;
+}
+
+.n2k-clink.depth-far{
+  opacity:.12;
+  stroke-width:.9;
+}
+
+.n2k-cnode.depth-near .n2k-cnode-label-group{
+  opacity:.92;
+}
+
+.n2k-cnode.depth-mid .n2k-cnode-label-group:not(.important){
+  opacity:.38;
+}
+
+.n2k-cnode.depth-far .n2k-cnode-label-group:not(.important){
+  opacity:.12;
+}
+
+.n2k-ccore{
+  filter:
+    drop-shadow(0 0 16px rgba(240,189,108,.22))
+    drop-shadow(0 0 34px rgba(240,189,108,.10)) !important;
+}
+
+.n2k-u-core-aura{
+  opacity:.38 !important;
+}
+
+.n2k-universe-stage{
+  background:
+    radial-gradient(circle at 50% 46%,rgba(240,189,108,.038),transparent 13%),
+    radial-gradient(circle at 50% 48%,rgba(58,108,168,.105),transparent 33%),
+    radial-gradient(circle at 50% 78%,rgba(7,15,24,.80),transparent 62%),
+    linear-gradient(rgba(255,255,255,.007) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.007) 1px,transparent 1px),
+    #060b10 !important;
+  background-size:
+    auto,
+    auto,
+    auto,
+    52px 52px,
+    52px 52px,
+    auto !important;
+}
+
+.n2k-rns-backdrop{
+  opacity:.84;
+}
+
+.n2k-rns-bg-paths{
+  filter:blur(.10px);
+}
+
+.n2k-rns-propagation ellipse:nth-child(1){
+  opacity:.85;
+}
+
+.n2k-rns-propagation ellipse:nth-child(2){
+  opacity:.58;
+}
+
+.n2k-rns-propagation ellipse:nth-child(3){
+  opacity:.34;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-cnode.depth-far,
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-cnode.depth-far{
+  opacity:.16 !important;
+  filter:
+    saturate(.5)
+    brightness(.62)
+    blur(.55px) !important;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-cnode.selected,
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-cnode.n2k-realtime-event{
+  opacity:1 !important;
+  filter:
+    drop-shadow(0 0 12px rgba(240,189,108,.35))
+    drop-shadow(0 0 26px rgba(240,189,108,.12)) !important;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .n2k-cnode{
+    transition:none !important;
   }
 }
 </style>
