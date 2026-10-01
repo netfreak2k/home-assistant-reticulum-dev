@@ -2241,11 +2241,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.21.48-beta1</h1>
+        <h1>N2K RNS Gateway · 1.21.49-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.48-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.49-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -2482,7 +2482,7 @@ code {
         <div style="margin-top:6px;font-size:.85em;opacity:.75">
           Öffnet ausschließlich für den manuellen Info-Test den
           gespeicherten seriellen Port.
-          Kein Flashen · keine RF-Änderung · keine automatische Aktivierung.
+          Kein Flashen. Bei bestätigter RNode-Kompatibilität wird das N2K-EU868-Profil automatisch übernommen und der RNode aktiviert.
         </div>
 
         <div id="rnode-probe" style="margin-top:8px">
@@ -2518,10 +2518,10 @@ code {
         <b>Node Inspector</b>
 
         <div style="margin-top:6px;font-size:.9em;opacity:.8">
-          Manuelle Analyse des gespeicherten USB-Nodes.
+          Analyse des gespeicherten USB-Nodes.
           Öffnet den seriellen Port einmal für den bekannten
-          RNode-Info-Test. Kein Flashen · keine RF-Änderung ·
-          keine Aktivierung.
+          RNode-Info-Test. Kein Flashen. Bei bestätigter Kompatibilität
+          kann die automatische RNode-Konfiguration direkt folgen.
         </div>
 
         <button id="node-inspect-button"
@@ -3271,7 +3271,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.21.48-beta1</strong>
+      <strong>N2K RNS Gateway · 1.21.49-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -3696,6 +3696,8 @@ async function inspectNode() {
 
     if (d.state === "RNODE_CONFIRMED") {
       setupProbe.textContent = "✓ kompatibel";
+      setupActivation.textContent = "AUTO";
+      await autoConfigureRNode(d.port || "");
     } else if (
       d.state === "SERIAL_OK_RNODE_TIMEOUT" ||
       d.state === "SERIAL_OK_NO_RNODE"
@@ -3705,7 +3707,9 @@ async function inspectNode() {
       setupProbe.textContent = "Nicht bestätigt";
     }
 
-    setupActivation.textContent = "AUS";
+    if (d.state !== "RNODE_CONFIRMED") {
+      setupActivation.textContent = "AUS";
+    }
 
     const serial = d.serial || {};
     const rn = d.rnode || {};
@@ -8058,6 +8062,100 @@ async function refreshHardware() {
   }
 }
 
+async function autoConfigureRNode(port) {
+  const setupActivation = document.getElementById("setup-activation");
+  const next = document.getElementById("rnode-next");
+  const save = document.getElementById("rnode-port-save");
+  const chain = document.getElementById("rnode-chain");
+
+  if (window.__n2kRNodeAutoConfigRunning) return;
+  window.__n2kRNodeAutoConfigRunning = true;
+
+  if (setupActivation) setupActivation.textContent = "AUTO…";
+  if (next) next.textContent =
+    "Automatische Aktivierung · 868.100 MHz · 125 kHz · 14 dBm · SF10 · CR5";
+  if (save) save.textContent = "RNode wird automatisch konfiguriert…";
+
+  try {
+    const response = await fetch("api/rnode/auto-configure", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({port: port || ""})
+    });
+
+    const data = await response.json();
+
+    if (!data.ok) {
+      if (setupActivation) setupActivation.textContent = "FEHLER";
+      if (next) next.textContent =
+        "Auto-Konfiguration fehlgeschlagen: " +
+        (data.error || data.state || "Unbekannter Fehler");
+      if (save) save.textContent = "✗ Auto-Konfiguration fehlgeschlagen";
+      return;
+    }
+
+    const p = data.profile || {};
+
+    if (setupActivation) setupActivation.textContent = "AKTIV";
+    if (chain) chain.textContent =
+      "Hardware ✓  →  Serial ✓  →  RNode ✓  →  EU868-Profil ✓  →  Aktivierung ✓";
+    if (next) next.textContent =
+      "Automatisch konfiguriert: " +
+      ((p.frequency || 868100000) / 1000000).toFixed(3) + " MHz · " +
+      (p.bandwidth || 125000) / 1000 + " kHz · " +
+      (p.txpower ?? 14) + " dBm · SF" +
+      (p.spreadingfactor || 10) + " · CR" +
+      (p.codingrate || 5) +
+      ". Add-on startet automatisch neu.";
+
+    if (save) save.textContent =
+      "✓ Port + Funkprofil gespeichert · Neustart läuft…";
+
+    setTimeout(function(){
+      window.location.reload();
+    }, 7000);
+
+  } catch (error) {
+    if (setupActivation) setupActivation.textContent = "FEHLER";
+    if (next) next.textContent =
+      "Auto-Konfiguration nicht erreichbar";
+    if (save) save.textContent =
+      "✗ Auto-Konfiguration nicht erreichbar";
+  } finally {
+    setTimeout(function(){
+      window.__n2kRNodeAutoConfigRunning = false;
+    }, 9000);
+  }
+}
+
+async function autoConfigureExistingRNode() {
+  try {
+    const cfgResponse = await fetch("api/rnode/config", {cache:"no-store"});
+    const cfg = await cfgResponse.json();
+
+    if (!cfg.ok) return;
+
+    const expected =
+      cfg.rnode_interface === true &&
+      Number(cfg.rnode_frequency) === 868100000 &&
+      Number(cfg.rnode_bandwidth) === 125000 &&
+      Number(cfg.rnode_txpower) === 14 &&
+      Number(cfg.rnode_spreadingfactor) === 10 &&
+      Number(cfg.rnode_codingrate) === 5;
+
+    if (expected) return;
+
+    if (!cfg.rnode_port) return;
+
+    const probeResponse = await fetch("api/rnode/probe", {cache:"no-store"});
+    const probe = await probeResponse.json();
+
+    if (probe.detected || probe.result === "RNODE_CONFIRMED") {
+      await autoConfigureRNode(probe.port || cfg.rnode_port);
+    }
+  } catch (_e) {}
+}
+
 async function probeRNode() {
   const box = document.getElementById("rnode-probe");
   const button = document.getElementById("rnode-probe-button");
@@ -8087,10 +8185,12 @@ async function probeRNode() {
         "✓ USB/Serial erkannt · ✓ RNode-Protokoll bestätigt";
 
       chain.textContent =
-        "Hardware ✓  →  Serial ✓  →  RNode ✓  →  Aktivierung weiterhin AUS";
+        "Hardware ✓  →  Serial ✓  →  RNode ✓  →  Auto-Konfiguration läuft";
 
       next.textContent =
-        "RNode ist kompatibel bestätigt. Aktivierung und Funkparameter bleiben eine bewusste Konfigurationsentscheidung.";
+        "RNode bestätigt. N2K-EU868-Profil wird automatisch übernommen…";
+
+      await autoConfigureRNode(d.port || "");
 
     } else if (d.result === "PROBE_TIMEOUT") {
       box.textContent =
@@ -13567,7 +13667,7 @@ if (
 
 
 <style id="n2k-makeover-12138">
-/* 1.21.48-beta1 · CLEANUP / MAKEOVER */
+/* 1.21.49-beta1 · CLEANUP / MAKEOVER */
 
 .n2k-main-header h1{
   font-size:16.5px !important;
@@ -13721,7 +13821,7 @@ if (
 
 
 <style id="n2k-unified-chat-safe-12141">
-/* 1.21.48-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
+/* 1.21.49-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
 
 .n2k-mobile-real-nav{
   grid-template-columns:repeat(3,1fr) !important;
@@ -13818,7 +13918,7 @@ if (
 
 
 <style id="n2k-chat-controls-12142">
-/* 1.21.48-beta1 · SAFE MODERN MESSENGER CONTROLS */
+/* 1.21.49-beta1 · SAFE MODERN MESSENGER CONTROLS */
 
 #n2k-mobile-real-content .messenger-search-wrap{
   padding-top:8px !important;
@@ -14155,7 +14255,7 @@ if (
 
 
 <style id="n2k-premium-messenger-header-12143">
-/* 1.21.48-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
+/* 1.21.49-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
 
 /* ---------- SYSTEM HEADER ---------- */
 
@@ -14856,7 +14956,7 @@ if (
 
 
 <style id="n2k-readability-boost-12144">
-/* 1.21.48-beta1 · READABILITY BOOST */
+/* 1.21.49-beta1 · READABILITY BOOST */
 
 :root{
   --n2k-rb-text-strong:rgba(244,247,249,.98);
@@ -15129,7 +15229,7 @@ if (
 
 
 <style id="n2k-readability-final-12145">
-/* 1.21.48-beta1 · READABILITY FINAL */
+/* 1.21.49-beta1 · READABILITY FINAL */
 
 /* Stronger section hierarchy without increasing overall density too much */
 #n2k-mobile-real-content #messenger-chat-list::before,
@@ -15302,7 +15402,7 @@ hr{
 
 
 <style id="n2k-desktop-readability-scale-12146">
-/* 1.21.48-beta1 · DESKTOP READABILITY SCALE */
+/* 1.21.49-beta1 · DESKTOP READABILITY SCALE */
 
 @media (pointer:fine){
 
@@ -15454,7 +15554,7 @@ hr{
 
 
 <style id="n2k-hardware-usb-restore-12147">
-/* 1.21.48-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
+/* 1.21.49-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
 
 .n2k-hardware-usb-card{
   margin:0 0 12px;
@@ -15627,6 +15727,7 @@ hr{
     moveHardwarePanel();
     setTimeout(moveHardwarePanel,350);
     setTimeout(moveHardwarePanel,1200);
+    setTimeout(autoConfigureExistingRNode,1800);
   }
 
   if(document.readyState==="loading"){
@@ -15639,7 +15740,7 @@ hr{
 
 
 <style id="n2k-rnode-layout-12148">
-/* 1.21.48-beta1 · RNODE / USB LAYOUT CLEANUP */
+/* 1.21.49-beta1 · RNODE / USB LAYOUT CLEANUP */
 
 #n2k-hardware-usb-slot .grid{
   grid-template-columns:repeat(12,minmax(0,1fr)) !important;
