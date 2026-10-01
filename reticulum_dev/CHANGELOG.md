@@ -1,3 +1,10 @@
+## 1.21.33-beta1
+
+- Rebalance realtime Smart Camera framing.
+- Keep more Universe context visible when only a few live nodes are present.
+- Reduce event zoom intensity and slightly reduce Core visual scale.
+- Preserve realtime event focus while avoiding oversized close-ups.
+
 ## 1.21.32-beta1
 
 - Replace the timed Showcase loop with always-on realtime cinematic behavior.
