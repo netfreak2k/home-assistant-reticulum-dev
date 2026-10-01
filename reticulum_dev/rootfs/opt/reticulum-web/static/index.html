@@ -2241,11 +2241,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.21.51-beta1</h1>
+        <h1>N2K RNS Gateway · 1.21.52-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.51-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.52-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -3271,7 +3271,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.21.51-beta1</strong>
+      <strong>N2K RNS Gateway · 1.21.52-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -7803,6 +7803,10 @@ async function refreshRNodeConfig() {
     };
 
     if (live) {
+      const diagWrap =
+        document.getElementById("rnode-startup-diagnostics-wrap");
+      if (diagWrap) diagWrap.hidden = true;
+
       const liveStatus =
         String(live.status || "—").toUpperCase();
 
@@ -7875,6 +7879,36 @@ async function refreshRNodeConfig() {
           ? "KEIN LIVE-INTERFACE"
           : "AUS"
       );
+
+      const diagWrap =
+        document.getElementById("rnode-startup-diagnostics-wrap");
+      const diagBox =
+        document.getElementById("rnode-startup-diagnostics");
+
+      if (diagWrap && diagBox && d.rnode_interface) {
+        const lines = [];
+
+        if (d.managed_block) {
+          lines.push("=== MANAGED RNODE CONFIG ===");
+          lines.push(d.managed_block);
+        }
+
+        if (Array.isArray(d.startup_diagnostics) &&
+            d.startup_diagnostics.length) {
+          lines.push("");
+          lines.push("=== RNS STARTUP ===");
+          lines.push(...d.startup_diagnostics);
+        }
+
+        diagBox.textContent =
+          lines.length
+            ? lines.join("\n")
+            : "Keine RNode-Startdiagnose verfügbar.";
+
+        diagWrap.hidden = false;
+      } else if (diagWrap) {
+        diagWrap.hidden = true;
+      }
       setLive("rnode-live-rate", "—");
       setLive("rnode-live-noise", "—");
       setLive("rnode-live-rx", "—");
@@ -13667,7 +13701,7 @@ if (
 
 
 <style id="n2k-makeover-12138">
-/* 1.21.51-beta1 · CLEANUP / MAKEOVER */
+/* 1.21.52-beta1 · CLEANUP / MAKEOVER */
 
 .n2k-main-header h1{
   font-size:16.5px !important;
@@ -13821,7 +13855,7 @@ if (
 
 
 <style id="n2k-unified-chat-safe-12141">
-/* 1.21.51-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
+/* 1.21.52-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
 
 .n2k-mobile-real-nav{
   grid-template-columns:repeat(3,1fr) !important;
@@ -13918,7 +13952,7 @@ if (
 
 
 <style id="n2k-chat-controls-12142">
-/* 1.21.51-beta1 · SAFE MODERN MESSENGER CONTROLS */
+/* 1.21.52-beta1 · SAFE MODERN MESSENGER CONTROLS */
 
 #n2k-mobile-real-content .messenger-search-wrap{
   padding-top:8px !important;
@@ -14255,7 +14289,7 @@ if (
 
 
 <style id="n2k-premium-messenger-header-12143">
-/* 1.21.51-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
+/* 1.21.52-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
 
 /* ---------- SYSTEM HEADER ---------- */
 
@@ -14956,7 +14990,7 @@ if (
 
 
 <style id="n2k-readability-boost-12144">
-/* 1.21.51-beta1 · READABILITY BOOST */
+/* 1.21.52-beta1 · READABILITY BOOST */
 
 :root{
   --n2k-rb-text-strong:rgba(244,247,249,.98);
@@ -15229,7 +15263,7 @@ if (
 
 
 <style id="n2k-readability-final-12145">
-/* 1.21.51-beta1 · READABILITY FINAL */
+/* 1.21.52-beta1 · READABILITY FINAL */
 
 /* Stronger section hierarchy without increasing overall density too much */
 #n2k-mobile-real-content #messenger-chat-list::before,
@@ -15402,7 +15436,7 @@ hr{
 
 
 <style id="n2k-desktop-readability-scale-12146">
-/* 1.21.51-beta1 · DESKTOP READABILITY SCALE */
+/* 1.21.52-beta1 · DESKTOP READABILITY SCALE */
 
 @media (pointer:fine){
 
@@ -15554,7 +15588,7 @@ hr{
 
 
 <style id="n2k-hardware-usb-restore-12147">
-/* 1.21.51-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
+/* 1.21.52-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
 
 .n2k-hardware-usb-card{
   margin:0 0 12px;
@@ -15740,7 +15774,7 @@ hr{
 
 
 <style id="n2k-rnode-layout-12148">
-/* 1.21.51-beta1 · RNODE / USB LAYOUT CLEANUP */
+/* 1.21.52-beta1 · RNODE / USB LAYOUT CLEANUP */
 
 #n2k-hardware-usb-slot .grid{
   grid-template-columns:repeat(12,minmax(0,1fr)) !important;
@@ -15957,6 +15991,41 @@ hr{
   }
 })();
 </script>
+
+
+<style id="n2k-rnode-startdiag-12152">
+.rnode-startup-diagnostics-wrap{
+  margin-top:12px;
+  padding:10px;
+  border:1px solid rgba(240,189,108,.12);
+  border-radius:9px;
+  background:rgba(240,189,108,.035);
+}
+
+.rnode-startup-diagnostics-title{
+  margin-bottom:7px;
+  color:#e6bc79;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+#rnode-startup-diagnostics{
+  max-height:260px;
+  overflow:auto;
+  margin:0;
+  padding:9px;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:8px;
+  background:rgba(0,0,0,.22);
+  color:rgba(211,221,226,.82);
+  font-size:8px;
+  line-height:1.45;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+</style>
 
 </body>
 </html>
