@@ -2241,11 +2241,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.21.44-beta1</h1>
+        <h1>N2K RNS Gateway · 1.21.45-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.44-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.45-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -3260,7 +3260,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.21.44-beta1</strong>
+      <strong>N2K RNS Gateway · 1.21.45-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -13556,7 +13556,7 @@ if (
 
 
 <style id="n2k-makeover-12138">
-/* 1.21.44-beta1 · CLEANUP / MAKEOVER */
+/* 1.21.45-beta1 · CLEANUP / MAKEOVER */
 
 .n2k-main-header h1{
   font-size:16.5px !important;
@@ -13710,7 +13710,7 @@ if (
 
 
 <style id="n2k-unified-chat-safe-12141">
-/* 1.21.44-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
+/* 1.21.45-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
 
 .n2k-mobile-real-nav{
   grid-template-columns:repeat(3,1fr) !important;
@@ -13807,7 +13807,7 @@ if (
 
 
 <style id="n2k-chat-controls-12142">
-/* 1.21.44-beta1 · SAFE MODERN MESSENGER CONTROLS */
+/* 1.21.45-beta1 · SAFE MODERN MESSENGER CONTROLS */
 
 #n2k-mobile-real-content .messenger-search-wrap{
   padding-top:8px !important;
@@ -14144,7 +14144,7 @@ if (
 
 
 <style id="n2k-premium-messenger-header-12143">
-/* 1.21.44-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
+/* 1.21.45-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
 
 /* ---------- SYSTEM HEADER ---------- */
 
@@ -14845,7 +14845,7 @@ if (
 
 
 <style id="n2k-readability-boost-12144">
-/* 1.21.44-beta1 · READABILITY BOOST */
+/* 1.21.45-beta1 · READABILITY BOOST */
 
 :root{
   --n2k-rb-text-strong:rgba(244,247,249,.98);
@@ -15112,6 +15112,179 @@ if (
 
   #n2k-mobile-real-content .messenger-contact-preview{
     font-size:10px !important;
+  }
+}
+</style>
+
+
+<style id="n2k-readability-final-12145">
+/* 1.21.45-beta1 · READABILITY FINAL */
+
+/* Stronger section hierarchy without increasing overall density too much */
+#n2k-mobile-real-content #messenger-chat-list::before,
+#n2k-mobile-real-content #msg-contact-list::before{
+  color:rgba(205,215,221,.82) !important;
+  font-size:9.5px !important;
+  font-weight:850 !important;
+  letter-spacing:.095em !important;
+  padding:9px 2px 9px !important;
+}
+
+/* Names stay compact, previews become meaningfully readable */
+#n2k-mobile-real-content .messenger-contact-name{
+  color:rgba(246,248,250,.99) !important;
+  font-size:14px !important;
+  font-weight:740 !important;
+}
+
+#n2k-mobile-real-content .messenger-contact-preview{
+  color:rgba(213,222,227,.86) !important;
+  font-size:11px !important;
+  line-height:15px !important;
+}
+
+/* Technical / secondary line: visible, but not competing with the name */
+#n2k-mobile-real-content .m80-peer-subtitle{
+  color:rgba(177,191,199,.70) !important;
+  font-size:9px !important;
+  line-height:12px !important;
+  max-width:min(560px,72vw) !important;
+}
+
+#n2k-mobile-real-content .messenger-contact-time{
+  color:rgba(185,198,205,.68) !important;
+  font-size:9px !important;
+}
+
+/* Slightly clearer row separation */
+#n2k-mobile-real-content .messenger-contact{
+  border-bottom-color:rgba(255,255,255,.055) !important;
+}
+
+#n2k-mobile-real-content .messenger-contact:hover{
+  background:rgba(255,255,255,.035) !important;
+}
+
+/* Search and filter area: more immediately readable */
+#n2k-mobile-real-content .messenger-search{
+  border-color:rgba(255,255,255,.115) !important;
+  background:rgba(255,255,255,.045) !important;
+}
+
+#n2k-mobile-real-content .messenger-search::placeholder{
+  color:rgba(194,205,211,.68) !important;
+}
+
+.n2k-chat-filterbar button{
+  color:rgba(190,202,209,.72) !important;
+}
+
+.n2k-chat-filterbar button.active{
+  color:#f1c681 !important;
+  border-color:rgba(240,189,108,.22) !important;
+  background:rgba(240,189,108,.075) !important;
+}
+
+#n2k-chat-summary{
+  color:rgba(181,193,200,.62) !important;
+}
+
+/* Header right side: small, but now comfortably readable */
+#n2k-clock-date{
+  color:rgba(218,226,231,.82) !important;
+  border-color:rgba(255,255,255,.07) !important;
+  background:rgba(255,255,255,.028) !important;
+  font-size:8px !important;
+}
+
+#node-status.status{
+  color:rgba(135,229,189,.92) !important;
+  border-color:rgba(113,217,176,.15) !important;
+  background:rgba(113,217,176,.055) !important;
+  font-size:8px !important;
+}
+
+/* Make the load-more control look like part of the messenger, not a debug button */
+#n2k-mobile-real-content #m97-contact-more{
+  min-height:36px !important;
+  margin:9px 14px 13px !important;
+  border:1px solid rgba(255,255,255,.075) !important;
+  border-radius:10px !important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.018)) !important;
+  color:rgba(211,221,226,.82) !important;
+  font-size:9px !important;
+  font-weight:700 !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+/* Definitively remove the white/light line at the bottom */
+.n2k-mobile-real-stage,
+#n2k-mobile-real-content,
+#messenger-chat-list,
+#msg-contact-list,
+#msg-contacts-view,
+#msg-settings-view,
+#msg-mesh-view,
+.wrap{
+  border-bottom:0 !important;
+}
+
+.n2k-mobile-real-stage::after,
+#n2k-mobile-real-content::after,
+.wrap::after{
+  display:none !important;
+  content:none !important;
+}
+
+.wrap > hr,
+#n2k-mobile-real-stage hr,
+#n2k-mobile-real-content hr,
+hr{
+  border:0 !important;
+  border-top:0 !important;
+}
+
+@media (pointer:fine){
+  body,
+  .wrap{
+    padding-bottom:12px !important;
+  }
+}
+
+/* Open chat: final contrast pass */
+#lxmf-chat-name{
+  color:rgba(246,248,250,.99) !important;
+}
+
+#lxmf-chat-peer{
+  color:rgba(181,194,202,.70) !important;
+}
+
+#lxmf-inbox .lxmf-bubble-content{
+  color:rgba(243,247,249,.98) !important;
+}
+
+#lxmf-inbox .lxmf-bubble-meta{
+  color:rgba(176,190,198,.64) !important;
+}
+
+#lxmf-chat-status{
+  color:rgba(176,190,198,.62) !important;
+}
+
+/* Mobile keeps the same hierarchy, only slightly tighter */
+@media (max-width:900px) and (pointer:coarse){
+  #n2k-mobile-real-content .messenger-contact-preview{
+    color:rgba(210,219,224,.84) !important;
+  }
+
+  #n2k-mobile-real-content .m80-peer-subtitle{
+    color:rgba(177,191,199,.68) !important;
+  }
+
+  #n2k-clock-date{
+    font-size:7px !important;
   }
 }
 </style>
