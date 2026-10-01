@@ -71,6 +71,46 @@
       : "Unbekannt";
   }
 
+  function contactAge(timestamp) {
+    const value = Number(timestamp || 0);
+    if (!value) return "zuletzt: unbekannt";
+
+    const age = Math.max(
+      0,
+      Math.floor(Date.now() / 1000) - value
+    );
+
+    if (age < 60) return "vor " + age + " s";
+    if (age < 3600) return "vor " + Math.round(age / 60) + " min";
+    if (age < 86400) return "vor " + Math.round(age / 3600) + " h";
+    return "vor " + Math.round(age / 86400) + " d";
+  }
+
+  function contactMeta(contact, peer) {
+    const parts = ["LXMF", contactAge(contact?.last_seen)];
+
+    const source =
+      String(
+        contact?.discovery_source ||
+        contact?.source ||
+        ""
+      ).trim();
+
+    if (source === "known_destinations_cache") {
+      parts.push("Cache");
+    } else if (source === "announce" || source === "lxmf_announce") {
+      parts.push("Announce");
+    }
+
+    if (peer) {
+      parts.push(
+        peer.slice(0, 8) + "…" + peer.slice(-4)
+      );
+    }
+
+    return parts.join(" · ");
+  }
+
   const CONTACT_PAGE_SIZE = 4;
   let visibleContactCount = CONTACT_PAGE_SIZE;
 
@@ -121,7 +161,7 @@
               </span>
 
               <span class="messenger-contact-preview">
-                Reticulum · LXMF
+                ${esc(contactMeta(contact, peer))}
               </span>
             </span>
           </button>
