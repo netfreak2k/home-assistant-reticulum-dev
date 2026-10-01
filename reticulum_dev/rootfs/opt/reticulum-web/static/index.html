@@ -11344,7 +11344,7 @@ if (
     var m=tr.match(/translate\(([-\d.]+)\s+([-\d.]+)\)/);
     if(!m) return;
     var x=Number(m[1]), y=Number(m[2]);
-    var w=Number(zoom)||520;
+    var w=Number(zoom)||720;
     var h=w*(620/1100);
     animateCamera({x:x-w/2,y:y-h/2,w:w,h:h},850);
   }
@@ -11484,7 +11484,7 @@ if (
     });
 
     if(pts.length<=1){
-      animateCamera({x:260,y:125,w:580,h:327},duration||650);
+      animateCamera({x:145,y:82,w:810,h:456},duration||650);
       return;
     }
 
@@ -11497,8 +11497,8 @@ if (
     var padY=Math.max(70,(maxY-minY)*.18);
     minX-=padX; maxX+=padX; minY-=padY; maxY+=padY;
 
-    var w=Math.max(520,maxX-minX);
-    var h=Math.max(300,maxY-minY);
+    var w=Math.max(760,maxX-minX);
+    var h=Math.max(430,maxY-minY);
     var targetAspect=1100/620;
     var aspect=w/h;
 
@@ -11545,7 +11545,7 @@ if (
     node.classList.add("n2k-realtime-event");
     if(path) path.classList.add("n2k-realtime-event");
 
-    cameraToPeer(peer,500);
+    cameraToPeer(peer,720);
 
     var route=routeInfo(item);
     var name=String(item.display_name||"").trim() || peer.slice(0,10)+"…";
@@ -12776,6 +12776,56 @@ if (
 @media(prefers-reduced-motion:reduce){
   #n2k-constellation-svg.n2k-realtime-event-mode .n2k-cnode.n2k-realtime-event .n2k-cnode-halo{
     animation:none !important;
+  }
+}
+</style>
+
+
+<style id="n2k-realtime-framing-12133">
+/* 1.21.33-beta1 · CINEMATIC REALTIME FRAMING */
+
+.n2k-ccore{
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.n2k-ccore-body{
+  transform:scale(.88);
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.n2k-ccore-glow{
+  transform:scale(.90);
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.n2k-u-core-aura{
+  opacity:.32 !important;
+}
+
+.n2k-u-core-pulse{
+  opacity:.72;
+}
+
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-ccore{
+  opacity:.88 !important;
+}
+
+.n2k-universe-stage{
+  overflow:hidden;
+}
+
+@media (pointer:fine){
+  #n2k-constellation-svg{
+    min-height:620px !important;
+  }
+}
+
+@media (max-width:900px) and (pointer:coarse){
+  #n2k-constellation-svg{
+    min-height:410px !important;
   }
 }
 </style>
