@@ -11126,24 +11126,109 @@ if (
   }
 
   async function load(){
+    /*
+     * Contacts are the primary source because this endpoint already
+     * drives the visible contact list and is therefore the most robust
+     * source for the map. Nearby/path data is optional enrichment.
+     * A failure in the enrichment endpoint must never blank the map.
+     */
     try{
-      var since=Math.floor(Date.now()/1000)-120;
-      var res=await fetch(
-        "api/messenger/nearby?since="+encodeURIComponent(since)+"&ts="+Date.now(),
+      var contactsRes=await fetch(
+        "api/messenger/contacts?ts="+Date.now(),
         {cache:"no-store"}
       );
-      var data=await res.json();
+      var contactsData=await contactsRes.json();
 
-      if(!res.ok || !data || !data.ok){
-        throw new Error((data&&data.error)||("HTTP "+res.status));
+      if(!contactsRes.ok || !contactsData || !contactsData.ok){
+        throw new Error(
+          (contactsData&&contactsData.error) ||
+          ("HTTP "+contactsRes.status)
+        );
+      }
+
+      var contacts=Array.isArray(contactsData.contacts)
+        ? contactsData.contacts
+        : [];
+
+      var now=Math.floor(Date.now()/1000);
+
+      var data={
+        ok:true,
+        contacts:contacts.map(function(item){
+          var lastSeen=Number(item&&item.last_seen||0);
+          return Object.assign({},item,{
+            age_seconds:lastSeen
+              ? Math.max(0,now-lastSeen)
+              : 86401,
+            seen_during_scan:false,
+            hops:null,
+            interface:"",
+            path_known:false
+          });
+        }),
+        rns_path_count:0
+      };
+
+      try{
+        var since=now-120;
+        var nearbyRes=await fetch(
+          "api/messenger/nearby?since="+
+          encodeURIComponent(since)+
+          "&ts="+Date.now(),
+          {cache:"no-store"}
+        );
+
+        if(nearbyRes.ok){
+          var nearbyData=await nearbyRes.json();
+
+          if(nearbyData&&nearbyData.ok){
+            data.rns_path_count=
+              Number(nearbyData.rns_path_count||0);
+
+            var enrichment=new Map();
+
+            (Array.isArray(nearbyData.contacts)
+              ? nearbyData.contacts
+              : []
+            ).forEach(function(item){
+              enrichment.set(
+                String(item.destination_hash||""),
+                item
+              );
+            });
+
+            data.contacts=data.contacts.map(function(item){
+              var peer=String(item.destination_hash||"");
+              var extra=enrichment.get(peer);
+              return extra
+                ? Object.assign({},item,extra)
+                : item;
+            });
+          }
+        }
+      }catch(_enrichmentError){
+        // Contacts-only map remains fully usable.
       }
 
       render(data);
+
     }catch(e){
       var empty=el("n2k-constellation-empty");
+      var svg=el("n2k-constellation-svg");
+
+      if(svg){
+        svg.innerHTML=
+          '<g class="n2k-ccore" transform="translate(340 180)">'+
+            '<polygon class="n2k-ccore-body" points="0,-18 18,0 0,18 -18,0"></polygon>'+
+            '<circle class="n2k-ccore-dot" r="4"></circle>'+
+            '<text x="0" y="43" text-anchor="middle">N2K CORE</text>'+
+          '</g>';
+      }
+
       if(empty){
         empty.hidden=false;
-        empty.textContent="Live Mesh Map momentan nicht erreichbar.";
+        empty.textContent=
+          "Kontaktdaten momentan nicht erreichbar.";
       }
     }
   }
