@@ -1,3 +1,11 @@
+## 1.21.32-beta1
+
+- Replace the timed Showcase loop with always-on realtime cinematic behavior.
+- Auto-fit the Universe viewport to currently visible nodes for better use of space.
+- Highlight genuinely new or refreshed peers/routes with short event-driven Smart Camera focus.
+- Return automatically to the live network overview after each event.
+- Keep normal manual node selection and chat interaction unchanged.
+
 ## 1.21.31-beta1
 
 - Publish the cinematic N2K Mesh Universe Showcase mode.
