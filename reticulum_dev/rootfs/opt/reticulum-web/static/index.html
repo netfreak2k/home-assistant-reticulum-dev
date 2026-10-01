@@ -17411,3 +17411,61 @@ body {
   }
 }
 </style>
+
+
+<!-- 1.21.24-beta1 · FINAL DESKTOP LEGACY CLEANUP -->
+<style id="n2k-desktop-legacy-cleanup-12124">
+@media (min-width:901px){
+  html body .wrap #messenger-app,
+  html body .wrap #messenger-app.messenger-app,
+  html body .wrap .n2k-mobile-stage,
+  html body .wrap #n2k-mobile-stage{
+    display:none !important;
+    visibility:hidden !important;
+    width:0 !important;
+    height:0 !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    max-width:0 !important;
+    max-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    overflow:hidden !important;
+    position:absolute !important;
+    pointer-events:none !important;
+  }
+}
+</style>
+<script id="n2k-desktop-legacy-cleanup-js-12124">
+(function(){
+  function cleanup(){
+    if(!window.matchMedia("(min-width:901px)").matches) return;
+    ["messenger-app","n2k-mobile-stage"].forEach(function(id){
+      var el=document.getElementById(id);
+      if(!el) return;
+      el.hidden=true;
+      el.setAttribute("aria-hidden","true");
+      el.style.setProperty("display","none","important");
+      el.style.setProperty("visibility","hidden","important");
+      el.style.setProperty("height","0","important");
+      el.style.setProperty("min-height","0","important");
+      el.style.setProperty("margin","0","important");
+      el.style.setProperty("padding","0","important");
+      el.style.setProperty("overflow","hidden","important");
+    });
+  }
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",function(){
+      cleanup();
+      setTimeout(cleanup,250);
+      setTimeout(cleanup,1200);
+    },{once:true});
+  }else{
+    cleanup();
+    setTimeout(cleanup,250);
+    setTimeout(cleanup,1200);
+  }
+  window.addEventListener("resize",cleanup);
+})();
+</script>
