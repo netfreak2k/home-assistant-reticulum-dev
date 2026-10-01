@@ -11064,6 +11064,60 @@ if (
     return "M550 310 Q"+mx+" "+my+" "+pos.x+" "+pos.y;
   }
 
+
+  function reticulumBackdrop(items){
+    var points=[];
+    var lines="";
+    var dust="";
+
+    // Deterministic background mesh points. These are decorative transport-space
+    // anchors only and never represent real peers.
+    for(var i=0;i<22;i++){
+      var seed=hashNumber("n2k-reticulum-bg-"+i,0);
+      var x=70+(seed%960);
+      var y=55+((hashNumber("n2k-reticulum-bg-"+i,5))%500);
+      points.push({x:x,y:y});
+    }
+
+    // Sparse path graph in the background.
+    for(var j=0;j<points.length;j++){
+      var a=points[j];
+      var b=points[(j+5)%points.length];
+      if(j%2===0){
+        var mx=(a.x+b.x)/2+((j%3)-1)*34;
+        var my=(a.y+b.y)/2+((j%4)-2)*18;
+        lines +=
+          '<path class="n2k-rns-bg-path p'+(j%4)+'" d="M'+a.x+' '+a.y+
+          ' Q'+mx+' '+my+' '+b.x+' '+b.y+'" />';
+      }
+    }
+
+    // Low-density signal dust.
+    for(var k=0;k<18;k++){
+      var p=points[k%points.length];
+      var ox=((hashNumber("dust-x-"+k,2)%41)-20);
+      var oy=((hashNumber("dust-y-"+k,4)%41)-20);
+      dust +=
+        '<circle class="n2k-rns-dust d'+(k%3)+'" cx="'+(p.x+ox)+'" cy="'+(p.y+oy)+
+        '" r="'+(k%4===0?'1.4':'.9')+'" style="--n2k-dust-delay:-'+((k%9)*.7).toFixed(1)+'s"></circle>';
+    }
+
+    var propagation=
+      '<g class="n2k-rns-propagation">'+
+        '<ellipse cx="550" cy="310" rx="205" ry="145"></ellipse>'+
+        '<ellipse cx="550" cy="310" rx="330" ry="235"></ellipse>'+
+        '<ellipse cx="550" cy="310" rx="465" ry="330"></ellipse>'+
+      '</g>';
+
+    return (
+      '<g class="n2k-rns-backdrop">'+
+        '<g class="n2k-rns-bg-paths">'+lines+'</g>'+
+        propagation+
+        '<g class="n2k-rns-dust-layer">'+dust+'</g>'+
+      '</g>'
+    );
+  }
+
   function render(data){
     latestData=data;
     var svg=el("n2k-constellation-svg");
@@ -11175,6 +11229,7 @@ if (
         '<g class="n2k-cnode ring-'+pos.ring+' route-'+route.kind+(fresh?' fresh':'')+(age>3600?' cached':'')+(burst?' burst':'')+(selectedNow?' selected':'')+'" '+
           'data-peer="'+esc(peer)+'" data-age="'+age+'" data-score="'+score.toFixed(3)+'" data-focus="'+(selectedNow?'true':'false')+'" '+
           'style="--n2k-seq:'+index+'" tabindex="0" role="button" transform="translate('+pos.x+' '+pos.y+')">'+
+          '<circle class="n2k-cnode-announce-wave" r="'+(Number(halo)+6)+'"></circle>'+
           '<circle class="n2k-cnode-halo" r="'+halo+'"></circle>'+
           '<circle class="n2k-cnode-orb" r="'+radius+'"></circle>'+
           '<circle class="n2k-cnode-core" r="'+Math.max(2.4,Number(radius)*.34).toFixed(1)+'"></circle>'+
@@ -11202,7 +11257,9 @@ if (
         '<text class="n2k-u-core-sub" x="0" y="66" text-anchor="middle">HOME ASSISTANT</text>'+
       '</g>';
 
-    svg.innerHTML=defs+clusterSvg+orbitRings+
+    var backdrop=reticulumBackdrop(items);
+
+    svg.innerHTML=defs+backdrop+clusterSvg+orbitRings+
       '<g class="n2k-constellation-links">'+links+'</g>'+
       '<g class="n2k-u-particles">'+particles+'</g>'+
       core+
@@ -12826,6 +12883,144 @@ if (
 @media (max-width:900px) and (pointer:coarse){
   #n2k-constellation-svg{
     min-height:410px !important;
+  }
+}
+</style>
+
+
+<style id="n2k-reticulum-background-12134">
+/* 1.21.34-beta1 · RETICULUM TRANSPORT BACKDROP */
+
+.n2k-rns-backdrop{
+  pointer-events:none;
+}
+
+.n2k-rns-bg-paths{
+  opacity:.34;
+}
+
+.n2k-rns-bg-path{
+  fill:none;
+  stroke:rgba(103,133,158,.11);
+  stroke-width:.8;
+  stroke-linecap:round;
+  stroke-dasharray:2 14;
+  animation:n2k-rns-bg-flow 18s linear infinite;
+}
+
+.n2k-rns-bg-path.p1{
+  stroke:rgba(113,217,176,.085);
+  animation-duration:23s;
+}
+.n2k-rns-bg-path.p2{
+  stroke:rgba(116,167,238,.08);
+  animation-duration:27s;
+}
+.n2k-rns-bg-path.p3{
+  stroke:rgba(240,189,108,.055);
+  animation-duration:31s;
+}
+
+@keyframes n2k-rns-bg-flow{
+  to{stroke-dashoffset:-180;}
+}
+
+.n2k-rns-propagation ellipse{
+  fill:none;
+  stroke:rgba(117,156,187,.055);
+  stroke-width:.8;
+  stroke-dasharray:1 16;
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:n2k-rns-propagation-drift 22s linear infinite;
+}
+
+.n2k-rns-propagation ellipse:nth-child(2){
+  stroke:rgba(113,217,176,.045);
+  animation-duration:31s;
+  animation-direction:reverse;
+}
+
+.n2k-rns-propagation ellipse:nth-child(3){
+  stroke:rgba(117,156,187,.035);
+  animation-duration:42s;
+}
+
+@keyframes n2k-rns-propagation-drift{
+  to{stroke-dashoffset:-220;}
+}
+
+.n2k-rns-dust{
+  fill:rgba(149,178,199,.22);
+  animation:n2k-rns-dust-pulse 7s ease-in-out infinite;
+  animation-delay:var(--n2k-dust-delay);
+}
+
+.n2k-rns-dust.d1{
+  fill:rgba(113,217,176,.20);
+}
+
+.n2k-rns-dust.d2{
+  fill:rgba(240,189,108,.14);
+}
+
+@keyframes n2k-rns-dust-pulse{
+  0%,100%{opacity:.18;}
+  45%{opacity:.58;}
+  60%{opacity:.30;}
+}
+
+.n2k-cnode-announce-wave{
+  fill:none;
+  stroke:rgba(113,217,176,0);
+  stroke-width:1.2;
+  pointer-events:none;
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.n2k-cnode.n2k-realtime-event .n2k-cnode-announce-wave,
+.n2k-cnode.burst .n2k-cnode-announce-wave{
+  stroke:rgba(113,217,176,.48);
+  animation:n2k-rns-announce-wave 1.8s ease-out 2;
+}
+
+@keyframes n2k-rns-announce-wave{
+  0%{
+    transform:scale(.45);
+    opacity:.9;
+  }
+  100%{
+    transform:scale(3.2);
+    opacity:0;
+  }
+}
+
+.n2k-universe-stage{
+  background:
+    radial-gradient(circle at 50% 48%,rgba(45,86,132,.075),transparent 28%),
+    radial-gradient(circle at 50% 50%,rgba(113,217,176,.025),transparent 46%),
+    linear-gradient(rgba(255,255,255,.008) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.008) 1px,transparent 1px),
+    #070c11 !important;
+  background-size:auto,auto,48px 48px,48px 48px,auto !important;
+}
+
+#n2k-constellation-svg.n2k-focus-mode .n2k-rns-backdrop{
+  opacity:.34;
+}
+
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-rns-backdrop{
+  opacity:.48;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .n2k-rns-bg-path,
+  .n2k-rns-propagation ellipse,
+  .n2k-rns-dust,
+  .n2k-cnode.n2k-realtime-event .n2k-cnode-announce-wave,
+  .n2k-cnode.burst .n2k-cnode-announce-wave{
+    animation:none !important;
   }
 }
 </style>
