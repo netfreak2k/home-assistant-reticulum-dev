@@ -1584,6 +1584,104 @@ def get_n2k_support_diagnostic():
     try:
         options = get_addon_options()
 
+        status = get_status()
+
+        interfaces = (
+            status.get("interfaces", [])
+            if isinstance(status, dict)
+            else []
+        )
+
+        live_rnode = next(
+            (
+                item
+                for item in interfaces
+                if isinstance(item, dict)
+                and (
+                    str(item.get("type", "")).strip().lower()
+                    == "rnodeinterface"
+                    or "rnode" in str(
+                        item.get("name", "")
+                    ).strip().lower()
+                )
+            ),
+            None,
+        )
+
+        config_file = Path("/config/reticulum/config")
+        log_file = Path("/config/reticulum/rnsd-startup.log")
+
+        managed_block = ""
+        startup_diagnostics = []
+
+        try:
+            if config_file.exists():
+                config_text = config_file.read_text(
+                    encoding="utf-8",
+                    errors="replace",
+                )
+
+                start_marker = (
+                    "# BEGIN HOMEASSISTANT RETICULUM MANAGED RNODE"
+                )
+                end_marker = (
+                    "# END HOMEASSISTANT RETICULUM MANAGED RNODE"
+                )
+
+                start_pos = config_text.find(start_marker)
+                end_pos = config_text.find(end_marker)
+
+                if start_pos >= 0 and end_pos >= start_pos:
+                    end_pos += len(end_marker)
+                    managed_block = config_text[
+                        start_pos:end_pos
+                    ].strip()
+        except Exception as exc:
+            startup_diagnostics.append(
+                "Config read error: " + str(exc)
+            )
+
+        try:
+            if log_file.exists():
+                lines = log_file.read_text(
+                    encoding="utf-8",
+                    errors="replace",
+                ).splitlines()
+
+                interesting = []
+
+                for line in lines:
+                    low = line.lower()
+
+                    if any(
+                        token in low
+                        for token in (
+                            "rnode",
+                            "serial",
+                            "opening",
+                            "could not open",
+                            "error",
+                            "exception",
+                            "firmware",
+                            "radio",
+                            "interface",
+                            "frequency",
+                            "bandwidth",
+                            "tx power",
+                            "spreading",
+                            "coding",
+                        )
+                    ):
+                        interesting.append(line)
+
+                startup_diagnostics.extend(
+                    interesting[-80:]
+                )
+        except Exception as exc:
+            startup_diagnostics.append(
+                "Log read error: " + str(exc)
+            )
+
         result["rnode"] = {
             "enabled":
                 bool(
@@ -1619,6 +1717,12 @@ def get_n2k_support_diagnostic():
                 options.get(
                     "rnode_codingrate"
                 ),
+            "live_interface":
+                live_rnode,
+            "managed_block":
+                managed_block,
+            "startup_diagnostics":
+                startup_diagnostics,
         }
 
     except Exception as exc:
@@ -2006,28 +2110,67 @@ def get_n2k_selftest():
                 optional=True,
             )
 
-        elif (
-            configured_port
-            and configured_port in device_paths
-        ):
-
-            add_check(
-                "rnode",
-                "RNode / Serial",
-                True,
-                configured_port,
+        else:
+            status = get_status()
+            interfaces = (
+                status.get("interfaces", [])
+                if isinstance(status, dict)
+                else []
             )
 
-        else:
+            live_rnode = next(
+                (
+                    item
+                    for item in interfaces
+                    if isinstance(item, dict)
+                    and (
+                        str(item.get("type", "")).strip().lower()
+                        == "rnodeinterface"
+                        or "rnode" in str(
+                            item.get("name", "")
+                        ).strip().lower()
+                    )
+                ),
+                None,
+            )
+
+            live_state = str(
+                (live_rnode or {}).get("status", "")
+            ).strip().lower()
+
+            live_ok = live_state in (
+                "up",
+                "online",
+                "connected",
+            )
+
+            port_present = (
+                configured_port
+                and configured_port in device_paths
+            )
+
+            if live_ok:
+                detail = (
+                    str((live_rnode or {}).get("name") or "RNode")
+                    + " · "
+                    + str((live_rnode or {}).get("status") or "Up")
+                )
+            elif port_present:
+                detail = (
+                    configured_port
+                    + " · USB vorhanden · Live-Interface fehlt"
+                )
+            else:
+                detail = (
+                    configured_port
+                    or "Kein Port konfiguriert"
+                )
 
             add_check(
                 "rnode",
                 "RNode / Serial",
-                False,
-                (
-                    configured_port
-                    or "Kein Port konfiguriert"
-                ),
+                live_ok,
+                detail,
             )
 
     except Exception as exc:
