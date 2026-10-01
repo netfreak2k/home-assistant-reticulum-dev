@@ -1,3 +1,11 @@
+## 1.21.46-beta1
+
+- Scale the unified Messenger for desktop canvases without changing the mobile layout.
+- Increase chat name, preview, metadata and open-conversation text sizes on desktop.
+- Increase row and avatar sizes slightly for better readability at normal viewing distance.
+- Use more of the available Home Assistant canvas width.
+- Keep the current header, navigation and LXMF behavior unchanged.
+
 ## 1.21.45-beta1
 
 - Final readability pass for the unified Messenger.
