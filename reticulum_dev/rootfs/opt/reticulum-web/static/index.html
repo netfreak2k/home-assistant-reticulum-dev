@@ -2861,7 +2861,7 @@ code {
         <div class="n2k-constellation-stage n2k-universe-stage">
           <svg
             id="n2k-constellation-svg"
-            viewBox="0 0 900 520"
+            viewBox="0 0 1100 620"
             role="img"
             aria-label="N2K Mesh Universe · interaktive Reticulum Visualisierung">
           </svg>
@@ -11028,26 +11028,26 @@ if (
     if(route.kind==="radio") ring=Math.min(ring,2);
     if(route.kind==="internet") ring=Math.max(ring,2);
 
-    var radii=[0,112,184,255,318];
-    var base=radii[ring]||255;
+    var radii=[0,155,245,345,430];
+    var base=radii[ring]||345;
     var a=hashNumber(peer,0);
     var angle=((a%360)/180)*Math.PI;
-    var spread=((hashNumber(peer,7)%35)-17);
+    var spread=((hashNumber(peer,7)%51)-25);
     var rr=base+spread;
 
-    var x=450+Math.cos(angle)*rr;
-    var y=260+Math.sin(angle)*rr*.72;
+    var x=550+Math.cos(angle)*rr;
+    var y=310+Math.sin(angle)*rr*.72;
 
-    x=Math.max(45,Math.min(855,x));
-    y=Math.max(42,Math.min(478,y));
+    x=Math.max(55,Math.min(1045,x));
+    y=Math.max(50,Math.min(570,y));
     return {x:x,y:y,ring:ring};
   }
 
   function pathFor(pos,peer){
     var bend=((hashNumber(peer,11)%70)-35);
-    var mx=(450+pos.x)/2;
-    var my=(260+pos.y)/2+bend;
-    return "M450 260 Q"+mx+" "+my+" "+pos.x+" "+pos.y;
+    var mx=(550+pos.x)/2;
+    var my=(310+pos.y)/2+bend;
+    return "M550 310 Q"+mx+" "+my+" "+pos.x+" "+pos.y;
   }
 
   function render(data){
@@ -11097,18 +11097,18 @@ if (
 
     var orbitRings=
       '<g class="n2k-u-orbits">'+
-        '<ellipse cx="450" cy="260" rx="112" ry="81"></ellipse>'+
-        '<ellipse cx="450" cy="260" rx="184" ry="132"></ellipse>'+
-        '<ellipse cx="450" cy="260" rx="255" ry="184"></ellipse>'+
-        '<ellipse cx="450" cy="260" rx="318" ry="229"></ellipse>'+
+        '<ellipse cx="550" cy="310" rx="155" ry="112"></ellipse>'+
+        '<ellipse cx="550" cy="310" rx="245" ry="176"></ellipse>'+
+        '<ellipse cx="550" cy="310" rx="345" ry="248"></ellipse>'+
+        '<ellipse cx="550" cy="310" rx="430" ry="310"></ellipse>'+
       '</g>';
 
     var clusterSvg="";
     if(clusters){
       clusterSvg=
         '<g class="n2k-u-clusters">'+
-          '<ellipse class="radio" cx="360" cy="215" rx="150" ry="105"></ellipse>'+
-          '<ellipse class="internet" cx="575" cy="290" rx="190" ry="125"></ellipse>'+
+          '<ellipse class="radio" cx="430" cy="260" rx="210" ry="145"></ellipse>'+
+          '<ellipse class="internet" cx="700" cy="345" rx="260" ry="170"></ellipse>'+
         '</g>';
     }
 
@@ -11156,14 +11156,16 @@ if (
           '<circle class="n2k-cnode-halo" r="'+halo+'"></circle>'+
           '<circle class="n2k-cnode-orb" r="'+radius+'"></circle>'+
           '<circle class="n2k-cnode-core" r="'+Math.max(2.4,Number(radius)*.34).toFixed(1)+'"></circle>'+
-          '<text class="n2k-cnode-label" x="'+(Number(radius)+8)+'" y="-9">'+esc(name.slice(0,20))+'</text>'+
-          '<text class="n2k-cnode-hop" x="'+(Number(radius)+8)+'" y="5">'+esc(hopText)+' · '+esc(ageText(age))+'</text>'+
-          '<text class="n2k-cnode-route" x="'+(Number(radius)+8)+'" y="18">'+esc(route.short)+'</text>'+
+          '<g class="n2k-cnode-label-group'+((fresh||selectedNow||score>.72)?' important':'')+'">'+
+            '<text class="n2k-cnode-label" x="'+(Number(radius)+8)+'" y="-9">'+esc(name.slice(0,20))+'</text>'+
+            '<text class="n2k-cnode-hop" x="'+(Number(radius)+8)+'" y="5">'+esc(hopText)+' · '+esc(ageText(age))+'</text>'+
+            '<text class="n2k-cnode-route" x="'+(Number(radius)+8)+'" y="18">'+esc(route.short)+'</text>'+
+          '</g>'+
         '</g>';
     });
 
     var core=
-      '<g class="n2k-ccore" transform="translate(450 260)">'+
+      '<g class="n2k-ccore" transform="translate(550 310)">'+
         '<circle class="n2k-u-core-aura" r="44"></circle>'+
         '<circle class="n2k-u-core-pulse" r="34"></circle>'+
         '<polygon class="n2k-ccore-glow" points="0,-31 31,0 0,31 -31,0"></polygon>'+
@@ -11302,7 +11304,7 @@ if (
       var svg=el("n2k-constellation-svg");
       if(svg){
         svg.innerHTML=
-          '<g class="n2k-ccore" transform="translate(450 260)">'+
+          '<g class="n2k-ccore" transform="translate(550 310)">'+
             '<circle class="n2k-u-core-aura" r="44"></circle>'+
             '<polygon class="n2k-ccore-body" points="0,-19 19,0 0,19 -19,0"></polygon>'+
             '<circle class="n2k-ccore-dot" r="4"></circle>'+
@@ -11838,6 +11840,108 @@ if (
   .n2k-u-core-aura,.n2k-u-core-pulse,.n2k-u-particle{animation:none !important;}
 }
 </style>
+
+<style id="n2k-mesh-universe-density-fix-12127">
+/* 1.21.27-beta1 · N2K MESH UNIVERSE DENSITY / DEPTH PASS */
+
+.n2k-universe-shell{
+  grid-template-columns:minmax(0,1fr) 180px !important;
+}
+
+.n2k-universe-stage{
+  min-height:520px !important;
+}
+
+#n2k-constellation-svg{
+  min-height:520px !important;
+  max-height:620px !important;
+}
+
+.n2k-universe-focus{
+  padding:12px 10px !important;
+}
+
+.n2k-universe-focus-grid div{
+  padding:6px 7px !important;
+}
+
+.n2k-universe-focus-grid b{
+  max-width:95px !important;
+  font-size:7.4px !important;
+}
+
+.n2k-cnode-label-group{
+  opacity:0;
+  transition:opacity .14s ease;
+  pointer-events:none;
+}
+
+.n2k-cnode-label-group.important,
+.n2k-cnode:hover .n2k-cnode-label-group,
+.n2k-cnode:focus .n2k-cnode-label-group,
+.n2k-cnode.selected .n2k-cnode-label-group{
+  opacity:1;
+}
+
+.n2k-cnode:not(.fresh):not(.selected) .n2k-cnode-orb{
+  opacity:.72;
+}
+
+.n2k-cnode:not(.fresh):not(.selected) .n2k-cnode-halo{
+  opacity:.22;
+}
+
+.n2k-cnode.selected{
+  filter:drop-shadow(0 0 8px rgba(240,189,108,.22));
+}
+
+.n2k-cnode.selected .n2k-cnode-label{
+  fill:#f4d49a !important;
+}
+
+.n2k-u-orbits ellipse{
+  opacity:.72;
+}
+
+.n2k-u-particle{
+  r:1.8px;
+}
+
+.n2k-universe-legend{
+  opacity:.68;
+}
+
+@media (pointer:fine) and (max-width:1100px){
+  .n2k-universe-shell{
+    grid-template-columns:minmax(0,1fr) 165px !important;
+  }
+}
+
+@media (max-width:900px) and (pointer:coarse){
+  .n2k-universe-shell{
+    grid-template-columns:1fr !important;
+  }
+
+  .n2k-universe-stage{
+    min-height:350px !important;
+  }
+
+  #n2k-constellation-svg{
+    min-height:350px !important;
+    max-height:430px !important;
+  }
+
+  .n2k-cnode-label-group{
+    opacity:0;
+  }
+
+  .n2k-cnode-label-group.important,
+  .n2k-cnode.selected .n2k-cnode-label-group{
+    opacity:1;
+  }
+}
+</style>
+
 </body>
 </html>
 
