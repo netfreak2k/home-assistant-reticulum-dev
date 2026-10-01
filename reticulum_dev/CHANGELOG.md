@@ -1,3 +1,14 @@
+## 1.21.54-beta1
+
+- Redesign the complete Status page into a clearer beginner-friendly Status & Setup experience.
+- Add a compact gateway overview for RNS, LXMF, RNode and active interfaces.
+- Add a four-step Setup Assistant with automatic progress state.
+- Rename and simplify the RNode area into a guided "RNode Setup".
+- Add jump navigation to RNode Setup, Store & Forward, Systemcheck and Help.
+- Keep all existing IDs, buttons, APIs and backend behavior intact.
+- Move expert-only status cards into an optional technical details section.
+- Avoid DOM feedback loops by using a calm periodic status sync instead of a mutation observer.
+
 ## 1.21.53-beta1
 
 - Fix a critical false-positive in RNode compatibility detection.
