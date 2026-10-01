@@ -16799,7 +16799,7 @@ body {
    Same application language on phone, tablet and browser.
    ================================================== */
 
-@media (min-width:901px){
+@media (pointer:fine){
   :root{
     --n2kd-bg:#0b0f13;
     --n2kd-surface:rgba(27,31,36,.94);
@@ -17097,7 +17097,7 @@ body {
   }
 }
 
-@media (min-width:901px) and (max-width:1080px){
+@media (pointer:fine) and (max-width:1080px){
   body{padding:16px !important;}
   .wrap{
     width:calc(100vw - 32px) !important;
@@ -17111,7 +17111,7 @@ body {
 <script id="n2k-desktop-app-shell-js-1187">
 (function(){
   function isDesktop(){
-    return window.matchMedia("(min-width:901px)").matches;
+    return window.matchMedia("(pointer:fine)").matches;
   }
 
   function byId(id){
@@ -17290,7 +17290,7 @@ body {
    Use the available HA browser canvas more effectively.
    ================================================== */
 
-@media (min-width:901px){
+@media (pointer:fine){
   body{
     padding:12px 14px 18px !important;
   }
@@ -17415,7 +17415,7 @@ body {
 
 <!-- 1.21.24-beta1 · FINAL DESKTOP LEGACY CLEANUP -->
 <style id="n2k-desktop-legacy-cleanup-12124">
-@media (min-width:901px){
+@media (pointer:fine){
   html body .wrap #messenger-app,
   html body .wrap #messenger-app.messenger-app,
   html body .wrap .n2k-mobile-stage,
@@ -17440,7 +17440,7 @@ body {
 <script id="n2k-desktop-legacy-cleanup-js-12124">
 (function(){
   function cleanup(){
-    if(!window.matchMedia("(min-width:901px)").matches) return;
+    if(!window.matchMedia("(pointer:fine)").matches) return;
     ["messenger-app","n2k-mobile-stage"].forEach(function(id){
       var el=document.getElementById(id);
       if(!el) return;
