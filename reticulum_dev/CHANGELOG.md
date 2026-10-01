@@ -1,3 +1,10 @@
+## 1.21.38-beta1
+
+- Replace the DEV label in the visible app branding with the current version number.
+- Remove the obsolete chat search row.
+- Remove the visible bottom divider/white line from the main app surface.
+- Tighten chat spacing and apply a cleaner, calmer surface treatment.
+
 ## 1.21.37-beta1
 
 - Compress the main header to reduce vertical dominance.
