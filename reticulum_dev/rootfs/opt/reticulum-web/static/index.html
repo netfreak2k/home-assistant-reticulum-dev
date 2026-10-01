@@ -2852,7 +2852,6 @@ code {
           <button type="button" data-n2k-map-filter="replay">Replay</button>
         </div>
         <div class="n2k-universe-actions">
-          <button id="n2k-universe-showcase" class="n2k-showcase-button" type="button">▶ Showcase</button>
           <button id="n2k-universe-trails" class="active" type="button">Trails</button>
           <button id="n2k-universe-clusters" class="active" type="button">Cluster</button>
         </div>
@@ -10946,6 +10945,9 @@ if (
   var cameraFrame=0;
   var defaultViewBox={x:0,y:0,w:1100,h:620};
   var currentViewBox={x:0,y:0,w:1100,h:620};
+  var realtimeSeen=new Map();
+  var realtimeInitialized=false;
+  var realtimeFocusTimer=null;
 
   function el(id){ return document.getElementById(id); }
 
@@ -11216,7 +11218,6 @@ if (
 
     svg.querySelectorAll(".n2k-cnode").forEach(function(node){
       function choose(){
-        if(showcaseActive) stopShowcase();
         var peer=node.getAttribute("data-peer")||"";
         var item=items.find(function(x){return String(x.destination_hash||"")===peer;});
         if(!item) return;
@@ -11242,6 +11243,7 @@ if (
       svg.__n2kFocusClearBound=true;
     }
 
+    handleRealtime(items);
     startAmbientAnimation();
   }
 
@@ -11469,6 +11471,140 @@ if (
     runShowcase();
   }
 
+
+  function fitUniverseToNodes(duration){
+    var svg=el("n2k-constellation-svg");
+    if(!svg) return;
+
+    var pts=[{x:550,y:310}];
+    svg.querySelectorAll(".n2k-cnode").forEach(function(node){
+      var tr=node.getAttribute("transform")||"";
+      var m=tr.match(/translate\(([-\d.]+)\s+([-\d.]+)\)/);
+      if(m) pts.push({x:Number(m[1]),y:Number(m[2])});
+    });
+
+    if(pts.length<=1){
+      animateCamera({x:260,y:125,w:580,h:327},duration||650);
+      return;
+    }
+
+    var minX=Math.min.apply(null,pts.map(function(p){return p.x;}));
+    var maxX=Math.max.apply(null,pts.map(function(p){return p.x;}));
+    var minY=Math.min.apply(null,pts.map(function(p){return p.y;}));
+    var maxY=Math.max.apply(null,pts.map(function(p){return p.y;}));
+
+    var padX=Math.max(90,(maxX-minX)*.16);
+    var padY=Math.max(70,(maxY-minY)*.18);
+    minX-=padX; maxX+=padX; minY-=padY; maxY+=padY;
+
+    var w=Math.max(520,maxX-minX);
+    var h=Math.max(300,maxY-minY);
+    var targetAspect=1100/620;
+    var aspect=w/h;
+
+    if(aspect>targetAspect){
+      var needH=w/targetAspect;
+      var dy=(needH-h)/2;
+      minY-=dy; h=needH;
+    }else{
+      var needW=h*targetAspect;
+      var dx=(needW-w)/2;
+      minX-=dx; w=needW;
+    }
+
+    minX=Math.max(-40,Math.min(1140-w,minX));
+    minY=Math.max(-25,Math.min(645-h,minY));
+
+    animateCamera({x:minX,y:minY,w:w,h:h},duration||700);
+  }
+
+  function clearRealtimeEvent(){
+    var svg=el("n2k-constellation-svg");
+    if(!svg) return;
+    svg.classList.remove("n2k-realtime-event-mode");
+    svg.querySelectorAll(".n2k-realtime-event").forEach(function(n){
+      n.classList.remove("n2k-realtime-event");
+    });
+    setOverlay("","","",false);
+  }
+
+  function spotlightRealtimeItem(item){
+    if(!item) return;
+    var svg=el("n2k-constellation-svg");
+    if(!svg) return;
+
+    clearTimeout(realtimeFocusTimer);
+    clearRealtimeEvent();
+
+    var peer=String(item.destination_hash||"");
+    var node=svg.querySelector('.n2k-cnode[data-peer="'+CSS.escape(peer)+'"]');
+    var path=svg.querySelector('.n2k-clink[data-peer="'+CSS.escape(peer)+'"]');
+    if(!node) return;
+
+    svg.classList.add("n2k-realtime-event-mode");
+    node.classList.add("n2k-realtime-event");
+    if(path) path.classList.add("n2k-realtime-event");
+
+    cameraToPeer(peer,500);
+
+    var route=routeInfo(item);
+    var name=String(item.display_name||"").trim() || peer.slice(0,10)+"…";
+    var eventType=Number(item.age_seconds||999)>8 ? "ROUTE UPDATE" : "LIVE SIGNAL";
+    setOverlay(
+      eventType,
+      name,
+      route.short+" · "+ageText(item.age_seconds)+
+        ((item.hops!==null&&item.hops!==undefined&&Number(item.hops)<128) ? " · "+Number(item.hops)+" hops" : ""),
+      true
+    );
+
+    realtimeFocusTimer=setTimeout(function(){
+      clearRealtimeEvent();
+      if(!selected) fitUniverseToNodes(900);
+    },2600);
+  }
+
+  function handleRealtime(items){
+    if(!Array.isArray(items)) return;
+
+    var changed=[];
+    items.forEach(function(item){
+      var peer=String(item.destination_hash||"");
+      if(!peer) return;
+      var stamp=Number(item.last_seen||0);
+      var old=realtimeSeen.get(peer);
+
+      if(realtimeInitialized && stamp && (old===undefined || stamp>old)){
+        changed.push(item);
+      }
+      if(stamp) realtimeSeen.set(peer,stamp);
+    });
+
+    if(!realtimeInitialized){
+      realtimeInitialized=true;
+      setTimeout(function(){
+        if(!selected) fitUniverseToNodes(850);
+      },80);
+      return;
+    }
+
+    if(changed.length && !selected){
+      changed.sort(function(a,b){
+        return Number(b.last_seen||0)-Number(a.last_seen||0);
+      });
+      spotlightRealtimeItem(changed[0]);
+    }else if(!selected && !svgBusyRealtime()){
+      setTimeout(function(){
+        if(!selected) fitUniverseToNodes(550);
+      },60);
+    }
+  }
+
+  function svgBusyRealtime(){
+    var svg=el("n2k-constellation-svg");
+    return !!(svg && svg.classList.contains("n2k-realtime-event-mode"));
+  }
+
   function startAmbientAnimation(){
     cancelAnimationFrame(animationFrame);
     var svg=el("n2k-constellation-svg");
@@ -11565,14 +11701,6 @@ if (
         load();
       });
     });
-
-    var showcaseButton=el("n2k-universe-showcase");
-    if(showcaseButton){
-      showcaseButton.addEventListener("click",function(){
-        if(showcaseActive) stopShowcase();
-        else startShowcase();
-      });
-    }
 
     var trailButton=el("n2k-universe-trails");
     if(trailButton){
@@ -12524,6 +12652,129 @@ if (
   #n2k-constellation-svg.n2k-showcase-reveal .n2k-cnode,
   #n2k-constellation-svg.n2k-showcase-reveal .n2k-clink,
   #n2k-constellation-svg.n2k-showcase-finale .n2k-ccore{
+    animation:none !important;
+  }
+}
+</style>
+
+
+<style id="n2k-realtime-cinematic-12132">
+/* 1.21.32-beta1 · ALWAYS-ON REALTIME CINEMATIC UNIVERSE */
+
+.n2k-universe-card{
+  margin-top:8px !important;
+}
+
+.n2k-universe-head{
+  padding-bottom:5px !important;
+}
+
+.n2k-universe-toolbar{
+  padding-bottom:7px !important;
+}
+
+.n2k-universe-shell{
+  grid-template-columns:minmax(0,1fr) 150px !important;
+}
+
+.n2k-universe-stage{
+  min-height:600px !important;
+}
+
+#n2k-constellation-svg{
+  min-height:600px !important;
+  max-height:720px !important;
+}
+
+.n2k-universe-focus{
+  padding:10px 8px !important;
+}
+
+.n2k-universe-focus-grid{
+  gap:4px !important;
+  margin-top:10px !important;
+}
+
+.n2k-universe-focus-grid div{
+  padding:5px 6px !important;
+}
+
+.n2k-universe-focus-grid b{
+  max-width:78px !important;
+}
+
+.n2k-showcase-overlay{
+  top:16px !important;
+  left:16px !important;
+  max-width:300px !important;
+}
+
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-cnode{
+  opacity:.24 !important;
+  filter:saturate(.65) brightness(.78);
+}
+
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-cnode.n2k-realtime-event{
+  opacity:1 !important;
+  filter:
+    drop-shadow(0 0 12px rgba(113,217,176,.42))
+    drop-shadow(0 0 26px rgba(113,217,176,.16)) !important;
+}
+
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-clink{
+  opacity:.07 !important;
+}
+
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-clink.n2k-realtime-event{
+  opacity:1 !important;
+  stroke:#71d9b0 !important;
+  stroke-width:2.5 !important;
+  stroke-dasharray:3 8 !important;
+  animation:n2k-constellation-flow .72s linear infinite !important;
+  filter:url(#n2k-soft-glow);
+}
+
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-cnode.n2k-realtime-event .n2k-cnode-label-group{
+  opacity:1 !important;
+}
+
+#n2k-constellation-svg.n2k-realtime-event-mode .n2k-cnode.n2k-realtime-event .n2k-cnode-halo{
+  stroke:#71d9b0 !important;
+  animation:n2k-realtime-ring 1.25s ease-out infinite !important;
+}
+
+@keyframes n2k-realtime-ring{
+  0%{transform:scale(.72);opacity:.9;}
+  100%{transform:scale(1.85);opacity:0;}
+}
+
+@media (pointer:fine) and (max-width:1100px){
+  .n2k-universe-shell{
+    grid-template-columns:minmax(0,1fr) 138px !important;
+  }
+  .n2k-universe-stage{
+    min-height:560px !important;
+  }
+  #n2k-constellation-svg{
+    min-height:560px !important;
+  }
+}
+
+@media (max-width:900px) and (pointer:coarse){
+  .n2k-universe-shell{
+    grid-template-columns:1fr !important;
+  }
+  .n2k-universe-stage{
+    min-height:390px !important;
+  }
+  #n2k-constellation-svg{
+    min-height:390px !important;
+    max-height:500px !important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #n2k-constellation-svg.n2k-realtime-event-mode .n2k-cnode.n2k-realtime-event .n2k-cnode-halo{
     animation:none !important;
   }
 }
