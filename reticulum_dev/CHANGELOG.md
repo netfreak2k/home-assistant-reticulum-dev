@@ -1,3 +1,12 @@
+## 1.21.55-beta1
+
+- Fix an HAOS USB startup race for RNodeInterface.
+- Wait up to 20 seconds for the configured RNode serial device to appear before starting rnsd.
+- Resolve the stable /dev/serial/by-id path to the concrete tty device after it becomes available.
+- Keep the stable by-id path stored in Home Assistant options.
+- Add the official RNodeInterface flow_control = false default.
+- Preserve the Status & Setup 2.0 UI and existing RNode auto-configuration logic.
+
 ## 1.21.54-beta1
 
 - Redesign the complete Status page into a clearer beginner-friendly Status & Setup experience.
