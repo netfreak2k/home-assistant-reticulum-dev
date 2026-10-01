@@ -1787,7 +1787,7 @@ code {
 .n2k-mobile-clean-state,
 .n2k-mobile-clean-nav { display:none; }
 
-@media (max-width:900px) {
+@media (max-width:900px) and (pointer:coarse) {
   html,body{
     position:static !important;
     width:100% !important;
@@ -1997,7 +1997,7 @@ code {
 .n2k-mobile-real-stage,
 .n2k-mobile-real-nav{display:none;}
 
-@media (max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
   /* suppress all old mobile messenger shells */
   #messenger-app.messenger-app{
     display:none !important;
@@ -11388,7 +11388,7 @@ if (
 <script id="n2k-mobile-real-js-1181">
 (function(){
   function isMobile(){
-    return window.matchMedia("(max-width:900px)").matches;
+    return window.matchMedia("(max-width:900px) and (pointer:coarse)").matches;
   }
 
   function byId(id){return document.getElementById(id);}
@@ -13626,7 +13626,7 @@ if (
   line-height:1.4;
 }
 
-@media(max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
   .n2k-propagation-card{
     margin:10px 12px 14px !important;
   }
@@ -13766,7 +13766,7 @@ body.n2k-resilience-mode #n2k-resilience-card{
   background:rgba(255,194,102,.035);
 }
 
-@media(max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
   .n2k-resilience-card{
     margin:10px 12px 14px !important;
   }
@@ -13846,7 +13846,7 @@ body.n2k-resilience-mode #n2k-resilience-card{
   transform:scale(.96);
 }
 
-@media(max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
   .n2k-emoji-panel{
     left:-54px;
     width:246px;
@@ -13954,7 +13954,7 @@ body.n2k-resilience-mode #n2k-resilience-card{
   font-size:11px;
 }
 
-@media(max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
   .n2k-photo-preview{
     margin:8px 9px 0;
   }
@@ -14287,7 +14287,7 @@ body.n2k-resilience-mode #n2k-resilience-card{
   cursor:pointer;
 }
 
-@media(max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
   .n2k-constellation-card{
     margin:7px 12px 10px !important;
     padding:9px !important;
@@ -14446,7 +14446,7 @@ body.n2k-resilience-mode #n2k-resilience-card{
   text-align:center;
 }
 
-@media (max-width:900px) {
+@media (max-width:900px) and (pointer:coarse) {
   #n2k-mobile-real-content .n2k-help-card {
     margin:10px 12px !important;
     padding:14px !important;
@@ -15500,7 +15500,7 @@ body {
 
 
 <style id="n2k-mobile-final-layout-1171">
-@media (max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
 
   /* FINAL OVERRIDE: intentionally last in file so legacy mobile CSS cannot win. */
   html,body{
@@ -15821,7 +15821,7 @@ body {
 
 
 <style id="n2k-mobile-chat-entry-1172">
-@media (max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
   #n2k-mobile-clean-status{
     position:relative !important;
     z-index:10 !important;
@@ -15974,7 +15974,7 @@ body {
 <style id="n2k-mobile-stage-css-1180">
 .n2k-mobile-stage{display:none;}
 
-@media (max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
   /* Dedicated mobile app surface. Legacy dashboard stays available on desktop. */
   body{
     padding-bottom:74px !important;
@@ -16209,7 +16209,7 @@ body {
 <script id="n2k-mobile-stage-js-1180">
 (function(){
   function isMobile(){
-    return window.matchMedia("(max-width:900px)").matches;
+    return window.matchMedia("(max-width:900px) and (pointer:coarse)").matches;
   }
 
   function byId(id){return document.getElementById(id);}
@@ -16365,7 +16365,7 @@ body {
    Original N2K styling; system fonts/icons only.
    ================================================== */
 
-@media (max-width:900px){
+@media (max-width:900px) and (pointer:coarse){
   :root{
     --n2km-bg:#0b0f13;
     --n2km-surface:rgba(27,31,36,.92);
