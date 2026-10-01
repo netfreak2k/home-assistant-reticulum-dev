@@ -1,3 +1,12 @@
+## 1.21.49-beta1
+
+- Automatically configure a confirmed RNode after compatibility probing.
+- Apply the N2K EU868 profile: 868.100 MHz, 125 kHz, 14 dBm, SF10, CR5.
+- Automatically enable the RNode interface and persist the selected serial port.
+- Schedule an automatic add-on restart after successful configuration.
+- Skip auto-configuration once the expected profile is already active.
+- Keep firmware flashing disabled.
+
 ## 1.21.48-beta1
 
 - Improve the restored RNode / USB layout in Status.
