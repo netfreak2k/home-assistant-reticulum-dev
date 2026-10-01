@@ -2241,11 +2241,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.21.53-beta1</h1>
+        <h1>N2K RNS Gateway · 1.21.54-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.53-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.54-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -2424,7 +2424,7 @@ code {
     </section>
 
     <section class="card" style="grid-column:1/-1">
-      <h2>RNode Setup & Diagnose</h2>
+      <h2>RNode Einrichtung</h2>
 
       <div style="
         display:grid;
@@ -2433,22 +2433,22 @@ code {
         margin-bottom:14px">
 
         <div>
-          <b>1 · Hardware</b>
+          <b>1 · USB-Gerät</b>
           <div id="setup-hardware">Prüfe…</div>
         </div>
 
         <div>
-          <b>2 · Port</b>
+          <b>2 · Verbindung</b>
           <div id="setup-port">Prüfe…</div>
         </div>
 
         <div>
-          <b>3 · RNode-Test</b>
+          <b>3 · Gerät prüfen</b>
           <div id="setup-probe">Noch nicht geprüft</div>
         </div>
 
         <div>
-          <b>4 · Aktivierung</b>
+          <b>4 · Funk aktiv</b>
           <div id="setup-activation">AUS</div>
         </div>
       </div>
@@ -2464,7 +2464,7 @@ code {
         </div>
 
         <button type="button" onclick="selectRNodePort()">
-          RNode-Port übernehmen
+          USB-Port verwenden
         </button>
 
         <div id="rnode-port-save" style="margin-top:6px">
@@ -2476,7 +2476,7 @@ code {
         <button id="rnode-probe-button"
                 type="button"
                 onclick="probeRNode()">
-          RNode manuell prüfen
+          RNode jetzt prüfen
         </button>
 
         <div style="margin-top:6px;font-size:.85em;opacity:.75">
@@ -2496,7 +2496,7 @@ code {
         border:1px solid rgba(255,255,255,.12);
         border-radius:8px">
 
-        <b>Kompatibilitätsdiagnose</b>
+        <b>Einrichtungsstatus</b>
 
         <div id="rnode-chain"
              style="margin-top:8px;font-weight:600">
@@ -2938,11 +2938,100 @@ code {
   </div>
 
 
+  <section id="n2k-status-overview" class="n2k-status-overview">
+    <div class="n2k-status-overview-head">
+      <div>
+        <div class="n2k-status-kicker">STATUS &amp; SETUP</div>
+        <h2>Dein Gateway auf einen Blick</h2>
+        <p>Grün bedeutet bereit. Gelb bedeutet Einrichtung oder Prüfung. Rot zeigt echten Handlungsbedarf.</p>
+      </div>
+      <span id="n2k-status-overall" class="n2k-status-overall is-wait">PRÜFE…</span>
+    </div>
+
+    <div class="n2k-status-summary-grid">
+      <article class="n2k-status-summary-card">
+        <span class="n2k-status-summary-icon">R</span>
+        <div><small>Reticulum</small><strong id="n2k-status-rns">Prüfe…</strong><em>Netzwerk-Kern</em></div>
+      </article>
+      <article class="n2k-status-summary-card">
+        <span class="n2k-status-summary-icon">L</span>
+        <div><small>Messenger</small><strong id="n2k-status-lxmf">Prüfe…</strong><em>LXMF Dienst</em></div>
+      </article>
+      <article class="n2k-status-summary-card">
+        <span class="n2k-status-summary-icon">◉</span>
+        <div><small>RNode / LoRa</small><strong id="n2k-status-rnode">Prüfe…</strong><em id="n2k-status-rnode-sub">USB-Funkhardware</em></div>
+      </article>
+      <article class="n2k-status-summary-card">
+        <span class="n2k-status-summary-icon">⌁</span>
+        <div><small>Verbindungen</small><strong id="n2k-status-ifaces">Prüfe…</strong><em>LAN · Internet · Funk</em></div>
+      </article>
+    </div>
+
+    <nav class="n2k-status-jump" aria-label="Status Bereiche">
+      <button type="button" data-n2k-jump="n2k-status-overview">Übersicht</button>
+      <button type="button" data-n2k-jump="n2k-hardware-usb-card">RNode Setup</button>
+      <button type="button" data-n2k-jump="n2k-propagation-card">Store &amp; Forward</button>
+      <button type="button" data-n2k-jump="n2k-selftest-card">Systemcheck</button>
+      <button type="button" data-n2k-jump="n2k-help">Hilfe</button>
+    </nav>
+  </section>
+
+  <section id="n2k-setup-assistant" class="n2k-setup-assistant">
+    <div class="n2k-setup-assistant-head">
+      <div>
+        <div class="n2k-status-kicker">EINRICHTUNG</div>
+        <h2>Setup-Assistent</h2>
+        <p>Vier Schritte bis zum einsatzbereiten Gateway. Bereits fertige Schritte werden automatisch markiert.</p>
+      </div>
+      <span id="n2k-setup-progress" class="n2k-setup-progress">0 / 4</span>
+    </div>
+
+    <div class="n2k-setup-steps">
+      <article id="n2k-setup-step-core" class="n2k-setup-step is-wait">
+        <span class="n2k-setup-number">1</span>
+        <div>
+          <strong>Grundsystem</strong>
+          <p>Reticulum und LXMF müssen laufen.</p>
+          <small id="n2k-setup-core-note">Wird geprüft…</small>
+        </div>
+      </article>
+
+      <article id="n2k-setup-step-rnode" class="n2k-setup-step is-wait">
+        <span class="n2k-setup-number">2</span>
+        <div>
+          <strong>RNode verbinden</strong>
+          <p>USB-Gerät erkennen, prüfen und automatisch aktivieren.</p>
+          <small id="n2k-setup-rnode-note">Wird geprüft…</small>
+          <button type="button" data-n2k-jump="n2k-hardware-usb-card">RNode Setup öffnen</button>
+        </div>
+      </article>
+
+      <article id="n2k-setup-step-network" class="n2k-setup-step is-wait">
+        <span class="n2k-setup-number">3</span>
+        <div>
+          <strong>Verbindungen</strong>
+          <p>Mindestens ein Reticulum-Interface muss aktiv sein.</p>
+          <small id="n2k-setup-network-note">Wird geprüft…</small>
+        </div>
+      </article>
+
+      <article id="n2k-setup-step-test" class="n2k-setup-step is-wait">
+        <span class="n2k-setup-number">4</span>
+        <div>
+          <strong>Abschlusstest</strong>
+          <p>Identity, LXMF, Netzwerk und RNode gemeinsam prüfen.</p>
+          <small id="n2k-setup-test-note">Noch nicht ausgeführt</small>
+          <button id="n2k-setup-run-test" type="button">Systemcheck starten</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
   <section class="n2k-hardware-usb-card" id="n2k-hardware-usb-card">
     <div class="n2k-hardware-usb-head">
       <div>
-        <div class="n2k-hardware-usb-title">Hardware &amp; USB</div>
-        <div class="n2k-hardware-usb-sub">RNode · Serial Port · Live-Telemetrie · Diagnose</div>
+        <div class="n2k-hardware-usb-title">RNode Setup</div>
+        <div class="n2k-hardware-usb-sub">USB-Gerät erkennen · Funkprofil automatisch einrichten · Funktion prüfen</div>
       </div>
       <span class="n2k-hardware-usb-badge">RNode</span>
     </div>
@@ -3076,7 +3165,7 @@ code {
     </div>
   </section>
 
-  <div class="n2k-selftest-card">
+  <div class="n2k-selftest-card" id="n2k-selftest-card">
 
     <div class="n2k-selftest-head">
 
@@ -3271,7 +3360,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.21.53-beta1</strong>
+      <strong>N2K RNS Gateway · 1.21.54-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -13701,7 +13790,7 @@ if (
 
 
 <style id="n2k-makeover-12138">
-/* 1.21.53-beta1 · CLEANUP / MAKEOVER */
+/* 1.21.54-beta1 · CLEANUP / MAKEOVER */
 
 .n2k-main-header h1{
   font-size:16.5px !important;
@@ -13855,7 +13944,7 @@ if (
 
 
 <style id="n2k-unified-chat-safe-12141">
-/* 1.21.53-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
+/* 1.21.54-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
 
 .n2k-mobile-real-nav{
   grid-template-columns:repeat(3,1fr) !important;
@@ -13952,7 +14041,7 @@ if (
 
 
 <style id="n2k-chat-controls-12142">
-/* 1.21.53-beta1 · SAFE MODERN MESSENGER CONTROLS */
+/* 1.21.54-beta1 · SAFE MODERN MESSENGER CONTROLS */
 
 #n2k-mobile-real-content .messenger-search-wrap{
   padding-top:8px !important;
@@ -14289,7 +14378,7 @@ if (
 
 
 <style id="n2k-premium-messenger-header-12143">
-/* 1.21.53-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
+/* 1.21.54-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
 
 /* ---------- SYSTEM HEADER ---------- */
 
@@ -14990,7 +15079,7 @@ if (
 
 
 <style id="n2k-readability-boost-12144">
-/* 1.21.53-beta1 · READABILITY BOOST */
+/* 1.21.54-beta1 · READABILITY BOOST */
 
 :root{
   --n2k-rb-text-strong:rgba(244,247,249,.98);
@@ -15263,7 +15352,7 @@ if (
 
 
 <style id="n2k-readability-final-12145">
-/* 1.21.53-beta1 · READABILITY FINAL */
+/* 1.21.54-beta1 · READABILITY FINAL */
 
 /* Stronger section hierarchy without increasing overall density too much */
 #n2k-mobile-real-content #messenger-chat-list::before,
@@ -15436,7 +15525,7 @@ hr{
 
 
 <style id="n2k-desktop-readability-scale-12146">
-/* 1.21.53-beta1 · DESKTOP READABILITY SCALE */
+/* 1.21.54-beta1 · DESKTOP READABILITY SCALE */
 
 @media (pointer:fine){
 
@@ -15588,7 +15677,7 @@ hr{
 
 
 <style id="n2k-hardware-usb-restore-12147">
-/* 1.21.53-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
+/* 1.21.54-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
 
 .n2k-hardware-usb-card{
   margin:0 0 12px;
@@ -15774,7 +15863,7 @@ hr{
 
 
 <style id="n2k-rnode-layout-12148">
-/* 1.21.53-beta1 · RNODE / USB LAYOUT CLEANUP */
+/* 1.21.54-beta1 · RNODE / USB LAYOUT CLEANUP */
 
 #n2k-hardware-usb-slot .grid{
   grid-template-columns:repeat(12,minmax(0,1fr)) !important;
@@ -16026,6 +16115,656 @@ hr{
   overflow-wrap:anywhere;
 }
 </style>
+
+
+<style id="n2k-status-setup-v2-12154">
+/* 1.21.54-beta1 · STATUS & SETUP 2.0 */
+
+#msg-settings-view{
+  --status-bg:#0d1317;
+  --status-card:rgba(255,255,255,.022);
+  --status-line:rgba(255,255,255,.065);
+  --status-line-strong:rgba(255,255,255,.10);
+  --status-text:rgba(240,245,247,.96);
+  --status-muted:rgba(169,184,192,.66);
+  --status-green:#74ddb4;
+  --status-amber:#e7bc78;
+  --status-red:#ef8e8e;
+}
+
+#msg-settings-view > *{
+  box-sizing:border-box;
+}
+
+.m100-settings-head{
+  margin-bottom:10px !important;
+  padding:10px 13px !important;
+  border:1px solid var(--status-line) !important;
+  border-radius:12px !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.012)) !important;
+}
+
+.m100-settings-title{
+  font-size:14px !important;
+  color:var(--status-text) !important;
+}
+
+.m100-settings-sub{
+  margin-top:2px !important;
+  color:var(--status-muted) !important;
+  font-size:8.5px !important;
+}
+
+.m100-beta-badge{
+  font-size:7px !important;
+  min-height:20px !important;
+  padding:0 7px !important;
+}
+
+.n2k-status-overview,
+.n2k-setup-assistant,
+.n2k-hardware-usb-card,
+.n2k-resilience-card,
+.n2k-propagation-card,
+.n2k-selftest-card,
+.n2k-help-card,
+.n2k-about-card{
+  margin:0 0 12px !important;
+  padding:14px !important;
+  border:1px solid var(--status-line) !important;
+  border-radius:13px !important;
+  background:
+    radial-gradient(circle at 0 0,rgba(113,217,176,.025),transparent 28%),
+    linear-gradient(180deg,rgba(18,24,29,.96),rgba(11,16,20,.98)) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+.n2k-status-overview-head,
+.n2k-setup-assistant-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.n2k-status-kicker{
+  margin-bottom:4px;
+  color:rgba(113,217,176,.72);
+  font-size:7px;
+  font-weight:850;
+  letter-spacing:.14em;
+}
+
+.n2k-status-overview h2,
+.n2k-setup-assistant h2{
+  margin:0;
+  color:var(--status-text);
+  font-size:16px;
+  line-height:1.15;
+  font-weight:780;
+  letter-spacing:-.02em;
+}
+
+.n2k-status-overview p,
+.n2k-setup-assistant p{
+  margin:5px 0 0;
+  max-width:760px;
+  color:var(--status-muted);
+  font-size:9px;
+  line-height:1.45;
+}
+
+.n2k-status-overall,
+.n2k-setup-progress{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:25px;
+  padding:0 9px;
+  border:1px solid var(--status-line);
+  border-radius:999px;
+  background:rgba(255,255,255,.025);
+  color:var(--status-muted);
+  font-size:8px;
+  font-weight:820;
+  letter-spacing:.06em;
+  white-space:nowrap;
+}
+
+.n2k-status-overall.is-ok,
+.n2k-setup-step.is-ok .n2k-setup-number{
+  color:var(--status-green);
+  border-color:rgba(116,221,180,.18);
+  background:rgba(116,221,180,.055);
+}
+
+.n2k-status-overall.is-warn,
+.n2k-setup-step.is-warn .n2k-setup-number{
+  color:var(--status-amber);
+  border-color:rgba(231,188,120,.18);
+  background:rgba(231,188,120,.055);
+}
+
+.n2k-status-overall.is-bad,
+.n2k-setup-step.is-bad .n2k-setup-number{
+  color:var(--status-red);
+  border-color:rgba(239,142,142,.18);
+  background:rgba(239,142,142,.055);
+}
+
+.n2k-status-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin-top:12px;
+}
+
+.n2k-status-summary-card{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  padding:10px;
+  border:1px solid rgba(255,255,255,.052);
+  border-radius:10px;
+  background:rgba(255,255,255,.017);
+}
+
+.n2k-status-summary-icon{
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;
+  background:rgba(255,255,255,.025);
+  color:rgba(209,221,227,.72);
+  font-size:11px;
+  font-weight:800;
+}
+
+.n2k-status-summary-card div{
+  min-width:0;
+}
+
+.n2k-status-summary-card small,
+.n2k-status-summary-card em{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--status-muted);
+  font-size:7.5px;
+  font-style:normal;
+}
+
+.n2k-status-summary-card strong{
+  display:block;
+  margin:2px 0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--status-text);
+  font-size:11px;
+  line-height:1.2;
+}
+
+.n2k-status-summary-card.is-ok .n2k-status-summary-icon,
+.n2k-status-summary-card.is-ok strong{color:var(--status-green);}
+.n2k-status-summary-card.is-warn .n2k-status-summary-icon,
+.n2k-status-summary-card.is-warn strong{color:var(--status-amber);}
+.n2k-status-summary-card.is-bad .n2k-status-summary-icon,
+.n2k-status-summary-card.is-bad strong{color:var(--status-red);}
+
+.n2k-status-jump{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:11px;
+  padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.045);
+}
+
+.n2k-status-jump button,
+.n2k-setup-step button{
+  min-height:27px;
+  padding:0 9px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:8px;
+  background:rgba(255,255,255,.025);
+  color:rgba(211,221,226,.82);
+  font:inherit;
+  font-size:8px;
+  cursor:pointer;
+}
+
+.n2k-status-jump button:hover,
+.n2k-setup-step button:hover{
+  border-color:rgba(113,217,176,.16);
+  background:rgba(113,217,176,.04);
+}
+
+.n2k-setup-steps{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin-top:12px;
+}
+
+.n2k-setup-step{
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr);
+  gap:9px;
+  align-items:start;
+  min-width:0;
+  padding:10px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:10px;
+  background:rgba(255,255,255,.015);
+}
+
+.n2k-setup-number{
+  display:grid;
+  place-items:center;
+  width:27px;
+  height:27px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:50%;
+  color:var(--status-muted);
+  font-size:9px;
+  font-weight:850;
+}
+
+.n2k-setup-step strong{
+  display:block;
+  color:var(--status-text);
+  font-size:10px;
+}
+
+.n2k-setup-step p{
+  margin:3px 0 5px;
+  font-size:8px;
+}
+
+.n2k-setup-step small{
+  display:block;
+  min-height:20px;
+  color:rgba(191,203,209,.72);
+  font-size:7.5px;
+  line-height:1.35;
+}
+
+.n2k-setup-step button{
+  margin-top:7px;
+}
+
+/* Existing status cards: calmer hierarchy */
+.n2k-hardware-usb-title,
+.n2k-resilience-title,
+.n2k-propagation-title,
+.n2k-selftest-title,
+.n2k-help-title,
+.n2k-about-title{
+  color:var(--status-text) !important;
+  font-size:12.5px !important;
+  font-weight:760 !important;
+}
+
+.n2k-hardware-usb-sub,
+.n2k-resilience-sub,
+.n2k-propagation-sub,
+.n2k-selftest-sub,
+.n2k-help-sub{
+  color:var(--status-muted) !important;
+  font-size:8px !important;
+}
+
+/* RNode Setup becomes the main beginner setup panel */
+#n2k-hardware-usb-card{
+  border-color:rgba(113,217,176,.11) !important;
+}
+
+#n2k-hardware-usb-slot .n2k-tech-panel{
+  background:transparent !important;
+}
+
+#n2k-hardware-usb-slot .n2k-tech-content{
+  padding-top:2px !important;
+}
+
+#n2k-hardware-usb-slot .card{
+  background:rgba(255,255,255,.014) !important;
+  border-color:rgba(255,255,255,.05) !important;
+}
+
+#n2k-hardware-usb-slot .card h2{
+  font-size:10.5px !important;
+  color:rgba(232,239,242,.90) !important;
+}
+
+#n2k-hardware-usb-slot .card:has(#rnode-port-list){
+  border-color:rgba(113,217,176,.09) !important;
+  background:
+    radial-gradient(circle at 0 0,rgba(113,217,176,.035),transparent 32%),
+    rgba(255,255,255,.012) !important;
+}
+
+/* Hide expert cards behind a collapsible technical details wrapper */
+#n2k-status-expert-details{
+  margin-top:10px;
+  padding:0 !important;
+  border:1px solid rgba(255,255,255,.05) !important;
+  border-radius:10px !important;
+  background:rgba(0,0,0,.10) !important;
+}
+
+#n2k-status-expert-details > summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  min-height:34px;
+  padding:0 10px;
+  color:rgba(194,206,212,.72);
+  font-size:8.5px;
+  font-weight:700;
+}
+
+#n2k-status-expert-details > summary::after{
+  content:"optional";
+  color:rgba(162,176,184,.48);
+  font-size:7px;
+  font-weight:600;
+}
+
+#n2k-status-expert-body{
+  padding:8px;
+}
+
+/* Resilience / propagation / selftest: less intimidating */
+.n2k-resilience-grid,
+.n2k-propagation-diagnostics{
+  gap:6px !important;
+}
+
+.n2k-resilience-stat,
+.n2k-propagation-diagnostics > div{
+  padding:8px !important;
+  border-radius:8px !important;
+}
+
+.n2k-resilience-actions,
+.n2k-selftest-actions{
+  gap:6px !important;
+}
+
+#n2k-propagation-candidates{
+  max-height:180px !important;
+  overflow:auto !important;
+}
+
+.n2k-help-list details{
+  margin-top:6px !important;
+  padding:0 !important;
+  border-radius:9px !important;
+}
+
+.n2k-help-list summary{
+  padding:9px 10px !important;
+  font-size:9px !important;
+}
+
+.n2k-help-body{
+  padding:0 10px 10px !important;
+  font-size:8.5px !important;
+  line-height:1.5 !important;
+}
+
+.n2k-about-card{
+  opacity:.82;
+}
+
+/* Highlight target when using jump nav */
+.n2k-status-flash{
+  animation:n2kStatusFlash 1.1s ease;
+}
+@keyframes n2kStatusFlash{
+  0%{box-shadow:0 0 0 0 rgba(113,217,176,.0)}
+  25%{box-shadow:0 0 0 2px rgba(113,217,176,.18),0 0 22px rgba(113,217,176,.07)}
+  100%{box-shadow:0 0 0 0 rgba(113,217,176,0)}
+}
+
+@media(max-width:1050px){
+  .n2k-status-summary-grid,
+  .n2k-setup-steps{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:620px){
+  .n2k-status-overview,
+  .n2k-setup-assistant,
+  .n2k-hardware-usb-card,
+  .n2k-resilience-card,
+  .n2k-propagation-card,
+  .n2k-selftest-card,
+  .n2k-help-card,
+  .n2k-about-card{
+    padding:11px !important;
+  }
+
+  .n2k-status-overview-head,
+  .n2k-setup-assistant-head{
+    align-items:flex-start;
+  }
+
+  .n2k-status-summary-grid,
+  .n2k-setup-steps{
+    grid-template-columns:1fr;
+  }
+
+  .n2k-status-jump{
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    padding-bottom:2px;
+  }
+
+  .n2k-status-jump button{
+    white-space:nowrap;
+  }
+}
+</style>
+
+<script id="n2k-status-setup-v2-js-12154">
+(function(){
+  "use strict";
+
+  function byId(id){return document.getElementById(id);}
+  function text(id){var e=byId(id);return e?String(e.textContent||"").trim():"";}
+  function upper(v){return String(v||"").trim().toUpperCase();}
+
+  function stateFromText(v){
+    var t=upper(v);
+    if(!t) return "wait";
+    if(/UP|ONLINE|BEREIT|AKTIV|READY|OK/.test(t) &&
+       !/NICHT|KEIN|AUS|DOWN|OFFLINE|FEHLER/.test(t)) return "ok";
+    if(/FEHLER|ERROR|DOWN|OFFLINE|NICHT GESTARTET/.test(t)) return "bad";
+    return "warn";
+  }
+
+  function setCard(id,value,state){
+    var el=byId(id);
+    if(el) el.textContent=value;
+    var card=el && el.closest(".n2k-status-summary-card");
+    if(card){
+      card.classList.remove("is-ok","is-warn","is-bad");
+      card.classList.add("is-"+state);
+    }
+  }
+
+  function setStep(id,state,note){
+    var el=byId(id);
+    if(!el) return;
+    el.classList.remove("is-ok","is-warn","is-bad","is-wait");
+    el.classList.add("is-"+state);
+    var noteEl=el.querySelector("small");
+    if(noteEl && note) noteEl.textContent=note;
+  }
+
+  function updateStatusSetup(){
+    var rns=text("n2k-resilience-rns") || text("hero-rns") || text("n2k-chip-rns");
+    var lxmf=text("n2k-resilience-lxmf") || text("n2k-chip-lxmf");
+    var rnode=text("rnode-live-status") || text("rnode-config-status");
+    var ifaces=text("n2k-resilience-interfaces") || "—";
+
+    var rnsState=stateFromText(rns);
+    var lxmfState=stateFromText(lxmf);
+    var rnodeState=stateFromText(rnode);
+    var ifaceState=/[1-9]\d*\s*\/|[1-9]\d*\s+AKTIV|UP/i.test(ifaces) ? "ok" : stateFromText(ifaces);
+
+    setCard("n2k-status-rns", rns || "Prüfe…", rnsState);
+    setCard("n2k-status-lxmf", lxmf || "Prüfe…", lxmfState);
+    setCard("n2k-status-rnode", rnode || "Prüfe…", rnodeState);
+    setCard("n2k-status-ifaces", ifaces || "Prüfe…", ifaceState);
+
+    var rnodeSub=byId("n2k-status-rnode-sub");
+    if(rnodeSub){
+      rnodeSub.textContent =
+        rnodeState==="ok" ? "LoRa-Funk bereit" :
+        rnodeState==="bad" ? "Einrichtung prüfen" :
+        "USB-Funkhardware";
+    }
+
+    var coreOk=rnsState==="ok" && lxmfState==="ok";
+    setStep(
+      "n2k-setup-step-core",
+      coreOk?"ok":(rnsState==="bad"||lxmfState==="bad"?"bad":"warn"),
+      coreOk?"RNS und LXMF sind bereit.":"RNS oder LXMF benötigt noch Aufmerksamkeit."
+    );
+
+    setStep(
+      "n2k-setup-step-rnode",
+      rnodeState==="ok"?"ok":(rnodeState==="bad"?"bad":"warn"),
+      rnodeState==="ok"?"RNode ist verbunden und aktiv.":"RNode Setup öffnen und USB/Funk prüfen."
+    );
+
+    setStep(
+      "n2k-setup-step-network",
+      ifaceState==="ok"?"ok":"warn",
+      ifaceState==="ok" ? (ifaces+" · Verbindung vorhanden.") : "Noch kein aktives Interface erkannt."
+    );
+
+    var selfSummary=upper(text("n2k-selftest-summary"));
+    var testOk=/OK|BEREIT|ERFOLGREICH|BESTANDEN/.test(selfSummary);
+    var testBad=/FEHLER|PROBLEM|NICHT BESTANDEN/.test(selfSummary);
+    setStep(
+      "n2k-setup-step-test",
+      testOk?"ok":(testBad?"bad":"warn"),
+      testOk?"Systemcheck erfolgreich.":(testBad?"Systemcheck meldet Handlungsbedarf.":"Noch nicht ausgeführt.")
+    );
+
+    var done=[coreOk,rnodeState==="ok",ifaceState==="ok",testOk].filter(Boolean).length;
+    var progress=byId("n2k-setup-progress");
+    if(progress) progress.textContent=done+" / 4";
+
+    var overall=byId("n2k-status-overall");
+    if(overall){
+      overall.classList.remove("is-ok","is-warn","is-bad");
+      if(rnsState==="bad"||lxmfState==="bad"){
+        overall.textContent="PRÜFEN";
+        overall.classList.add("is-bad");
+      }else if(coreOk && ifaceState==="ok" && rnodeState==="ok"){
+        overall.textContent="BEREIT";
+        overall.classList.add("is-ok");
+      }else{
+        overall.textContent="SETUP";
+        overall.classList.add("is-warn");
+      }
+    }
+  }
+
+  function bindJumps(){
+    document.querySelectorAll("[data-n2k-jump]").forEach(function(btn){
+      if(btn.dataset.n2kBound) return;
+      btn.dataset.n2kBound="1";
+      btn.addEventListener("click",function(){
+        var target=byId(btn.dataset.n2kJump);
+        if(!target) return;
+        target.scrollIntoView({behavior:"smooth",block:"start"});
+        target.classList.remove("n2k-status-flash");
+        void target.offsetWidth;
+        target.classList.add("n2k-status-flash");
+      });
+    });
+
+    var run=byId("n2k-setup-run-test");
+    if(run && !run.dataset.n2kBound){
+      run.dataset.n2kBound="1";
+      run.addEventListener("click",function(){
+        var existing=byId("n2k-selftest-button");
+        if(existing) existing.click();
+        var target=byId("n2k-selftest-card");
+        if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+      });
+    }
+  }
+
+  function wrapExpertDetails(){
+    var slot=byId("n2k-hardware-usb-slot");
+    if(!slot || byId("n2k-status-expert-details")) return;
+
+    var grid=slot.querySelector(".grid");
+    if(!grid) return;
+
+    var setupCard=grid.querySelector(".card:has(#rnode-port-list)");
+    var configCard=grid.querySelector(".card:has(#rnode-config-status)");
+
+    // Keep setup + live RNode information immediately visible.
+    // Move all other expert cards into a collapsible area without changing IDs.
+    var expertCards=Array.from(grid.children).filter(function(el){
+      return el!==setupCard && el!==configCard;
+    });
+
+    if(!expertCards.length) return;
+
+    var details=document.createElement("details");
+    details.id="n2k-status-expert-details";
+
+    var summary=document.createElement("summary");
+    summary.textContent="Technische Details anzeigen";
+
+    var body=document.createElement("div");
+    body.id="n2k-status-expert-body";
+    body.className="grid";
+
+    details.appendChild(summary);
+    details.appendChild(body);
+
+    expertCards.forEach(function(card){body.appendChild(card);});
+    grid.appendChild(details);
+  }
+
+  function boot(){
+    bindJumps();
+    setTimeout(wrapExpertDetails,250);
+    setTimeout(function(){wrapExpertDetails();updateStatusSetup();},600);
+    setTimeout(updateStatusSetup,1600);
+
+    var settings=byId("msg-settings-view");
+    if(settings){
+      new MutationObserver(function(){
+        updateStatusSetup();
+      }).observe(settings,{subtree:true,childList:true,characterData:true});
+    }
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
 
 </body>
 </html>
