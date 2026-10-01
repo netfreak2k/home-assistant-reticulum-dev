@@ -12,6 +12,7 @@ RUN python3 -m pip install \
     --no-cache-dir \
     --break-system-packages \
     rns==1.5.4 \
+    pyserial==3.5 \
     lxmf==1.1.1 \
     qrcode==7.4.2
 
