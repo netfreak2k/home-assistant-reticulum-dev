@@ -4950,6 +4950,72 @@ class Handler(BaseHTTPRequestHandler):
                     None,
                 )
 
+                config_file = Path("/config/reticulum/config")
+                log_file = Path("/config/reticulum/rnsd-startup.log")
+
+                managed_block = ""
+                startup_diagnostics = []
+
+                try:
+                    if config_file.exists():
+                        config_text = config_file.read_text(
+                            encoding="utf-8",
+                            errors="replace",
+                        )
+                        start_marker = (
+                            "# BEGIN HOMEASSISTANT RETICULUM MANAGED RNODE"
+                        )
+                        end_marker = (
+                            "# END HOMEASSISTANT RETICULUM MANAGED RNODE"
+                        )
+
+                        start_pos = config_text.find(start_marker)
+                        end_pos = config_text.find(end_marker)
+
+                        if start_pos >= 0 and end_pos >= start_pos:
+                            end_pos += len(end_marker)
+                            managed_block = config_text[
+                                start_pos:end_pos
+                            ].strip()
+                except Exception as exc:
+                    startup_diagnostics.append(
+                        "Config read error: " + str(exc)
+                    )
+
+                try:
+                    if log_file.exists():
+                        lines = log_file.read_text(
+                            encoding="utf-8",
+                            errors="replace",
+                        ).splitlines()
+
+                        interesting = []
+                        for line in lines:
+                            low = line.lower()
+                            if any(
+                                token in low
+                                for token in (
+                                    "rnode",
+                                    "serial",
+                                    "opening",
+                                    "could not open",
+                                    "error",
+                                    "exception",
+                                    "firmware",
+                                    "radio",
+                                    "interface",
+                                )
+                            ):
+                                interesting.append(line)
+
+                        startup_diagnostics.extend(
+                            interesting[-40:]
+                        )
+                except Exception as exc:
+                    startup_diagnostics.append(
+                        "Log read error: " + str(exc)
+                    )
+
                 self.send_json({
                     "ok": True,
                     "rnode_interface": options.get(
@@ -4974,6 +5040,8 @@ class Handler(BaseHTTPRequestHandler):
                         "rnode_codingrate", 5
                     ),
                     "live": live_rnode,
+                    "managed_block": managed_block,
+                    "startup_diagnostics": startup_diagnostics,
                 })
                 return
 
