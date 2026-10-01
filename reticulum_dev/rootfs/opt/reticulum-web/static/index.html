@@ -2830,30 +2830,43 @@ code {
 
     </div>
 
-    <section class="n2k-nearby-card" id="n2k-nearby-card">
-      <div class="n2k-nearby-head">
+    <section class="n2k-constellation-card" id="n2k-constellation-card">
+      <div class="n2k-constellation-head">
         <div>
-          <div class="n2k-nearby-title">Umgebungsscanner</div>
-          <div class="n2k-nearby-sub">LXMF-Announces auf deinen aktiven Reticulum-Interfaces</div>
+          <div class="n2k-constellation-title">Live Mesh Map</div>
+          <div class="n2k-constellation-sub">LXMF-Nodes, die sich im Reticulum-Netz melden</div>
         </div>
-        <button id="n2k-nearby-start" class="n2k-nearby-start" type="button">Scannen</button>
+        <div class="n2k-constellation-stats" aria-label="Mesh-Statistik">
+          <span><b id="n2k-map-live">0</b> live</span>
+          <span><b id="n2k-map-visible">0</b> sichtbar</span>
+          <span><b id="n2k-map-paths">0</b> Pfade</span>
+        </div>
       </div>
 
-      <div class="n2k-nearby-status" id="n2k-nearby-status">
-        Bereit · bekannte LXMF-Announces werden aus dem 24-h-Cache angezeigt
+      <div class="n2k-constellation-filters" role="group" aria-label="Zeitraum">
+        <button type="button" data-n2k-map-filter="live">Live</button>
+        <button type="button" data-n2k-map-filter="hour" class="active">1 h</button>
+        <button type="button" data-n2k-map-filter="day">24 h</button>
       </div>
 
-      <div class="n2k-nearby-progress" id="n2k-nearby-progress" hidden>
-        <span id="n2k-nearby-progress-bar"></span>
+      <div class="n2k-constellation-stage">
+        <svg
+          id="n2k-constellation-svg"
+          viewBox="0 0 680 360"
+          role="img"
+          aria-label="Interaktive Reticulum Mesh Map">
+        </svg>
+        <div class="n2k-constellation-empty" id="n2k-constellation-empty" hidden>
+          Noch keine LXMF-Nodes in diesem Zeitraum.
+        </div>
       </div>
 
-      <div class="n2k-nearby-results" id="n2k-nearby-results">
-        <div class="n2k-nearby-empty">Lade bekannte LXMF-Announces…</div>
-      </div>
-
-      <div class="n2k-nearby-note">
-        „In der Umgebung“ bedeutet hier: während des Scans über das Reticulum-Netz gesehen.
-        Das ist keine Entfernungsmessung in Metern.
+      <div class="n2k-constellation-detail" id="n2k-constellation-detail">
+        <div>
+          <strong id="n2k-map-detail-name">Node auswählen</strong>
+          <span id="n2k-map-detail-meta">Tippe einen Punkt in der Map an.</span>
+        </div>
+        <button type="button" id="n2k-map-chat" hidden>Chat öffnen</button>
       </div>
     </section>
 
@@ -10884,26 +10897,36 @@ if (
 })();
 </script>
 
-<script id="n2k-nearby-js-12110">
+<script id="n2k-constellation-js-12117">
 (function(){
-  var scanTimer=null;
-  var pollTimer=null;
-  var scanStarted=0;
-  var duration=30;
-  var lastData=null;
-  var expanded=false;
-  var previewLimit=2;
+  "use strict";
+
+  var refreshTimer=null;
+  var filter="hour";
+  var selected="";
+  var previousSeen=new Map();
 
   function el(id){ return document.getElementById(id); }
 
   function esc(v){
     return String(v==null?"":v)
-      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  function hashNumber(value,offset){
+    var s=String(value||"");
+    var h=2166136261>>>0;
+    for(var i=offset||0;i<s.length;i++){
+      h^=s.charCodeAt(i);
+      h=Math.imul(h,16777619)>>>0;
+    }
+    return h>>>0;
   }
 
   function ageText(sec){
-    if(sec==null) return "Zeit unbekannt";
     sec=Math.max(0,Number(sec)||0);
     if(sec<5) return "gerade eben";
     if(sec<60) return "vor "+Math.round(sec)+" s";
@@ -10911,110 +10934,200 @@ if (
     return "vor "+Math.round(sec/3600)+" h";
   }
 
+  function nodePosition(item,index,total){
+    var peer=String(item.destination_hash||"");
+    var a=hashNumber(peer,0);
+    var b=hashNumber(peer,7);
+
+    var x=60+(a%560);
+    var y=48+(b%264);
+
+    // Halte das Zentrum für den eigenen Core frei.
+    var dx=x-340;
+    var dy=y-180;
+    var d=Math.sqrt(dx*dx+dy*dy)||1;
+
+    if(d<82){
+      x=340+(dx/d)*92;
+      y=180+(dy/d)*92;
+    }
+
+    // Kleine deterministische Entzerrung gegen übereinanderliegende Nodes.
+    var jitter=((index%5)-2)*5;
+    x=Math.max(36,Math.min(644,x+jitter));
+    y=Math.max(34,Math.min(326,y-jitter));
+
+    return {x:x,y:y};
+  }
+
+  function classFor(item,isBurst){
+    var age=Number(item.age_seconds||0);
+    var c=["n2k-cnode"];
+
+    if(age<=120 || item.seen_during_scan===true) c.push("fresh");
+    else if(age<=3600) c.push("warm");
+    else c.push("cached");
+
+    if(isBurst) c.push("burst");
+    if(String(item.destination_hash||"")===selected) c.push("selected");
+
+    return c.join(" ");
+  }
+
+  function filterItems(items){
+    return items.filter(function(item){
+      var age=Number(item&&item.age_seconds||0);
+      if(filter==="live") return age<=120 || item.seen_during_scan===true;
+      if(filter==="hour") return age<=3600;
+      return age<=86400;
+    });
+  }
+
   function render(data){
-    lastData=data||{};
-    var box=el("n2k-nearby-results");
-    if(!box) return;
+    var svg=el("n2k-constellation-svg");
+    var empty=el("n2k-constellation-empty");
+    if(!svg) return;
 
-    var allItems=Array.isArray(data&&data.contacts)?data.contacts:[];
-    var live=Number(data&&data.live_count||0);
-    var cached=Number(data&&data.cached_count||0);
-    var rnsPaths=Number(data&&data.rns_path_count||0);
-    var cacheMatches=Number(data&&data.lxmf_cache_matches||0);
-
-    // Scanner-Ergebnisse und normales Kontaktbuch bleiben bewusst getrennt.
-    // Bereits bekannte 24-h-Cache-Kontakte stehen unten im normalen Kontaktbuch.
-    var items=scanStarted
-      ? allItems.filter(function(item){ return item&&item.seen_during_scan===true; })
-      : [];
-
-    var status=el("n2k-nearby-status");
-
-    if(scanTimer){
-      box.innerHTML='<div class="n2k-nearby-empty">Suche nach neuen LXMF-Announces…</div>';
-      return;
-    }
-
-    if(!scanStarted){
-      box.innerHTML='<div class="n2k-nearby-empty">Noch kein Scan ausgeführt.</div>';
-      if(status){
-        status.textContent=
-          "Bereit · "+cached+" LXMF bekannt · "+rnsPaths+" RNS-Ziele";
-      }
-      return;
-    }
-
-    if(!items.length){
-      box.innerHTML='<div class="n2k-nearby-empty">Keine neuen LXMF-Announces während dieses Scans.</div>';
-      return;
-    }
-
-    items=items.slice().sort(function(a,b){
+    var raw=Array.isArray(data&&data.contacts)?data.contacts:[];
+    raw=raw.slice().sort(function(a,b){
       return Number(a&&a.age_seconds||0)-Number(b&&b.age_seconds||0);
     });
 
-    var visible=expanded ? items : items.slice(0,previewLimit);
+    var items=filterItems(raw).slice(0,32);
 
-    var html=visible.map(function(item){
-      var hash=String(item.destination_hash||"");
-      var name=String(item.display_name||"").trim() || (hash.slice(0,10)+"…");
-      var meta=["● live",ageText(item.age_seconds)];
+    var live=raw.filter(function(item){
+      return Number(item&&item.age_seconds||0)<=120 ||
+        item&&item.seen_during_scan===true;
+    }).length;
 
-      if(item.hops!==null && item.hops!==undefined && item.hops!==""){
-        var hops=Number(item.hops);
-        if(Number.isFinite(hops) && hops>=0 && hops<128){
-          meta.push(String(hops)+" Hop"+(hops===1?"":"s"));
-        }
-      }else if(item.path_known){
-        meta.push("Pfad bekannt");
+    if(el("n2k-map-live")) el("n2k-map-live").textContent=String(live);
+    if(el("n2k-map-visible")) el("n2k-map-visible").textContent=String(items.length);
+    if(el("n2k-map-paths")) el("n2k-map-paths").textContent=String(Number(data&&data.rns_path_count||0));
+
+    if(empty) empty.hidden=items.length>0;
+
+    var defs=
+      '<defs>'+
+        '<linearGradient id="n2k-flow-gradient" x1="0" y1="0" x2="1" y2="1">'+
+          '<stop offset="0%" stop-color="rgba(87,160,255,.08)"/>'+
+          '<stop offset="52%" stop-color="rgba(111,222,181,.62)"/>'+
+          '<stop offset="100%" stop-color="rgba(181,125,255,.15)"/>'+
+        '</linearGradient>'+
+        '<filter id="n2k-soft-glow" x="-60%" y="-60%" width="220%" height="220%">'+
+          '<feGaussianBlur stdDeviation="4" result="blur"/>'+
+          '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>'+
+        '</filter>'+
+      '</defs>';
+
+    var links="";
+    var nodes="";
+
+    items.forEach(function(item,index){
+      var peer=String(item.destination_hash||"");
+      var name=String(item.display_name||"").trim() || (peer.slice(0,8)+"…");
+      var pos=nodePosition(item,index,items.length);
+      var age=Number(item.age_seconds||0);
+      var previous=previousSeen.get(peer);
+      var lastSeen=Number(item.last_seen||0);
+      var burst=Boolean(
+        lastSeen &&
+        (
+          previous===undefined
+          ? age<=12
+          : lastSeen>previous
+        )
+      );
+
+      previousSeen.set(peer,lastSeen);
+
+      var midX=(340+pos.x)/2 + ((hashNumber(peer,3)%35)-17);
+      var midY=(180+pos.y)/2 + ((hashNumber(peer,11)%35)-17);
+      var path='M340 180 Q'+midX+' '+midY+' '+pos.x+' '+pos.y;
+
+      var pathClass=age<=120 ? "n2k-clink fresh" : "n2k-clink";
+
+      links +=
+        '<path class="'+pathClass+'" d="'+path+'" />';
+
+      var hops=item.hops;
+      var hopText="";
+      if(hops!==null && hops!==undefined && hops!=="" && Number(hops)<128){
+        hopText=String(Number(hops))+"H";
       }
 
-      if(item.interface) meta.push(String(item.interface));
+      nodes +=
+        '<g class="'+classFor(item,burst)+'" data-peer="'+esc(peer)+'" tabindex="0" role="button" '+
+          'aria-label="'+esc(name)+', '+esc(ageText(age))+'" transform="translate('+pos.x+' '+pos.y+')">'+
+          '<circle class="n2k-cnode-halo" r="18"></circle>'+
+          '<circle class="n2k-cnode-orb" r="8"></circle>'+
+          '<circle class="n2k-cnode-core" r="3"></circle>'+
+          '<text class="n2k-cnode-label" x="12" y="-8">'+esc(name.slice(0,18))+'</text>'+
+          '<text class="n2k-cnode-hop" x="12" y="7">'+esc(hopText||ageText(age))+'</text>'+
+        '</g>';
+    });
 
-      return '<div class="n2k-nearby-row">'+
-        '<div><div class="n2k-nearby-name">'+esc(name)+'</div>'+
-        '<div class="n2k-nearby-meta">'+esc(meta.join(" · "))+'<br>'+esc(hash)+'</div></div>'+
-        '<button type="button" class="n2k-nearby-open" data-peer="'+esc(hash)+'">Chat</button>'+
-        '</div>';
-    }).join("");
+    var core=
+      '<g class="n2k-ccore" transform="translate(340 180)">'+
+        '<polygon class="n2k-ccore-glow" points="0,-27 27,0 0,27 -27,0"></polygon>'+
+        '<polygon class="n2k-ccore-body" points="0,-18 18,0 0,18 -18,0"></polygon>'+
+        '<circle class="n2k-ccore-dot" r="4"></circle>'+
+        '<text x="0" y="43" text-anchor="middle">N2K CORE</text>'+
+      '</g>';
 
-    if(items.length>previewLimit){
-      html += '<button type="button" class="n2k-nearby-more" id="n2k-nearby-more">'+
-        (expanded ? 'Weniger anzeigen' : 'Alle live anzeigen ('+items.length+')')+
-        '</button>';
-    }
+    svg.innerHTML=defs+
+      '<g class="n2k-constellation-links">'+links+'</g>'+
+      core+
+      '<g class="n2k-constellation-nodes">'+nodes+'</g>';
 
-    box.innerHTML=html;
+    svg.querySelectorAll(".n2k-cnode").forEach(function(node){
+      function choose(){
+        var peer=node.getAttribute("data-peer")||"";
+        var item=items.find(function(x){
+          return String(x.destination_hash||"")===peer;
+        });
+        if(!item) return;
 
-    if(status){
-      status.textContent=
-        "Scan beendet · "+live+" live · "+
-        cached+" LXMF bekannt · "+
-        rnsPaths+" RNS-Ziele"+
-        (cacheMatches ? " · "+cacheMatches+" Cache-Treffer" : "");
-    }
+        selected=peer;
+        showDetail(item);
+        render(data);
+      }
 
-    box.querySelectorAll(".n2k-nearby-open").forEach(function(btn){
-      btn.addEventListener("click",function(){
-        var peer=btn.dataset.peer||"";
-        if(typeof window.openMessengerConversation==="function"){
-          window.openMessengerConversation(peer);
+      node.addEventListener("click",choose);
+      node.addEventListener("keydown",function(e){
+        if(e.key==="Enter"||e.key===" "){
+          e.preventDefault();
+          choose();
         }
       });
     });
+  }
 
-    var more=el("n2k-nearby-more");
-    if(more){
-      more.addEventListener("click",function(){
-        expanded=!expanded;
-        render(lastData||{});
-      });
+  function showDetail(item){
+    var name=String(item.display_name||"").trim() ||
+      String(item.destination_hash||"").slice(0,10)+"…";
+
+    var meta=[
+      ageText(item.age_seconds),
+      item.hops!==null && item.hops!==undefined && Number(item.hops)<128
+        ? String(Number(item.hops))+" Hop"+(Number(item.hops)===1?"":"s")
+        : "Hops unbekannt",
+      item.interface ? String(item.interface) : "Interface unbekannt",
+      String(item.destination_hash||"").slice(0,10)+"…"+String(item.destination_hash||"").slice(-6)
+    ];
+
+    if(el("n2k-map-detail-name")) el("n2k-map-detail-name").textContent=name;
+    if(el("n2k-map-detail-meta")) el("n2k-map-detail-meta").textContent=meta.join(" · ");
+
+    var chat=el("n2k-map-chat");
+    if(chat){
+      chat.hidden=false;
+      chat.dataset.peer=String(item.destination_hash||"");
     }
   }
 
-  async function poll(){
+  async function load(){
     try{
-      var since=scanStarted||0;
+      var since=Math.floor(Date.now()/1000)-120;
       var res=await fetch(
         "api/messenger/nearby?since="+encodeURIComponent(since)+"&ts="+Date.now(),
         {cache:"no-store"}
@@ -11027,112 +11140,39 @@ if (
 
       render(data);
     }catch(e){
-      var status=el("n2k-nearby-status");
-      if(status) status.textContent="Scanner: API momentan nicht erreichbar";
-    }
-  }
-
-  function finish(){
-    if(scanTimer){clearInterval(scanTimer);scanTimer=null;}
-    if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
-
-    var button=el("n2k-nearby-start");
-    var status=el("n2k-nearby-status");
-    var progress=el("n2k-nearby-progress");
-    var bar=el("n2k-nearby-progress-bar");
-
-    if(button){
-      button.disabled=false;
-      button.textContent="Erneut scannen";
-    }
-
-    if(bar) bar.style.width="100%";
-
-    poll().finally(function(){
-      var data=lastData||{};
-      var live=Number(data.live_count||0);
-      var total=Number(data.count||0);
-      var cached=Number(data.cached_count||0);
-      var rnsPaths=Number(data.rns_path_count||0);
-      var cacheMatches=Number(data.lxmf_cache_matches||0);
-
-      if(status){
-        status.textContent=
-          "Scan beendet · "+live+" live · "+
-          cached+" LXMF bekannt · "+
-          rnsPaths+" RNS-Ziele"+
-          (cacheMatches ? " · "+cacheMatches+" Cache-Treffer" : "");
+      var empty=el("n2k-constellation-empty");
+      if(empty){
+        empty.hidden=false;
+        empty.textContent="Live Mesh Map momentan nicht erreichbar.";
       }
-
-      setTimeout(function(){
-        if(progress) progress.hidden=true;
-      },700);
-    });
-  }
-
-  function start(){
-    if(scanTimer||pollTimer) return;
-
-    scanStarted=Math.floor(Date.now()/1000);
-    var startMs=Date.now();
-    var button=el("n2k-nearby-start");
-    var status=el("n2k-nearby-status");
-    var progress=el("n2k-nearby-progress");
-    var bar=el("n2k-nearby-progress-bar");
-
-    if(button){
-      button.disabled=true;
-      button.textContent="Scan läuft…";
     }
-
-    if(progress) progress.hidden=false;
-    if(bar) bar.style.width="0%";
-
-    if(status){
-      status.textContent="Scan läuft · 30 s · neue Treffer erscheinen nach Scanende";
-    }
-
-    var results=el("n2k-nearby-results");
-    if(results){
-      results.innerHTML='<div class="n2k-nearby-empty">Suche nach neuen LXMF-Announces…</div>';
-    }
-
-    poll();
-    pollTimer=setInterval(poll,2000);
-
-    scanTimer=setInterval(function(){
-      var elapsed=(Date.now()-startMs)/1000;
-      var left=Math.max(0,Math.ceil(duration-elapsed));
-
-      if(status){
-        var data=lastData||{};
-        status.textContent=
-          "Scan läuft · noch "+left+" s · "+
-          Number(data.live_count||0)+" live · "+
-          Number(data.cached_count||0)+" LXMF bekannt · "+
-          Number(data.rns_path_count||0)+" RNS-Ziele";
-      }
-
-      if(bar){
-        bar.style.width=
-          Math.min(100,(elapsed/duration)*100)+"%";
-      }
-
-      if(elapsed>=duration) finish();
-    },250);
   }
 
   function boot(){
-    var button=el("n2k-nearby-start");
+    document.querySelectorAll("[data-n2k-map-filter]").forEach(function(btn){
+      btn.addEventListener("click",function(){
+        filter=btn.dataset.n2kMapFilter||"hour";
+        document.querySelectorAll("[data-n2k-map-filter]").forEach(function(other){
+          other.classList.toggle("active",other===btn);
+        });
+        load();
+      });
+    });
 
-    if(button&&!button.dataset.bound){
-      button.dataset.bound="1";
-      button.addEventListener("click",start);
+    var chat=el("n2k-map-chat");
+    if(chat){
+      chat.addEventListener("click",function(){
+        var peer=chat.dataset.peer||"";
+        if(peer&&typeof window.openMessengerConversation==="function"){
+          window.openMessengerConversation(peer);
+        }else if(peer&&typeof window.openLXMFChat==="function"){
+          window.openLXMFChat(peer);
+        }
+      });
     }
 
-    // Important: show the persistent announce cache immediately.
-    // A peer does not have to re-announce inside a 30-second window.
-    poll();
+    load();
+    refreshTimer=setInterval(load,5000);
   }
 
   if(document.readyState==="loading"){
@@ -13759,175 +13799,327 @@ body.n2k-resilience-mode #n2k-resilience-card{
 }
 
 /* ==================================================
-   1.18.8-beta1 · PASSIVE LXMF NEARBY SCANNER
+   1.21.17-beta1 · LIVE MESH CONSTELLATION
    ================================================== */
 
-.n2k-nearby-card{
+.n2k-constellation-card{
   margin:12px 0 14px;
-  padding:10px;
-  border:1px solid rgba(255,255,255,.065);
-  border-radius:12px;
-  background:rgba(255,255,255,.018);
+  padding:11px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;
+  background:
+    radial-gradient(circle at 50% 48%,rgba(71,130,210,.075),transparent 38%),
+    linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.012));
+  overflow:hidden;
 }
 
-.n2k-nearby-head{
+.n2k-constellation-head{
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   justify-content:space-between;
   gap:12px;
 }
 
-.n2k-nearby-title{
-  color:rgba(239,244,246,.94);
-  font-size:14px;
-  font-weight:760;
+.n2k-constellation-title{
+  color:rgba(241,246,248,.96);
+  font-size:15px;
+  font-weight:780;
 }
 
-.n2k-nearby-sub{
+.n2k-constellation-sub{
   margin-top:3px;
-  color:rgba(183,198,207,.58);
+  color:rgba(185,199,207,.58);
   font-size:10px;
-  line-height:1.4;
+  line-height:1.35;
 }
 
-.n2k-nearby-start{
-  flex:0 0 auto;
-  min-width:82px;
-  min-height:38px;
-  padding:8px 12px;
-  border:1px solid rgba(113,217,176,.22);
-  border-radius:11px;
-  background:rgba(113,217,176,.08);
-  color:#71d9b0;
+.n2k-constellation-stats{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.n2k-constellation-stats span{
+  padding:4px 6px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:7px;
+  background:rgba(255,255,255,.025);
+  color:rgba(190,203,210,.58);
+  font-size:8px;
+  white-space:nowrap;
+}
+
+.n2k-constellation-stats b{
+  color:rgba(230,239,243,.92);
+  font-weight:800;
+}
+
+.n2k-constellation-filters{
+  display:flex;
+  gap:6px;
+  margin-top:9px;
+}
+
+.n2k-constellation-filters button{
+  min-height:28px;
+  padding:4px 9px;
+  border:1px solid rgba(255,255,255,.065);
+  border-radius:8px;
+  background:rgba(255,255,255,.02);
+  color:rgba(190,203,210,.62);
   font:inherit;
-  font-size:12px;
-  font-weight:750;
+  font-size:9px;
+  font-weight:700;
   cursor:pointer;
 }
 
-.n2k-nearby-start[disabled]{
-  opacity:.55;
-  cursor:default;
+.n2k-constellation-filters button.active{
+  border-color:rgba(107,217,177,.24);
+  background:rgba(107,217,177,.075);
+  color:#83dfbd;
 }
 
-.n2k-nearby-status{
-  margin-top:7px;
-  color:rgba(195,208,214,.68);
-  font-size:10px;
-}
-
-.n2k-nearby-progress{
-  height:3px;
-  margin-top:9px;
+.n2k-constellation-stage{
+  position:relative;
+  margin-top:8px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:12px;
+  background:
+    linear-gradient(rgba(255,255,255,.014) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px),
+    radial-gradient(circle at 48% 45%,rgba(96,154,235,.06),transparent 42%),
+    #0b1117;
+  background-size:42px 42px,42px 42px,auto,auto;
   overflow:hidden;
-  border-radius:999px;
-  background:rgba(255,255,255,.05);
 }
 
-.n2k-nearby-progress span{
+#n2k-constellation-svg{
   display:block;
-  width:0%;
-  height:100%;
-  border-radius:999px;
-  background:#71d9b0;
-  transition:width .25s linear;
+  width:100%;
+  min-height:250px;
+  max-height:340px;
+  touch-action:manipulation;
 }
 
-.n2k-nearby-results{
-  margin-top:6px;
-}
-
-.n2k-nearby-empty{
-  padding:7px 4px;
-  color:rgba(183,198,207,.52);
-  font-size:11px;
+.n2k-constellation-empty{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:82%;
+  color:rgba(184,198,206,.5);
+  font-size:10px;
   text-align:center;
+  pointer-events:none;
 }
 
-.n2k-nearby-row{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  gap:10px;
+.n2k-clink{
+  fill:none;
+  stroke:url(#n2k-flow-gradient);
+  stroke-width:1.2;
+  stroke-dasharray:3 11;
+  opacity:.24;
+  animation:n2k-constellation-flow 3.8s linear infinite;
+}
+
+.n2k-clink.fresh{
+  stroke-width:1.8;
+  opacity:.68;
+  animation-duration:1.7s;
+  filter:url(#n2k-soft-glow);
+}
+
+@keyframes n2k-constellation-flow{
+  to{stroke-dashoffset:-56;}
+}
+
+.n2k-ccore-glow{
+  fill:rgba(88,158,255,.035);
+  stroke:rgba(99,169,255,.16);
+  stroke-width:1;
+  animation:n2k-core-breathe 2.8s ease-in-out infinite;
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.n2k-ccore-body{
+  fill:rgba(79,144,230,.18);
+  stroke:rgba(124,187,255,.86);
+  stroke-width:1.4;
+  filter:url(#n2k-soft-glow);
+}
+
+.n2k-ccore-dot{
+  fill:#dcecff;
+}
+
+.n2k-ccore text{
+  fill:rgba(190,215,238,.62);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.12em;
+}
+
+@keyframes n2k-core-breathe{
+  0%,100%{transform:scale(.9);opacity:.35;}
+  50%{transform:scale(1.18);opacity:.85;}
+}
+
+.n2k-cnode{
+  cursor:pointer;
+  outline:none;
+}
+
+.n2k-cnode-halo{
+  fill:transparent;
+  stroke:rgba(125,150,170,.12);
+  stroke-width:1;
+}
+
+.n2k-cnode-orb{
+  fill:rgba(115,140,160,.2);
+  stroke:rgba(165,185,200,.45);
+  stroke-width:1.1;
+  transition:transform .16s ease,opacity .16s ease;
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.n2k-cnode-core{
+  fill:rgba(215,225,231,.78);
+}
+
+.n2k-cnode.fresh .n2k-cnode-orb{
+  fill:rgba(83,219,166,.24);
+  stroke:#67deb0;
+  filter:url(#n2k-soft-glow);
+}
+
+.n2k-cnode.warm .n2k-cnode-orb{
+  fill:rgba(88,160,255,.18);
+  stroke:rgba(105,177,255,.78);
+}
+
+.n2k-cnode.cached{
+  opacity:.48;
+}
+
+.n2k-cnode.selected .n2k-cnode-orb,
+.n2k-cnode:hover .n2k-cnode-orb,
+.n2k-cnode:focus .n2k-cnode-orb{
+  transform:scale(1.45);
+  opacity:1;
+}
+
+.n2k-cnode.burst .n2k-cnode-halo{
+  stroke:#71ddb5;
+  animation:n2k-node-burst 1.4s ease-out 2;
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+@keyframes n2k-node-burst{
+  0%{transform:scale(.45);opacity:.95;}
+  100%{transform:scale(1.9);opacity:0;}
+}
+
+.n2k-cnode-label{
+  fill:rgba(224,234,239,.84);
+  font-size:9px;
+  font-weight:700;
+  pointer-events:none;
+}
+
+.n2k-cnode-hop{
+  fill:rgba(170,190,200,.48);
+  font-size:7px;
+  pointer-events:none;
+}
+
+.n2k-constellation-detail{
+  display:flex;
   align-items:center;
-  padding:8px 2px;
-  border-top:1px solid rgba(255,255,255,.05);
+  justify-content:space-between;
+  gap:10px;
+  min-height:44px;
+  margin-top:8px;
+  padding:8px 9px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:10px;
+  background:rgba(255,255,255,.018);
 }
 
-.n2k-nearby-row:first-child{border-top:0;}
+.n2k-constellation-detail > div{
+  min-width:0;
+}
 
-.n2k-nearby-name{
+.n2k-constellation-detail strong,
+.n2k-constellation-detail span{
+  display:block;
   overflow:hidden;
-  color:rgba(236,242,244,.92);
-  font-size:13px;
-  font-weight:720;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
 
-.n2k-nearby-meta{
-  margin-top:3px;
-  color:rgba(181,196,205,.58);
-  font-size:10px;
-  line-height:1.45;
-  overflow-wrap:anywhere;
-}
-
-.n2k-nearby-open{
-  min-height:36px;
-  padding:7px 10px;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:10px;
-  background:rgba(255,255,255,.035);
-  color:rgba(236,242,244,.88);
-  font:inherit;
+.n2k-constellation-detail strong{
+  color:rgba(235,242,245,.92);
   font-size:11px;
-  cursor:pointer;
 }
 
-.n2k-nearby-note{
-  margin-top:9px;
-  padding-top:9px;
-  border-top:1px solid rgba(255,255,255,.045);
-  color:rgba(170,187,196,.48);
+.n2k-constellation-detail span{
+  margin-top:2px;
+  color:rgba(177,193,201,.56);
+  font-size:8px;
+}
+
+#n2k-map-chat{
+  flex:0 0 auto;
+  min-height:32px;
+  padding:6px 9px;
+  border:1px solid rgba(105,177,255,.2);
+  border-radius:8px;
+  background:rgba(86,157,245,.08);
+  color:rgba(216,232,244,.88);
+  font:inherit;
   font-size:9px;
-  line-height:1.45;
-}
-
-.n2k-nearby-more{
-  display:block;
-  width:100%;
-  min-height:36px;
-  margin-top:6px;
-  padding:7px 10px;
-  border:1px solid rgba(255,255,255,.065);
-  border-radius:10px;
-  background:rgba(255,255,255,.025);
-  color:rgba(205,216,222,.76);
-  font:inherit;
-  font-size:11px;
   font-weight:700;
   cursor:pointer;
 }
 
 @media(max-width:900px){
-  .n2k-nearby-card{
+  .n2k-constellation-card{
+    margin:7px 12px 10px !important;
     padding:9px !important;
   }
-  .n2k-nearby-sub{
-    max-width:210px;
+
+  .n2k-constellation-head{
+    gap:8px;
   }
-  .n2k-nearby-note{
-    display:none;
+
+  .n2k-constellation-stats{
+    max-width:145px;
   }
-  .n2k-nearby-row{
-    padding:9px 2px;
+
+  #n2k-constellation-svg{
+    min-height:230px;
+  }
+
+  .n2k-cnode-label{
+    font-size:8px;
+  }
+
+  .n2k-cnode-hop{
+    font-size:6.5px;
   }
 }
 
-@media(max-width:900px){
-  .n2k-nearby-card{margin:7px 12px 10px !important;}
-  .n2k-nearby-start{min-height:38px;}
-  .n2k-nearby-open{min-height:36px;}
+@media(prefers-reduced-motion:reduce){
+  .n2k-clink,
+  .n2k-ccore-glow,
+  .n2k-cnode.burst .n2k-cnode-halo{
+    animation:none !important;
+  }
 }
 
 /* ==================================================
