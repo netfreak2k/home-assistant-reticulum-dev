@@ -1,3 +1,11 @@
+## 1.21.21-beta1
+
+- Desktop finishing pass.
+- Use nearly the full Home Assistant browser canvas instead of a narrow centered app column.
+- Hide the legacy wide Netfreak2k brand/banner strip on desktop when present.
+- Widen the desktop sidebar and main messenger surface.
+- Increase desktop chat/list working height while leaving the smartphone layout unchanged.
+
 ## 1.21.20-beta1
 
 - Publish the unified desktop browser UI as a newer Home Assistant add-on version.
