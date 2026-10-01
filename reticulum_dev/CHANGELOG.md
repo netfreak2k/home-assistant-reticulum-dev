@@ -1,3 +1,11 @@
+## 1.21.56-beta1
+
+- Fix the RNode self-test so configured USB is not mistaken for a live RNode interface.
+- Require a real RNodeInterface with status Up/Online/Connected for PASS.
+- Include the generated managed RNode config block in support diagnostics.
+- Include relevant rnsd startup lines in support diagnostics.
+- Preserve the Status & Setup 2.0 UI and current runtime behavior.
+
 ## 1.21.55-beta1
 
 - Fix an HAOS USB startup race for RNodeInterface.
