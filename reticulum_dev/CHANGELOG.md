@@ -1,3 +1,12 @@
+## 1.21.53-beta1
+
+- Fix a critical false-positive in RNode compatibility detection.
+- Do not treat rnodeconf exit code 0 alone as proof of a valid RNode.
+- Reject known failure output such as "did not respond" and "invalid response".
+- Require positive RNode evidence before marking the device RNODE_CONFIRMED.
+- Stop automatic activation when the RNode handshake is not actually confirmed.
+- Show "NICHT GESTARTET" instead of implying a live interface exists when it does not.
+
 ## 1.21.52-beta1
 
 - Prefer the exact serial path that already passed the RNode compatibility probe.
