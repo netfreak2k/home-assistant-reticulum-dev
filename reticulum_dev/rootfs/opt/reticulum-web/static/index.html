@@ -2852,6 +2852,7 @@ code {
           <button type="button" data-n2k-map-filter="replay">Replay</button>
         </div>
         <div class="n2k-universe-actions">
+          <button id="n2k-universe-showcase" class="n2k-showcase-button" type="button">▶ Showcase</button>
           <button id="n2k-universe-trails" class="active" type="button">Trails</button>
           <button id="n2k-universe-clusters" class="active" type="button">Cluster</button>
         </div>
@@ -2867,6 +2868,11 @@ code {
           </svg>
           <div class="n2k-constellation-empty" id="n2k-constellation-empty" hidden>
             Noch keine LXMF-Nodes in diesem Zeitraum.
+          </div>
+          <div id="n2k-showcase-overlay" class="n2k-showcase-overlay" hidden>
+            <div id="n2k-showcase-kicker" class="n2k-showcase-kicker">N2K MESH UNIVERSE</div>
+            <strong id="n2k-showcase-title">Mesh is alive.</strong>
+            <span id="n2k-showcase-sub">Reticulum · LXMF · Home Assistant</span>
           </div>
           <div class="n2k-universe-legend" aria-hidden="true">
             <span><i class="radio"></i>Radio</span>
@@ -10934,6 +10940,12 @@ if (
   var clusters=true;
   var animationFrame=0;
   var replayStarted=0;
+  var showcaseActive=false;
+  var showcaseTimers=[];
+  var showcaseRunId=0;
+  var cameraFrame=0;
+  var defaultViewBox={x:0,y:0,w:1100,h:620};
+  var currentViewBox={x:0,y:0,w:1100,h:620};
 
   function el(id){ return document.getElementById(id); }
 
@@ -11135,7 +11147,7 @@ if (
       var halo=(16+(score*14)).toFixed(1);
 
       links +=
-        '<path class="n2k-clink route-'+route.kind+(fresh?' fresh':'')+(selectedNow?' selected':'')+'" d="'+path+'" data-peer="'+esc(peer)+'" />';
+        '<path class="n2k-clink route-'+route.kind+(fresh?' fresh':'')+(selectedNow?' selected':'')+'" style="--n2k-seq:'+index+'" d="'+path+'" data-peer="'+esc(peer)+'" />';
 
       if(trails && fresh){
         var duration=(1.8+((hashNumber(peer,4)%14)/10)).toFixed(1);
@@ -11159,7 +11171,8 @@ if (
 
       nodes +=
         '<g class="n2k-cnode ring-'+pos.ring+' route-'+route.kind+(fresh?' fresh':'')+(age>3600?' cached':'')+(burst?' burst':'')+(selectedNow?' selected':'')+'" '+
-          'data-peer="'+esc(peer)+'" data-focus="'+(selectedNow?'true':'false')+'" tabindex="0" role="button" transform="translate('+pos.x+' '+pos.y+')">'+
+          'data-peer="'+esc(peer)+'" data-age="'+age+'" data-score="'+score.toFixed(3)+'" data-focus="'+(selectedNow?'true':'false')+'" '+
+          'style="--n2k-seq:'+index+'" tabindex="0" role="button" transform="translate('+pos.x+' '+pos.y+')">'+
           '<circle class="n2k-cnode-halo" r="'+halo+'"></circle>'+
           '<circle class="n2k-cnode-orb" r="'+radius+'"></circle>'+
           '<circle class="n2k-cnode-core" r="'+Math.max(2.4,Number(radius)*.34).toFixed(1)+'"></circle>'+
@@ -11203,6 +11216,7 @@ if (
 
     svg.querySelectorAll(".n2k-cnode").forEach(function(node){
       function choose(){
+        if(showcaseActive) stopShowcase();
         var peer=node.getAttribute("data-peer")||"";
         var item=items.find(function(x){return String(x.destination_hash||"")===peer;});
         if(!item) return;
@@ -11263,6 +11277,196 @@ if (
       chat.hidden=false;
       chat.dataset.peer=String(item.destination_hash||"");
     }
+  }
+
+
+  function clearShowcaseTimers(){
+    showcaseTimers.forEach(function(t){clearTimeout(t);});
+    showcaseTimers=[];
+  }
+
+  function setOverlay(kicker,title,sub,visible){
+    var box=el("n2k-showcase-overlay");
+    if(!box) return;
+    if(el("n2k-showcase-kicker")) el("n2k-showcase-kicker").textContent=kicker||"N2K MESH UNIVERSE";
+    if(el("n2k-showcase-title")) el("n2k-showcase-title").textContent=title||"Mesh is alive.";
+    if(el("n2k-showcase-sub")) el("n2k-showcase-sub").textContent=sub||"";
+    box.hidden=!visible;
+    box.classList.toggle("visible",!!visible);
+  }
+
+  function animateCamera(target,duration){
+    var svg=el("n2k-constellation-svg");
+    if(!svg) return;
+    cancelAnimationFrame(cameraFrame);
+
+    target=target||defaultViewBox;
+    duration=Math.max(220,Number(duration)||900);
+    var from={
+      x:currentViewBox.x,y:currentViewBox.y,
+      w:currentViewBox.w,h:currentViewBox.h
+    };
+    var start=performance.now();
+
+    function ease(t){
+      return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+    }
+
+    function frame(now){
+      var p=Math.min(1,(now-start)/duration);
+      var e=ease(p);
+      currentViewBox={
+        x:from.x+(target.x-from.x)*e,
+        y:from.y+(target.y-from.y)*e,
+        w:from.w+(target.w-from.w)*e,
+        h:from.h+(target.h-from.h)*e
+      };
+      svg.setAttribute(
+        "viewBox",
+        currentViewBox.x.toFixed(1)+" "+
+        currentViewBox.y.toFixed(1)+" "+
+        currentViewBox.w.toFixed(1)+" "+
+        currentViewBox.h.toFixed(1)
+      );
+      if(p<1) cameraFrame=requestAnimationFrame(frame);
+    }
+    cameraFrame=requestAnimationFrame(frame);
+  }
+
+  function cameraToPeer(peer,zoom){
+    var svg=el("n2k-constellation-svg");
+    if(!svg) return;
+    var node=svg.querySelector('.n2k-cnode[data-peer="'+CSS.escape(peer)+'"]');
+    if(!node) return;
+    var tr=node.getAttribute("transform")||"";
+    var m=tr.match(/translate\(([-\d.]+)\s+([-\d.]+)\)/);
+    if(!m) return;
+    var x=Number(m[1]), y=Number(m[2]);
+    var w=Number(zoom)||520;
+    var h=w*(620/1100);
+    animateCamera({x:x-w/2,y:y-h/2,w:w,h:h},850);
+  }
+
+  function showcaseCandidates(){
+    if(!latestData) return [];
+    var raw=filterItems(Array.isArray(latestData.contacts)?latestData.contacts:[]);
+    return raw.slice().sort(function(a,b){
+      var sa=activityScore(a)+(Number(a.age_seconds||0)<=120?.45:0);
+      var sb=activityScore(b)+(Number(b.age_seconds||0)<=120?.45:0);
+      return sb-sa;
+    }).slice(0,5);
+  }
+
+  function focusShowcaseItem(item,kicker){
+    if(!item) return;
+    selected=String(item.destination_hash||"");
+    showDetail(item);
+    if(latestData) render(latestData);
+    cameraToPeer(selected,470);
+
+    var route=routeInfo(item);
+    var name=String(item.display_name||"").trim() || selected.slice(0,10)+"…";
+    setOverlay(
+      kicker||"LIVE EVENT",
+      name,
+      route.short+" · "+ageText(item.age_seconds)+" · "+
+        ((item.hops!==null&&item.hops!==undefined&&Number(item.hops)<128)?Number(item.hops)+" hops":"route discovered"),
+      true
+    );
+  }
+
+  function scheduleShowcase(delay,fn,runId){
+    var timer=setTimeout(function(){
+      if(!showcaseActive || runId!==showcaseRunId) return;
+      fn();
+    },delay);
+    showcaseTimers.push(timer);
+  }
+
+  function runShowcase(){
+    if(!showcaseActive || !latestData) return;
+
+    clearShowcaseTimers();
+    showcaseRunId++;
+    var runId=showcaseRunId;
+    var svg=el("n2k-constellation-svg");
+    var candidates=showcaseCandidates();
+
+    selected="";
+    filter="hour";
+    replayStarted=performance.now();
+    if(svg){
+      svg.classList.remove("n2k-focus-mode");
+      svg.classList.add("n2k-showcase-mode","n2k-showcase-reveal");
+    }
+    animateCamera(defaultViewBox,700);
+    setOverlay("N2K MESH UNIVERSE","Mesh is alive.","Reticulum · LXMF · Home Assistant",true);
+
+    scheduleShowcase(1800,function(){
+      setOverlay("LIVE NETWORK","Nodes waking up…","Routes · relays · LXMF presence",true);
+      if(svg) svg.classList.add("n2k-showcase-flow");
+    },runId);
+
+    scheduleShowcase(4100,function(){
+      if(candidates[0]) focusShowcaseItem(candidates[0],"LIVE SIGNAL");
+    },runId);
+
+    scheduleShowcase(7200,function(){
+      if(candidates[1]) focusShowcaseItem(candidates[1],"ROUTE DISCOVERED");
+      else if(candidates[0]) focusShowcaseItem(candidates[0],"ROUTE DISCOVERED");
+    },runId);
+
+    scheduleShowcase(10100,function(){
+      selected="";
+      if(latestData) render(latestData);
+      animateCamera(defaultViewBox,950);
+      var live=el("n2k-map-live")?el("n2k-map-live").textContent:"0";
+      var paths=el("n2k-map-paths")?el("n2k-map-paths").textContent:"0";
+      setOverlay("NETWORK OVERVIEW",live+" live nodes",paths+" active paths · local-first messaging",true);
+    },runId);
+
+    scheduleShowcase(13200,function(){
+      setOverlay("N2K RNS GATEWAY","Mesh is alive.","OFFGRID · MESH · LOCAL INTELLIGENCE",true);
+      if(svg) svg.classList.add("n2k-showcase-finale");
+    },runId);
+
+    scheduleShowcase(15100,function(){
+      if(showcaseActive) runShowcase();
+    },runId);
+  }
+
+  function stopShowcase(){
+    showcaseActive=false;
+    clearShowcaseTimers();
+    showcaseRunId++;
+    selected="";
+    var svg=el("n2k-constellation-svg");
+    if(svg){
+      svg.classList.remove(
+        "n2k-showcase-mode",
+        "n2k-showcase-reveal",
+        "n2k-showcase-flow",
+        "n2k-showcase-finale"
+      );
+    }
+    setOverlay("","","",false);
+    animateCamera(defaultViewBox,650);
+    var btn=el("n2k-universe-showcase");
+    if(btn){
+      btn.classList.remove("active");
+      btn.textContent="▶ Showcase";
+    }
+    if(latestData) render(latestData);
+  }
+
+  function startShowcase(){
+    showcaseActive=true;
+    var btn=el("n2k-universe-showcase");
+    if(btn){
+      btn.classList.add("active");
+      btn.textContent="■ Stop";
+    }
+    runShowcase();
   }
 
   function startAmbientAnimation(){
@@ -11361,6 +11565,14 @@ if (
         load();
       });
     });
+
+    var showcaseButton=el("n2k-universe-showcase");
+    if(showcaseButton){
+      showcaseButton.addEventListener("click",function(){
+        if(showcaseActive) stopShowcase();
+        else startShowcase();
+      });
+    }
 
     var trailButton=el("n2k-universe-trails");
     if(trailButton){
@@ -12195,6 +12407,123 @@ if (
 
 @media(prefers-reduced-motion:reduce){
   .n2k-cnode.selected .n2k-cnode-halo{
+    animation:none !important;
+  }
+}
+</style>
+
+
+<style id="n2k-tiktok-showcase-css-12130">
+/* 1.21.30-beta1 · CINEMATIC SHOWCASE MODE */
+
+.n2k-showcase-button{
+  border-color:rgba(240,189,108,.16) !important;
+  color:#f0bd6c !important;
+  background:rgba(240,189,108,.055) !important;
+}
+.n2k-showcase-button.active{
+  background:rgba(240,189,108,.14) !important;
+  box-shadow:0 0 18px rgba(240,189,108,.08);
+}
+
+.n2k-showcase-overlay{
+  position:absolute;
+  left:22px;
+  top:22px;
+  z-index:12;
+  max-width:340px;
+  padding:12px 14px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  background:rgba(5,9,12,.66);
+  box-shadow:0 14px 38px rgba(0,0,0,.24);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  pointer-events:none;
+  opacity:0;
+  transform:translateY(8px) scale(.98);
+  transition:opacity .35s ease,transform .35s ease;
+}
+.n2k-showcase-overlay.visible{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+.n2k-showcase-kicker{
+  color:#71d9b0;
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.17em;
+}
+.n2k-showcase-overlay strong{
+  display:block;
+  margin-top:5px;
+  color:rgba(250,247,240,.98);
+  font-size:19px;
+  line-height:1.05;
+  letter-spacing:-.025em;
+}
+.n2k-showcase-overlay span{
+  display:block;
+  margin-top:5px;
+  color:rgba(197,207,213,.62);
+  font-size:9px;
+  line-height:1.35;
+}
+
+#n2k-constellation-svg{
+  transition:filter .35s ease;
+}
+
+#n2k-constellation-svg.n2k-showcase-mode{
+  filter:saturate(1.08) contrast(1.03);
+}
+
+#n2k-constellation-svg.n2k-showcase-reveal .n2k-cnode{
+  animation:n2k-showcase-node-in .70s cubic-bezier(.2,.8,.2,1) both;
+  animation-delay:calc(var(--n2k-seq) * 55ms);
+}
+#n2k-constellation-svg.n2k-showcase-reveal .n2k-clink{
+  stroke-dasharray:700 !important;
+  stroke-dashoffset:700;
+  animation:n2k-showcase-route-in 1.2s ease forwards;
+  animation-delay:calc(900ms + var(--n2k-seq) * 50ms);
+}
+
+@keyframes n2k-showcase-node-in{
+  0%{opacity:0;transform:scale(.35);filter:blur(2px);}
+  65%{opacity:1;transform:scale(1.13);filter:blur(0);}
+  100%{opacity:1;transform:scale(1);}
+}
+@keyframes n2k-showcase-route-in{
+  to{stroke-dashoffset:0;}
+}
+
+#n2k-constellation-svg.n2k-showcase-flow .n2k-u-particle{
+  filter:url(#n2k-soft-glow);
+}
+
+#n2k-constellation-svg.n2k-showcase-finale .n2k-ccore{
+  animation:n2k-showcase-core-finale 1.45s ease-in-out infinite;
+}
+@keyframes n2k-showcase-core-finale{
+  0%,100%{filter:drop-shadow(0 0 12px rgba(240,189,108,.20));}
+  50%{filter:drop-shadow(0 0 30px rgba(240,189,108,.52));}
+}
+
+@media (max-width:900px) and (pointer:coarse){
+  .n2k-showcase-overlay{
+    left:12px;
+    right:12px;
+    top:12px;
+    max-width:none;
+  }
+  .n2k-showcase-overlay strong{font-size:16px;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  #n2k-constellation-svg.n2k-showcase-reveal .n2k-cnode,
+  #n2k-constellation-svg.n2k-showcase-reveal .n2k-clink,
+  #n2k-constellation-svg.n2k-showcase-finale .n2k-ccore{
     animation:none !important;
   }
 }
