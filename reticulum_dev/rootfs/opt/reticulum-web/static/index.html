@@ -2241,7 +2241,7 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.21.41-beta1</h1>
+        <h1>N2K RNS Gateway · 1.21.42-beta1</h1>
 
         <div class="n2k-header-stack" aria-label="Core services">
           <span id="n2k-chip-rns" class="n2k-stack-chip n2k-chip-rns is-wait">
@@ -3255,7 +3255,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.21.41-beta1</strong>
+      <strong>N2K RNS Gateway · 1.21.42-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -3291,6 +3291,31 @@ code {
 
 
 <div class="messenger-search-wrap">
+  <div id="n2k-chat-toolbar" class="n2k-chat-toolbar">
+    <div class="n2k-chat-toolbar-top">
+      <div class="n2k-chat-toolbar-title">
+        <i></i>
+        <strong>Chat</strong>
+        <span>LXMF Messenger</span>
+      </div>
+      <div class="n2k-chat-toolbar-actions">
+        <button id="n2k-chat-add" type="button" aria-label="Neuer Kontakt oder Chat" title="Neuer Kontakt oder Chat">＋</button>
+        <button id="n2k-chat-menu-toggle" type="button" aria-label="Chat Optionen" title="Optionen">⋯</button>
+        <div id="n2k-chat-menu" class="n2k-chat-menu">
+          <button type="button" data-n2k-chat-tool="qr">Mein QR</button>
+          <button type="button" data-n2k-chat-tool="export">Export</button>
+          <button type="button" data-n2k-chat-tool="import">Import</button>
+        </div>
+      </div>
+    </div>
+    <div class="n2k-chat-filterbar" role="group" aria-label="Chat Filter">
+      <button type="button" class="active" data-n2k-chat-filter="all">Alle</button>
+      <button type="button" data-n2k-chat-filter="unread">Ungelesen</button>
+      <button type="button" data-n2k-chat-filter="contacts">Kontakte</button>
+      <span id="n2k-chat-summary">—</span>
+    </div>
+  </div>
+
   <input
     id="messenger-search"
     class="messenger-search"
@@ -13526,7 +13551,7 @@ if (
 
 
 <style id="n2k-makeover-12138">
-/* 1.21.41-beta1 · CLEANUP / MAKEOVER */
+/* 1.21.42-beta1 · CLEANUP / MAKEOVER */
 
 .n2k-main-header h1{
   font-size:16.5px !important;
@@ -13680,7 +13705,7 @@ if (
 
 
 <style id="n2k-unified-chat-safe-12141">
-/* 1.21.41-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
+/* 1.21.42-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
 
 .n2k-mobile-real-nav{
   grid-template-columns:repeat(3,1fr) !important;
@@ -13772,24 +13797,345 @@ if (
   display:none !important;
 }
 
-/* Small top action row, purely visual/safe. */
-#n2k-mobile-real-content::before{
-  content:"Chat  ·  LXMF Messenger";
+/* Real Chat toolbar is rendered inside the existing search wrapper. */
+</style>
+
+
+<style id="n2k-chat-controls-12142">
+/* 1.21.42-beta1 · SAFE MODERN MESSENGER CONTROLS */
+
+#n2k-mobile-real-content .messenger-search-wrap{
+  padding-top:8px !important;
+}
+
+.n2k-chat-toolbar{
+  position:relative;
   display:block;
-  padding:11px 14px 3px;
-  color:rgba(224,232,236,.86);
-  font-size:11px;
-  font-weight:720;
-  letter-spacing:.01em;
+  width:100%;
+  margin:0 0 7px;
+}
+
+.n2k-chat-toolbar-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-height:28px;
+  margin-bottom:6px;
+}
+
+.n2k-chat-toolbar-title{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+
+.n2k-chat-toolbar-title > i{
+  width:6px;
+  height:6px;
+  flex:0 0 6px;
+  border-radius:50%;
+  background:#71d9b0;
+  box-shadow:0 0 7px rgba(113,217,176,.38);
+}
+
+.n2k-chat-toolbar-title strong{
+  color:rgba(235,241,244,.94);
+  font-size:12px;
+  line-height:1;
+  font-weight:760;
+}
+
+.n2k-chat-toolbar-title span{
+  color:rgba(157,173,182,.50);
+  font-size:8px;
+  line-height:1;
+}
+
+.n2k-chat-toolbar-actions{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+.n2k-chat-toolbar-actions > button{
+  appearance:none;
+  display:grid;
+  place-items:center;
+  width:25px;
+  height:25px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:8px;
+  background:rgba(255,255,255,.025);
+  color:rgba(222,230,234,.78);
+  font:inherit;
+  font-size:14px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.n2k-chat-toolbar-actions > button:hover{
+  background:rgba(255,255,255,.05);
+  border-color:rgba(113,217,176,.14);
+}
+
+.n2k-chat-menu{
+  position:absolute;
+  top:30px;
+  right:0;
+  z-index:200;
+  display:none;
+  width:128px;
+  padding:4px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;
+  background:rgba(9,14,18,.985);
+  box-shadow:0 13px 28px rgba(0,0,0,.30);
+}
+
+.n2k-chat-menu.open{
+  display:grid;
+  gap:1px;
+}
+
+.n2k-chat-menu button{
+  appearance:none;
+  width:100%;
+  min-height:28px;
+  padding:0 8px;
+  border:0;
+  border-radius:6px;
+  background:transparent;
+  color:rgba(218,227,231,.80);
+  text-align:left;
+  font:inherit;
+  font-size:9px;
+  cursor:pointer;
+}
+
+.n2k-chat-menu button:hover{
+  background:rgba(255,255,255,.045);
+}
+
+.n2k-chat-filterbar{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  min-width:0;
+}
+
+.n2k-chat-filterbar button{
+  appearance:none;
+  min-height:21px;
+  padding:0 7px;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:999px;
+  background:rgba(255,255,255,.018);
+  color:rgba(157,173,182,.58);
+  font:inherit;
+  font-size:7.5px;
+  font-weight:730;
+  cursor:pointer;
+}
+
+.n2k-chat-filterbar button.active{
+  border-color:rgba(240,189,108,.17);
+  background:rgba(240,189,108,.065);
+  color:#e8bd7d;
+}
+
+#n2k-chat-summary{
+  margin-left:auto;
+  color:rgba(151,167,176,.42);
+  font-size:7.5px;
+  white-space:nowrap;
+}
+
+/* Search remains primary and searches both conversations and contacts. */
+#n2k-mobile-real-content .messenger-search{
+  min-height:36px !important;
+  font-size:10.5px !important;
+}
+
+/* Filter states, applied only by classes — no DOM moving. */
+#n2k-mobile-real-content.n2k-chat-filter-unread #msg-contacts-view{
+  display:none !important;
+}
+
+#n2k-mobile-real-content.n2k-chat-filter-contacts #messenger-chat-list{
+  display:none !important;
+}
+
+#n2k-mobile-real-content.n2k-chat-filter-contacts #msg-contacts-view{
+  display:block !important;
+}
+
+#n2k-mobile-real-content.n2k-chat-filter-unread #messenger-chat-list{
+  display:block !important;
+}
+
+/* Keep the embedded contact list compact but useful. */
+#n2k-mobile-real-content #m97-contact-more{
+  min-height:30px !important;
+  margin:6px 12px 12px !important;
+  border-radius:8px !important;
+  font-size:8px !important;
+}
+
+/* Old hidden contact head still owns the real action buttons. */
+#n2k-mobile-real-content #msg-contacts-view .m110-contact-head,
+#n2k-mobile-real-content #msg-contacts-view .m110-contact-tools{
+  display:none !important;
 }
 
 @media (max-width:900px) and (pointer:coarse){
-  #n2k-mobile-real-content::before{
-    padding:9px 11px 2px;
-    font-size:10px;
+  .n2k-chat-toolbar-title strong{font-size:11px;}
+  .n2k-chat-toolbar-title span{font-size:7.5px;}
+  .n2k-chat-toolbar-actions > button{
+    width:27px;
+    height:27px;
   }
 }
 </style>
+
+<script id="n2k-chat-controls-js-12142">
+(function(){
+  "use strict";
+
+  var filter="all";
+
+  function byId(id){return document.getElementById(id);}
+
+  function clickExisting(id){
+    var el=byId(id);
+    if(el) el.click();
+  }
+
+  function rows(){
+    return Array.from(document.querySelectorAll(
+      "#messenger-chat-list [data-m97-chat], #msg-contact-list [data-m97-peer]"
+    ));
+  }
+
+  function update(){
+    var stage=byId("n2k-mobile-real-content");
+    var input=byId("messenger-search");
+    if(!stage || !input) return;
+
+    stage.classList.toggle("n2k-chat-filter-unread",filter==="unread");
+    stage.classList.toggle("n2k-chat-filter-contacts",filter==="contacts");
+
+    var q=String(input.value||"").trim().toLowerCase();
+    var chats=Array.from(document.querySelectorAll("#messenger-chat-list [data-m97-chat]"));
+    var contacts=Array.from(document.querySelectorAll("#msg-contact-list [data-m97-peer]"));
+
+    chats.forEach(function(row){
+      var unread=!!row.querySelector(".m80-unread");
+      var matches=!q || row.textContent.toLowerCase().includes(q);
+      var show=matches && (filter!=="unread" || unread);
+      row.style.display=show ? "" : "none";
+    });
+
+    contacts.forEach(function(row){
+      var matches=!q || row.textContent.toLowerCase().includes(q);
+      row.style.display=matches ? "" : "none";
+    });
+
+    var unreadCount=chats.filter(function(row){return !!row.querySelector(".m80-unread");}).length;
+    var summary=byId("n2k-chat-summary");
+    if(summary){
+      summary.textContent=
+        chats.length+" Chats · "+contacts.length+" Kontakte"+
+        (unreadCount ? " · "+unreadCount+" neu" : "");
+    }
+  }
+
+  function bind(){
+    var add=byId("n2k-chat-add");
+    if(add && !add.dataset.bound){
+      add.dataset.bound="1";
+      add.onclick=function(){clickExisting("m110-new-contact");};
+    }
+
+    var menuToggle=byId("n2k-chat-menu-toggle");
+    if(menuToggle && !menuToggle.dataset.bound){
+      menuToggle.dataset.bound="1";
+      menuToggle.onclick=function(e){
+        e.stopPropagation();
+        byId("n2k-chat-menu")?.classList.toggle("open");
+      };
+    }
+
+    document.querySelectorAll("[data-n2k-chat-tool]").forEach(function(btn){
+      if(btn.dataset.bound) return;
+      btn.dataset.bound="1";
+      btn.onclick=function(){
+        var tool=btn.dataset.n2kChatTool;
+        if(tool==="qr") clickExisting("m110-own-qr");
+        if(tool==="export") clickExisting("m110-export");
+        if(tool==="import") clickExisting("m110-import");
+        byId("n2k-chat-menu")?.classList.remove("open");
+      };
+    });
+
+    document.querySelectorAll("[data-n2k-chat-filter]").forEach(function(btn){
+      if(btn.dataset.bound) return;
+      btn.dataset.bound="1";
+      btn.onclick=function(){
+        filter=btn.dataset.n2kChatFilter||"all";
+        document.querySelectorAll("[data-n2k-chat-filter]").forEach(function(x){
+          x.classList.toggle("active",x===btn);
+        });
+        update();
+      };
+    });
+
+    var input=byId("messenger-search");
+    if(input && !input.dataset.n2kUnifiedSearch){
+      input.dataset.n2kUnifiedSearch="1";
+      input.addEventListener("input",update);
+    }
+  }
+
+  function boot(){
+    bind();
+    update();
+
+    var chatList=byId("messenger-chat-list");
+    var contactList=byId("msg-contact-list");
+
+    if(chatList){
+      new MutationObserver(function(){update();}).observe(chatList,{
+        childList:true,subtree:true
+      });
+    }
+    if(contactList){
+      new MutationObserver(function(){update();}).observe(contactList,{
+        childList:true,subtree:true
+      });
+    }
+
+    document.addEventListener("click",function(e){
+      var menu=byId("n2k-chat-menu");
+      if(menu && !e.target.closest(".n2k-chat-toolbar-actions")){
+        menu.classList.remove("open");
+      }
+    });
+
+    setTimeout(function(){bind();update();},500);
+    setTimeout(function(){bind();update();},1600);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
 
 </body>
 </html>
