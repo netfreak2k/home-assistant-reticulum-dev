@@ -2241,7 +2241,7 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.21.38-beta1</h1>
+        <h1>N2K RNS Gateway · 1.21.40-beta1</h1>
 
         <div class="n2k-header-stack" aria-label="Core services">
           <span id="n2k-chip-rns" class="n2k-stack-chip n2k-chip-rns is-wait">
@@ -2289,10 +2289,7 @@ code {
 
   <nav id="n2k-mobile-real-nav" class="n2k-mobile-real-nav" aria-label="App Navigation">
     <button type="button" data-real-tab="chats" class="active">
-      <b>●</b><small>Chats</small>
-    </button>
-    <button type="button" data-real-tab="contacts">
-      <b>◎</b><small>Kontakte</small>
+      <b>●</b><small>Chat</small>
     </button>
     <button type="button" data-real-tab="settings">
       <b>⌁</b><small>Status</small>
@@ -2754,14 +2751,7 @@ code {
             class="msg-tab active"
             data-msg-tab="chats">
       <span class="msg-tab-icon">●</span>
-      <span>Chats</span>
-    </button>
-
-    <button type="button"
-            class="msg-tab"
-            data-msg-tab="contacts">
-      <span class="msg-tab-icon">◎</span>
-      <span>Kontakte</span>
+      <span>Chat</span>
     </button>
 
     <button type="button"
@@ -2781,7 +2771,7 @@ code {
 
   <div id="n2k-mobile-chat-entry" class="n2k-mobile-chat-entry">
     <div>
-      <strong>Chats</strong>
+      <strong>Chat</strong>
       <span>Kontakt wählen oder neuen Chat starten</span>
     </div>
     <button type="button" id="n2k-mobile-new-chat" onclick="n2kMobileSetView('contacts'); return false;">+ Neuer Chat</button>
@@ -3265,7 +3255,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.21.38-beta1</strong>
+      <strong>N2K RNS Gateway · 1.21.40-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -13536,7 +13526,7 @@ if (
 
 
 <style id="n2k-makeover-12138">
-/* 1.21.38-beta1 · CLEANUP / MAKEOVER */
+/* 1.21.40-beta1 · CLEANUP / MAKEOVER */
 
 .n2k-main-header h1{
   font-size:16.5px !important;
@@ -13686,6 +13676,566 @@ if (
   }
 }
 </style>
+
+
+<style id="n2k-unified-chat-12140">
+/* 1.21.40-beta1 · UNIFIED CHAT + CONTACTS */
+
+#n2k-mobile-chat-entry{
+  display:none !important;
+}
+
+.n2k-mobile-real-nav{
+  grid-template-columns:repeat(3,1fr) !important;
+}
+
+.n2k-chat-hub{
+  width:100%;
+  min-height:100%;
+  color:rgba(235,240,243,.94);
+}
+
+.n2k-chat-home-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 15px 7px;
+}
+
+.n2k-chat-home-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+
+.n2k-chat-home-title i{
+  width:7px;
+  height:7px;
+  flex:0 0 7px;
+  border-radius:50%;
+  background:#71d9b0;
+  box-shadow:0 0 9px rgba(113,217,176,.42);
+}
+
+.n2k-chat-home-title strong{
+  font-size:14px;
+  line-height:1;
+  font-weight:760;
+  letter-spacing:-.015em;
+}
+
+.n2k-chat-home-title span{
+  color:rgba(168,183,191,.55);
+  font-size:9px;
+  line-height:1;
+}
+
+.n2k-chat-home-actions{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  position:relative;
+}
+
+.n2k-chat-icon-button{
+  appearance:none;
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.065);
+  border-radius:9px;
+  background:rgba(255,255,255,.025);
+  color:rgba(222,231,235,.80);
+  font:inherit;
+  font-size:16px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.n2k-chat-icon-button:hover{
+  background:rgba(255,255,255,.05);
+  border-color:rgba(113,217,176,.15);
+}
+
+.n2k-chat-tools-popover{
+  position:absolute;
+  top:34px;
+  right:0;
+  z-index:40;
+  display:none;
+  min-width:142px;
+  padding:5px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;
+  background:rgba(10,15,19,.98);
+  box-shadow:0 14px 34px rgba(0,0,0,.30);
+}
+
+.n2k-chat-tools-popover.open{
+  display:grid;
+  gap:2px;
+}
+
+.n2k-chat-tools-popover button{
+  appearance:none;
+  width:100%;
+  padding:7px 8px;
+  border:0;
+  border-radius:7px;
+  background:transparent;
+  color:rgba(219,228,232,.82);
+  text-align:left;
+  font:inherit;
+  font-size:10px;
+  cursor:pointer;
+}
+
+.n2k-chat-tools-popover button:hover{
+  background:rgba(255,255,255,.045);
+}
+
+.n2k-chat-filters{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:0 15px 8px;
+}
+
+.n2k-chat-filter{
+  appearance:none;
+  min-height:23px;
+  padding:0 8px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:999px;
+  background:rgba(255,255,255,.018);
+  color:rgba(164,180,189,.60);
+  font:inherit;
+  font-size:8px;
+  font-weight:720;
+  letter-spacing:.02em;
+  cursor:pointer;
+}
+
+.n2k-chat-filter.active{
+  border-color:rgba(240,189,108,.16);
+  background:rgba(240,189,108,.06);
+  color:#e8bd7d;
+}
+
+.n2k-chat-section{
+  margin:0;
+}
+
+.n2k-chat-section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:9px 16px 5px;
+  color:rgba(157,174,183,.48);
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+}
+
+.n2k-chat-section-head span:last-child{
+  letter-spacing:0;
+  font-weight:650;
+  text-transform:none;
+  font-size:8px;
+}
+
+#n2k-chat-hub .messenger-search-wrap{
+  display:block !important;
+  height:auto !important;
+  max-height:none !important;
+  padding:0 15px 7px !important;
+}
+
+#n2k-chat-hub .messenger-search{
+  min-height:36px !important;
+  padding:0 11px !important;
+  border-radius:10px !important;
+  font-size:11px !important;
+}
+
+#n2k-chat-hub #messenger-chat-list{
+  display:block !important;
+  width:100% !important;
+  padding:0 10px 4px !important;
+  min-height:0 !important;
+  background:transparent !important;
+}
+
+#n2k-chat-hub #msg-contacts-view{
+  display:block !important;
+  width:100% !important;
+  min-height:0 !important;
+  background:transparent !important;
+  border:0 !important;
+}
+
+#n2k-chat-hub #msg-contacts-view .m110-contact-head,
+#n2k-chat-hub #msg-contacts-view .m110-contact-tools{
+  display:none !important;
+}
+
+#n2k-chat-hub #msg-contact-list{
+  padding:0 10px 12px !important;
+}
+
+#n2k-chat-hub .messenger-contact{
+  min-height:57px !important;
+  padding:8px 7px !important;
+  border-bottom:1px solid rgba(255,255,255,.035) !important;
+}
+
+#n2k-chat-hub .messenger-contact-avatar{
+  width:38px !important;
+  height:38px !important;
+  flex:0 0 38px !important;
+  font-size:12px !important;
+}
+
+#n2k-chat-hub .messenger-contact-name{
+  font-size:12px !important;
+  line-height:16px !important;
+  font-weight:680 !important;
+}
+
+#n2k-chat-hub .messenger-contact-preview{
+  margin-top:2px !important;
+  color:rgba(160,176,185,.52) !important;
+  font-size:9px !important;
+  line-height:13px !important;
+}
+
+#n2k-chat-hub .messenger-contact-time{
+  padding-top:2px !important;
+  color:rgba(155,170,179,.45) !important;
+  font-size:8px !important;
+}
+
+#n2k-chat-hub .m80-unread{
+  min-width:15px !important;
+  height:15px !important;
+  padding:0 4px !important;
+  font-size:7px !important;
+}
+
+#n2k-chat-hub #m97-contact-more{
+  min-height:31px !important;
+  margin:5px 16px 10px !important;
+  border-radius:8px !important;
+  font-size:9px !important;
+  font-weight:650 !important;
+}
+
+#n2k-chat-hub.n2k-filter-unread #msg-contacts-view,
+#n2k-chat-hub.n2k-filter-unread .n2k-chat-contacts-head{
+  display:none !important;
+}
+
+#n2k-chat-hub.n2k-filter-contacts #messenger-chat-list,
+#n2k-chat-hub.n2k-filter-contacts .n2k-chat-conversations-head{
+  display:none !important;
+}
+
+#n2k-chat-hub.n2k-filter-contacts .messenger-search-wrap{
+  padding-top:2px !important;
+}
+
+@media (pointer:fine){
+  #n2k-chat-hub{
+    max-width:none;
+  }
+}
+
+@media (max-width:900px) and (pointer:coarse){
+  .n2k-chat-home-head{
+    padding:10px 11px 6px;
+  }
+  .n2k-chat-filters{
+    padding:0 11px 7px;
+  }
+  #n2k-chat-hub .messenger-search-wrap{
+    padding:0 11px 6px !important;
+  }
+  .n2k-chat-section-head{
+    padding-left:12px;
+    padding-right:12px;
+  }
+}
+</style>
+
+<script id="n2k-unified-chat-js-12140">
+(function(){
+  "use strict";
+
+  var activeFilter="all";
+
+  function byId(id){return document.getElementById(id);}
+
+  function create(tag,className,html){
+    var el=document.createElement(tag);
+    if(className) el.className=className;
+    if(html!==undefined) el.innerHTML=html;
+    return el;
+  }
+
+  function trigger(id){
+    var target=byId(id);
+    if(target) target.click();
+  }
+
+  function buildHub(){
+    var stage=byId("n2k-mobile-real-content");
+    var search=document.querySelector(".messenger-search-wrap");
+    var chats=byId("messenger-chat-list");
+    var contacts=byId("msg-contacts-view");
+    if(!stage || !search || !chats || !contacts) return null;
+
+    var hub=byId("n2k-chat-hub");
+    if(!hub){
+      hub=create("div","n2k-chat-hub");
+      hub.id="n2k-chat-hub";
+
+      var head=create("div","n2k-chat-home-head");
+      head.innerHTML=
+        '<div class="n2k-chat-home-title">'+
+          '<i></i><strong>Chat</strong><span>LXMF Messenger</span>'+
+        '</div>'+
+        '<div class="n2k-chat-home-actions">'+
+          '<button id="n2k-chat-new" class="n2k-chat-icon-button" type="button" aria-label="Neuer Kontakt oder Chat" title="Neuer Kontakt oder Chat">＋</button>'+
+          '<button id="n2k-chat-more" class="n2k-chat-icon-button" type="button" aria-label="Chat Optionen" title="Optionen">⋯</button>'+
+          '<div id="n2k-chat-tools" class="n2k-chat-tools-popover">'+
+            '<button type="button" data-chat-tool="qr">Mein QR</button>'+
+            '<button type="button" data-chat-tool="export">Export</button>'+
+            '<button type="button" data-chat-tool="import">Import</button>'+
+          '</div>'+
+        '</div>';
+
+      var filters=create("div","n2k-chat-filters");
+      filters.innerHTML=
+        '<button class="n2k-chat-filter active" type="button" data-chat-filter="all">Alle</button>'+
+        '<button class="n2k-chat-filter" type="button" data-chat-filter="unread">Ungelesen</button>'+
+        '<button class="n2k-chat-filter" type="button" data-chat-filter="contacts">Kontakte</button>';
+
+      var conversationsHead=create("div","n2k-chat-section-head n2k-chat-conversations-head");
+      conversationsHead.innerHTML='<span>Aktuelle Chats</span><span id="n2k-chat-count">—</span>';
+
+      var contactsHead=create("div","n2k-chat-section-head n2k-chat-contacts-head");
+      contactsHead.innerHTML='<span>Kontakte</span><span id="n2k-contact-count">—</span>';
+
+      stage.insertBefore(hub,stage.firstChild);
+      hub.appendChild(head);
+      hub.appendChild(filters);
+      hub.appendChild(search);
+      hub.appendChild(conversationsHead);
+      hub.appendChild(chats);
+      hub.appendChild(contactsHead);
+      hub.appendChild(contacts);
+
+      byId("n2k-chat-new").onclick=function(){
+        trigger("m110-new-contact");
+      };
+
+      byId("n2k-chat-more").onclick=function(e){
+        e.stopPropagation();
+        byId("n2k-chat-tools")?.classList.toggle("open");
+      };
+
+      hub.querySelectorAll("[data-chat-tool]").forEach(function(btn){
+        btn.onclick=function(){
+          var tool=btn.dataset.chatTool;
+          if(tool==="qr") trigger("m110-own-qr");
+          if(tool==="export") trigger("m110-export");
+          if(tool==="import") trigger("m110-import");
+          byId("n2k-chat-tools")?.classList.remove("open");
+        };
+      });
+
+      hub.querySelectorAll("[data-chat-filter]").forEach(function(btn){
+        btn.onclick=function(){
+          setFilter(btn.dataset.chatFilter||"all");
+        };
+      });
+
+      document.addEventListener("click",function(e){
+        var tools=byId("n2k-chat-tools");
+        if(tools && !e.target.closest(".n2k-chat-home-actions")){
+          tools.classList.remove("open");
+        }
+      });
+
+      var input=byId("messenger-search");
+      if(input){
+        input.addEventListener("input",applySearch);
+      }
+    }else{
+      if(search.parentElement!==hub) hub.insertBefore(search,hub.querySelector(".n2k-chat-conversations-head"));
+      if(chats.parentElement!==hub) hub.insertBefore(chats,hub.querySelector(".n2k-chat-contacts-head"));
+      if(contacts.parentElement!==hub) hub.appendChild(contacts);
+    }
+
+    contacts.hidden=false;
+    contacts.style.setProperty("display","block","important");
+
+    try{
+      var core=window.reticulumMessenger097;
+      if(core && typeof core.loadContacts==="function") core.loadContacts();
+    }catch(_e){}
+
+    updateCounts();
+    applyFilter();
+    applySearch();
+    return hub;
+  }
+
+  function setFilter(name){
+    activeFilter=name;
+    document.querySelectorAll("[data-chat-filter]").forEach(function(btn){
+      btn.classList.toggle("active",btn.dataset.chatFilter===name);
+    });
+    applyFilter();
+  }
+
+  function applyFilter(){
+    var hub=byId("n2k-chat-hub");
+    if(!hub) return;
+
+    hub.classList.toggle("n2k-filter-unread",activeFilter==="unread");
+    hub.classList.toggle("n2k-filter-contacts",activeFilter==="contacts");
+
+    var chatRows=hub.querySelectorAll("#messenger-chat-list [data-m97-chat]");
+    chatRows.forEach(function(row){
+      if(activeFilter==="unread"){
+        row.style.display=row.querySelector(".m80-unread") ? "" : "none";
+      }else{
+        row.style.display="";
+      }
+    });
+
+    updateCounts();
+    applySearch();
+  }
+
+  function applySearch(){
+    var hub=byId("n2k-chat-hub");
+    var input=byId("messenger-search");
+    if(!hub || !input) return;
+
+    var q=String(input.value||"").trim().toLowerCase();
+    hub.querySelectorAll("[data-m97-chat],[data-m97-peer]").forEach(function(row){
+      var filterHidden=
+        activeFilter==="unread" &&
+        row.hasAttribute("data-m97-chat") &&
+        !row.querySelector(".m80-unread");
+      var matches=!q || row.textContent.toLowerCase().includes(q);
+      row.style.display=(!filterHidden && matches) ? "" : "none";
+    });
+  }
+
+  function updateCounts(){
+    var hub=byId("n2k-chat-hub");
+    if(!hub) return;
+    var c=hub.querySelectorAll("#messenger-chat-list [data-m97-chat]").length;
+    var k=hub.querySelectorAll("#msg-contact-list [data-m97-peer]").length;
+    if(byId("n2k-chat-count")) byId("n2k-chat-count").textContent=String(c);
+    if(byId("n2k-contact-count")) byId("n2k-contact-count").textContent=String(k);
+  }
+
+  function showView(name){
+    var stage=byId("n2k-mobile-real-content");
+    if(!stage) return;
+
+    var hub=buildHub();
+    var settings=byId("msg-settings-view");
+    var mesh=byId("msg-mesh-view");
+    var conversation=stage.querySelector(".messenger-conversation");
+
+    if(conversation){
+      conversation.hidden=true;
+      conversation.style.setProperty("display","none","important");
+    }
+
+    if(hub){
+      hub.hidden=name!=="chats";
+      hub.style.setProperty("display",name==="chats"?"block":"none","important");
+    }
+    if(settings){
+      settings.hidden=name!=="settings";
+      settings.style.setProperty("display",name==="settings"?"block":"none","important");
+    }
+    if(mesh){
+      mesh.hidden=name!=="mesh";
+      mesh.style.setProperty("display",name==="mesh"?"block":"none","important");
+    }
+
+    document.querySelectorAll("#n2k-mobile-real-nav button").forEach(function(btn){
+      btn.classList.toggle("active",btn.dataset.realTab===name);
+    });
+
+    if(name==="settings" && window.reticulumProfile099?.loadIdentity){
+      window.reticulumProfile099.loadIdentity();
+    }
+  }
+
+  function bind(){
+    var nav=byId("n2k-mobile-real-nav");
+    if(!nav) return;
+
+    nav.querySelectorAll("button").forEach(function(btn){
+      btn.onclick=function(){
+        showView(btn.dataset.realTab);
+        return false;
+      };
+    });
+
+    var back=byId("messenger-back");
+    if(back){
+      back.onclick=function(){
+        showView("chats");
+        return false;
+      };
+    }
+
+    buildHub();
+  }
+
+  function boot(){
+    bind();
+    setTimeout(bind,350);
+    setTimeout(bind,1400);
+
+    var observer=new MutationObserver(function(){
+      updateCounts();
+      applyFilter();
+    });
+
+    var stage=byId("n2k-mobile-real-content");
+    if(stage){
+      observer.observe(stage,{subtree:true,childList:true});
+    }
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+
+  window.n2kUnifiedChat={
+    showView:showView,
+    setFilter:setFilter
+  };
+})();
+</script>
 
 </body>
 </html>
