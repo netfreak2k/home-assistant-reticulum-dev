@@ -1,3 +1,11 @@
+## 1.18.7-beta1
+
+- Unify desktop browser and smartphone visual language.
+- Use the modern N2K app surface on desktop instead of the legacy dashboard.
+- Add a compact desktop sidebar for Chats, Kontakte and Status.
+- Keep messenger logic unchanged; only view placement and responsive presentation change.
+- Preserve the existing mobile layout below 900 px.
+
 ## 1.21.19-beta1
 
 - Live Mesh Map classifies visible Reticulum peers by observed route: **LOCAL RADIO**, **LOCAL NET**, **INTERNET**, **DIRECT** or **UNKNOWN**.
