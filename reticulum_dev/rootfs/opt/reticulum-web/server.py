@@ -4446,6 +4446,165 @@ class Handler(BaseHTTPRequestHandler):
 
         path = self.path.split("?", 1)[0]
 
+        if path.endswith("/api/rnode/auto-configure"):
+            import os
+            import urllib.request
+
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                raw = self.rfile.read(length) if length > 0 else b"{}"
+                payload = json.loads(raw.decode("utf-8") or "{}")
+
+                devices = get_serial_devices()
+
+                try:
+                    options = get_addon_options()
+                except Exception as exc:
+                    self.send_json({
+                        "ok": False,
+                        "error": "Add-on-Optionen nicht lesbar: " + str(exc),
+                    }, 500)
+                    return
+
+                requested_port = str(payload.get("port", "") or "").strip()
+                saved_port = str(options.get("rnode_port", "") or "").strip()
+
+                available = {
+                    str(item.get("path") or ""): item
+                    for item in devices
+                    if isinstance(item, dict)
+                }
+
+                port = requested_port or saved_port
+
+                if not port:
+                    if len(devices) == 1:
+                        port = str(devices[0].get("path") or "").strip()
+                    elif len(devices) == 0:
+                        self.send_json({
+                            "ok": False,
+                            "state": "NO_SERIAL",
+                            "error": "Kein Serial-Gerät erkannt",
+                        }, 404)
+                        return
+                    else:
+                        self.send_json({
+                            "ok": False,
+                            "state": "MULTIPLE_SERIAL",
+                            "error": "Mehrere Serial-Geräte erkannt. Port auswählen.",
+                            "serial_devices": devices,
+                        }, 409)
+                        return
+
+                if port not in available:
+                    self.send_json({
+                        "ok": False,
+                        "state": "PORT_MISSING",
+                        "port": port,
+                        "error": "Gewählter Port ist nicht verfügbar",
+                        "serial_devices": devices,
+                    }, 409)
+                    return
+
+                probe = probe_rnode(port)
+
+                if not probe.get("detected"):
+                    self.send_json({
+                        "ok": False,
+                        "state": probe.get("result") or "RNODE_NOT_CONFIRMED",
+                        "port": port,
+                        "probe": probe,
+                        "error": "RNode-Kompatibilität nicht bestätigt",
+                    }, 409)
+                    return
+
+                token = os.environ.get("SUPERVISOR_TOKEN")
+
+                if not token:
+                    self.send_json({
+                        "ok": False,
+                        "error": "SUPERVISOR_TOKEN nicht vorhanden",
+                    }, 503)
+                    return
+
+                request = urllib.request.Request(
+                    "http://supervisor/addons/self/info",
+                    headers={
+                        "Authorization": "Bearer " + token,
+                    },
+                )
+
+                with urllib.request.urlopen(request, timeout=5) as response:
+                    info = json.loads(response.read().decode("utf-8"))
+
+                addon_info = info.get("data") or {}
+                supervisor_options = dict(addon_info.get("options") or {})
+
+                if not supervisor_options:
+                    supervisor_options = dict(options or {})
+
+                # N2K EU868 default profile. Values are intentionally explicit
+                # so activation is deterministic after compatibility is proven.
+                supervisor_options["rnode_port"] = port
+                supervisor_options["rnode_interface"] = True
+                supervisor_options["rnode_frequency"] = 868100000
+                supervisor_options["rnode_bandwidth"] = 125000
+                supervisor_options["rnode_txpower"] = 14
+                supervisor_options["rnode_spreadingfactor"] = 10
+                supervisor_options["rnode_codingrate"] = 5
+
+                body = json.dumps({
+                    "options": supervisor_options
+                }).encode("utf-8")
+
+                request = urllib.request.Request(
+                    "http://supervisor/addons/self/options",
+                    data=body,
+                    method="POST",
+                    headers={
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json",
+                    },
+                )
+
+                with urllib.request.urlopen(request, timeout=5) as response:
+                    supervisor_response = response.read().decode("utf-8")
+
+                self.send_json({
+                    "ok": True,
+                    "state": "AUTO_CONFIGURED",
+                    "port": port,
+                    "probe": probe,
+                    "profile": {
+                        "frequency": 868100000,
+                        "bandwidth": 125000,
+                        "txpower": 14,
+                        "spreadingfactor": 10,
+                        "codingrate": 5,
+                    },
+                    "rnode_interface": True,
+                    "restart_required": True,
+                    "supervisor_response": supervisor_response[:200],
+                })
+                return
+
+            except Exception as exc:
+                error_text = str(exc)
+
+                try:
+                    if hasattr(exc, "read"):
+                        body = exc.read().decode("utf-8", errors="replace")
+                        if body:
+                            error_text = error_text + " | " + body
+                except Exception:
+                    pass
+
+                self.send_json({
+                    "ok": False,
+                    "error": error_text,
+                }, 500)
+                return
+
         if path.endswith("/api/rnode/select"):
             import os
             import urllib.request
