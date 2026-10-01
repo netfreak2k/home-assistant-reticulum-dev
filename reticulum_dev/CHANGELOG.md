@@ -1,3 +1,12 @@
+## 1.21.44-beta1
+
+- Increase chat readability with larger names, previews and metadata.
+- Increase row height, avatar size and list spacing.
+- Strengthen contrast for search, section labels and active conversations.
+- Improve readability inside open LXMF conversations and the composer.
+- Keep the premium system header while making version, clock and navigation easier to read.
+- No DOM restructuring or backend behavior changes.
+
 ## 1.21.43-beta1
 
 - Make the unified Chat view more readable with stronger hierarchy, contrast and spacing.
