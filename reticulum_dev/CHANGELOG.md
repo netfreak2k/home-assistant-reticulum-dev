@@ -1,3 +1,8 @@
+## 1.21.20-beta1
+
+- Publish the unified desktop browser UI as a newer Home Assistant add-on version.
+- No additional functional changes beyond the desktop app-shell update.
+
 ## 1.18.7-beta1
 
 - Unify desktop browser and smartphone visual language.
