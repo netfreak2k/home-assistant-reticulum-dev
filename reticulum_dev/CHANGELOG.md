@@ -1,3 +1,11 @@
+## 1.21.19-beta1
+
+- Live Mesh Map classifies visible Reticulum peers by observed route: **LOCAL RADIO**, **LOCAL NET**, **INTERNET**, **DIRECT** or **UNKNOWN**.
+- Internet-routed peers show the observed entry interface/gateway when available.
+- Node details include route confidence, hop count, interface and next-hop information.
+- The UI deliberately treats gateway/entry information as approximate network origin and does not claim the physical location of the end node.
+- Existing chat, scanner, Store & Forward and Reticulum routing behaviour remain unchanged.
+
 ## 1.21.11-beta1
 
 - Nearby scanner now listens specifically for canonical `lxmf.delivery` announces and accepts valid path-response announces.
