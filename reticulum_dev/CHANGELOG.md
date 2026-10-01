@@ -1,3 +1,10 @@
+## 1.21.41-beta1
+
+- Fix the browser hang introduced by the first unified Chat/Contacts implementation.
+- Remove the second DOM re-parenting layer that conflicted with the existing app shell.
+- Keep Chat and Contacts visually combined using the existing stable shell.
+- Preserve search, chat opening, contacts, Status and Living Mesh.
+
 ## 1.21.40-beta1
 
 - Merge Chats and Contacts into one modern **Chat** home.
