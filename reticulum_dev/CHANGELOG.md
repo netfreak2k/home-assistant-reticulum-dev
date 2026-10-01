@@ -1,3 +1,10 @@
+## 1.21.51-beta1
+
+- Explicitly install pyserial 3.5 for Reticulum RNodeInterface support.
+- Keep the runtime tty resolution fix from 1.21.50.
+- Preserve automatic RNode activation and the N2K EU868 profile.
+- No firmware flashing or unrelated backend changes.
+
 ## 1.21.50-beta1
 
 - Fix RNode startup when a stable /dev/serial/by-id path is stored.
