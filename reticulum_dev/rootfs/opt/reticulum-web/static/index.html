@@ -2241,11 +2241,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.21.47-beta1</h1>
+        <h1>N2K RNS Gateway · 1.21.48-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.47-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.21.48-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -3271,7 +3271,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.21.47-beta1</strong>
+      <strong>N2K RNS Gateway · 1.21.48-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -13567,7 +13567,7 @@ if (
 
 
 <style id="n2k-makeover-12138">
-/* 1.21.47-beta1 · CLEANUP / MAKEOVER */
+/* 1.21.48-beta1 · CLEANUP / MAKEOVER */
 
 .n2k-main-header h1{
   font-size:16.5px !important;
@@ -13721,7 +13721,7 @@ if (
 
 
 <style id="n2k-unified-chat-safe-12141">
-/* 1.21.47-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
+/* 1.21.48-beta1 · SAFE UNIFIED CHAT (NO DOM RE-PARENTING) */
 
 .n2k-mobile-real-nav{
   grid-template-columns:repeat(3,1fr) !important;
@@ -13818,7 +13818,7 @@ if (
 
 
 <style id="n2k-chat-controls-12142">
-/* 1.21.47-beta1 · SAFE MODERN MESSENGER CONTROLS */
+/* 1.21.48-beta1 · SAFE MODERN MESSENGER CONTROLS */
 
 #n2k-mobile-real-content .messenger-search-wrap{
   padding-top:8px !important;
@@ -14155,7 +14155,7 @@ if (
 
 
 <style id="n2k-premium-messenger-header-12143">
-/* 1.21.47-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
+/* 1.21.48-beta1 · PREMIUM SYSTEM HEADER + MODERN MESSENGER */
 
 /* ---------- SYSTEM HEADER ---------- */
 
@@ -14856,7 +14856,7 @@ if (
 
 
 <style id="n2k-readability-boost-12144">
-/* 1.21.47-beta1 · READABILITY BOOST */
+/* 1.21.48-beta1 · READABILITY BOOST */
 
 :root{
   --n2k-rb-text-strong:rgba(244,247,249,.98);
@@ -15129,7 +15129,7 @@ if (
 
 
 <style id="n2k-readability-final-12145">
-/* 1.21.47-beta1 · READABILITY FINAL */
+/* 1.21.48-beta1 · READABILITY FINAL */
 
 /* Stronger section hierarchy without increasing overall density too much */
 #n2k-mobile-real-content #messenger-chat-list::before,
@@ -15302,7 +15302,7 @@ hr{
 
 
 <style id="n2k-desktop-readability-scale-12146">
-/* 1.21.47-beta1 · DESKTOP READABILITY SCALE */
+/* 1.21.48-beta1 · DESKTOP READABILITY SCALE */
 
 @media (pointer:fine){
 
@@ -15454,7 +15454,7 @@ hr{
 
 
 <style id="n2k-hardware-usb-restore-12147">
-/* 1.21.47-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
+/* 1.21.48-beta1 · RESTORE RNODE / USB SETTINGS IN STATUS */
 
 .n2k-hardware-usb-card{
   margin:0 0 12px;
@@ -15627,6 +15627,226 @@ hr{
     moveHardwarePanel();
     setTimeout(moveHardwarePanel,350);
     setTimeout(moveHardwarePanel,1200);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
+
+
+<style id="n2k-rnode-layout-12148">
+/* 1.21.48-beta1 · RNODE / USB LAYOUT CLEANUP */
+
+#n2k-hardware-usb-slot .grid{
+  grid-template-columns:repeat(12,minmax(0,1fr)) !important;
+  align-items:start !important;
+}
+
+/* Shared + System remain compact */
+#n2k-hardware-usb-slot .card{
+  min-width:0 !important;
+}
+
+/* RNode configuration gets real space */
+#n2k-hardware-usb-slot .card:has(#rnode-config-status){
+  grid-column:span 6 !important;
+}
+
+#n2k-hardware-usb-slot .card:has(#shared-status){
+  grid-column:span 3 !important;
+}
+
+#n2k-hardware-usb-slot .card:has(#version){
+  grid-column:span 3 !important;
+}
+
+/* The actual setup/diagnostic panel spans the full width */
+#n2k-hardware-usb-slot .card:has(#rnode-port-list){
+  grid-column:1 / -1 !important;
+  padding:14px !important;
+}
+
+/* Cleaner key/value presentation inside RNode config */
+#n2k-hardware-usb-slot .card:has(#rnode-config-status) > div:not(:first-of-type){
+  display:grid;
+  grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);
+  gap:10px;
+  align-items:start;
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,.035);
+}
+
+#n2k-hardware-usb-slot .card:has(#rnode-config-status) > div:last-child{
+  border-bottom:0;
+}
+
+#n2k-hardware-usb-slot .card:has(#rnode-config-status) b{
+  min-width:0;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Long USB serial paths must never destroy the layout */
+#rnode-config-port,
+#rnode-port-info,
+#setup-port,
+#usb-status,
+#node-inspect-details,
+#usb-bus{
+  overflow-wrap:anywhere !important;
+  word-break:break-word !important;
+  white-space:normal !important;
+}
+
+/* Step cards */
+#n2k-hardware-usb-slot .card:has(#rnode-port-list) > div:first-of-type{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:8px !important;
+}
+
+#n2k-hardware-usb-slot .card:has(#rnode-port-list) > div:first-of-type > div{
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:9px;
+  background:rgba(255,255,255,.018);
+}
+
+#n2k-hardware-usb-slot .card:has(#rnode-port-list) > div:first-of-type b{
+  display:block;
+  margin-bottom:4px;
+  color:rgba(236,242,245,.90);
+  font-size:9px;
+}
+
+#n2k-hardware-usb-slot .card:has(#rnode-port-list) > div:first-of-type div div{
+  color:rgba(180,195,203,.72);
+  font-size:8.5px;
+  line-height:1.35;
+}
+
+/* Port selector */
+#rnode-port-list{
+  margin-top:8px !important;
+}
+
+#rnode-port-list label{
+  min-height:36px !important;
+  padding:7px 9px !important;
+}
+
+#rnode-port-info{
+  margin-top:8px !important;
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:8px;
+  background:rgba(0,0,0,.12);
+  color:rgba(194,207,214,.78);
+  font-size:8.5px;
+  line-height:1.4;
+}
+
+/* Make incomplete configuration visually obvious, not alarming */
+#rnode-config-frequency,
+#rnode-live-status{
+  display:inline-block;
+  padding:2px 6px;
+  border-radius:999px;
+  background:rgba(240,189,108,.06);
+  color:#e5ba78 !important;
+  border:1px solid rgba(240,189,108,.12);
+}
+
+/* Live telemetry visually separated */
+#n2k-hardware-usb-slot .card:has(#rnode-config-status) hr{
+  margin:12px 0 !important;
+  border:0 !important;
+  border-top:1px solid rgba(255,255,255,.06) !important;
+}
+
+#n2k-hardware-usb-slot .card:has(#rnode-config-status) hr + div{
+  margin-bottom:4px;
+  color:rgba(235,241,244,.90);
+}
+
+/* Inspector / compatibility blocks gain structure */
+#n2k-hardware-usb-slot .card:has(#rnode-port-list) > div[style*="border:1px"]{
+  background:rgba(255,255,255,.015) !important;
+  border-color:rgba(255,255,255,.06) !important;
+}
+
+/* Desktop */
+@media (pointer:fine){
+  #n2k-hardware-usb-slot .grid{
+    gap:12px !important;
+  }
+
+  #n2k-hardware-usb-slot .card:has(#rnode-port-list){
+    padding:16px !important;
+  }
+}
+
+/* Tablet/mobile */
+@media (max-width:1100px){
+  #n2k-hardware-usb-slot .card:has(#shared-status),
+  #n2k-hardware-usb-slot .card:has(#version),
+  #n2k-hardware-usb-slot .card:has(#rnode-config-status){
+    grid-column:1 / -1 !important;
+  }
+}
+
+@media(max-width:700px){
+  #n2k-hardware-usb-slot .grid{
+    grid-template-columns:1fr !important;
+  }
+
+  #n2k-hardware-usb-slot .card:has(#rnode-port-list) > div:first-of-type{
+    grid-template-columns:1fr 1fr !important;
+  }
+
+  #n2k-hardware-usb-slot .card:has(#rnode-config-status) > div:not(:first-of-type){
+    grid-template-columns:1fr !important;
+    gap:2px !important;
+  }
+}
+</style>
+
+<script id="n2k-rnode-layout-state-12148">
+(function(){
+  "use strict";
+
+  function markState(id){
+    var el=document.getElementById(id);
+    if(!el) return;
+    var t=String(el.textContent||"").trim().toUpperCase();
+
+    el.classList.remove("n2k-config-ok","n2k-config-warn","n2k-config-off");
+
+    if(/AKTIV|UP|ONLINE|BEREIT/.test(t)){
+      el.classList.add("n2k-config-ok");
+    }else if(/NICHT GESETZT|KEIN LIVE|AUS|FEHLT/.test(t)){
+      el.classList.add("n2k-config-warn");
+    }else{
+      el.classList.add("n2k-config-off");
+    }
+  }
+
+  function refresh(){
+    ["rnode-config-status","rnode-config-frequency","rnode-live-status"].forEach(markState);
+  }
+
+  function boot(){
+    refresh();
+    ["rnode-config-status","rnode-config-frequency","rnode-live-status"].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el){
+        new MutationObserver(refresh).observe(el,{childList:true,subtree:true,characterData:true});
+      }
+    });
   }
 
   if(document.readyState==="loading"){
