@@ -235,20 +235,45 @@ if bashio::var.true "${RNODE_INTERFACE}"; then
         bashio::log.error "RNode enabled but no serial port is configured"
         bashio::log.error "RNodeInterface will NOT be created"
     else
-        # The compatibility probe has already proven the stored path works.
-        # Prefer that exact path. Resolve to tty only as a fallback.
+        # HAOS can expose USB serial devices a few seconds after the
+        # add-on process starts. Wait for the configured stable device path
+        # (or its resolved tty target) before deciding the RNode is missing.
         RNODE_RUNTIME_PORT="${RNODE_PORT}"
-        RNODE_RESOLVED_PORT="$(readlink -f "${RNODE_PORT}" 2>/dev/null || true)"
+        RNODE_RESOLVED_PORT=""
+        RNODE_WAIT_SECONDS=20
+        RNODE_WAITED=0
 
-        if [[ "${RNODE_RUNTIME_PORT}" != /dev/* ]] || [ ! -c "${RNODE_RUNTIME_PORT}" ]; then
+        while [ "${RNODE_WAITED}" -lt "${RNODE_WAIT_SECONDS}" ]; do
+            RNODE_RESOLVED_PORT="$(readlink -f "${RNODE_PORT}" 2>/dev/null || true)"
+
+            if [ -c "${RNODE_PORT}" ]; then
+                RNODE_RUNTIME_PORT="${RNODE_PORT}"
+                break
+            fi
+
             if [ -n "${RNODE_RESOLVED_PORT}" ] && [ -c "${RNODE_RESOLVED_PORT}" ]; then
                 RNODE_RUNTIME_PORT="${RNODE_RESOLVED_PORT}"
+                break
             fi
+
+            if [ "${RNODE_WAITED}" -eq 0 ]; then
+                bashio::log.info "Waiting for RNode USB device to become available..."
+            fi
+
+            sleep 1
+            RNODE_WAITED=$((RNODE_WAITED + 1))
+        done
+
+        # Prefer the concrete tty target at runtime when available. The stable
+        # by-id path remains stored in Home Assistant options.
+        if [ -n "${RNODE_RESOLVED_PORT}" ] && [ -c "${RNODE_RESOLVED_PORT}" ]; then
+            RNODE_RUNTIME_PORT="${RNODE_RESOLVED_PORT}"
         fi
 
         bashio::log.info "RNode configured port: ${RNODE_PORT}"
         bashio::log.info "RNode resolved port: ${RNODE_RESOLVED_PORT}"
         bashio::log.info "RNode runtime port: ${RNODE_RUNTIME_PORT}"
+        bashio::log.info "RNode USB wait: ${RNODE_WAITED}s"
 
         if [[ "${RNODE_RUNTIME_PORT}" != /dev/* ]] || [ ! -c "${RNODE_RUNTIME_PORT}" ]; then
             bashio::log.error "Resolved RNode port is not an accessible character device: ${RNODE_RUNTIME_PORT}"
@@ -276,6 +301,7 @@ if bashio::var.true "${RNODE_INTERFACE}"; then
     txpower = ${RNODE_TXPOWER}
     spreadingfactor = ${RNODE_SF}
     codingrate = ${RNODE_CR}
+    flow_control = false
   # END HOMEASSISTANT RETICULUM MANAGED RNODE
 CONFIG
 
