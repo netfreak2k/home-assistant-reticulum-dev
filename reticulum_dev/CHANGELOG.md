@@ -1,3 +1,10 @@
+## 1.21.35-beta1
+
+- Start N2K Mesh Universe directly in Live mode.
+- Add optical 3D depth classes for near, mid and far nodes/routes.
+- Increase foreground Core depth and reduce distant-node prominence.
+- Add a deeper layered Universe background while preserving realtime Reticulum behavior.
+
 ## 1.21.34-beta1
 
 - Add a Reticulum-inspired transport backdrop to N2K Mesh Universe.
