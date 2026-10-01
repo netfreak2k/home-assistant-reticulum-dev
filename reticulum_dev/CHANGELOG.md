@@ -1,3 +1,10 @@
+## 1.21.31-beta1
+
+- Publish the cinematic N2K Mesh Universe Showcase mode.
+- Add Smart Camera, automatic node focus, animated route reveal and event overlays.
+- Add a 15-second looping presentation sequence for live demonstrations and social-media capture.
+- No backend migration required; existing contacts and nearby data remain the source.
+
 ## 1.21.21-beta1
 
 - Desktop finishing pass.
