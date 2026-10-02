@@ -3729,11 +3729,11 @@
 })();
 
 
-/* N2K OS UI Layer 1.24.3-beta1 */
+/* N2K OS UI Layer 1.24.4-beta1 */
 (function(){
   "use strict";
 
-  const VERSION="1.24.3-beta1";
+  const VERSION="1.24.4-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3964,7 +3964,7 @@
 })();
 
 
-/* N2K OS Overview Dashboard 1.24.3-beta1 */
+/* N2K OS Overview Dashboard 1.24.4-beta1 */
 (function(){
   "use strict";
 
@@ -4208,7 +4208,7 @@
 })();
 
 
-/* N2K OS Mobile Router 1.24.3-beta1 */
+/* N2K OS Mobile Router 1.24.4-beta1 */
 (function(){
   "use strict";
 
@@ -4470,7 +4470,7 @@
 })();
 
 
-/* N2K Unified App Router 1.24.3-beta1 */
+/* N2K Unified App Router 1.24.4-beta1 */
 (function(){
   "use strict";
 
@@ -4757,7 +4757,7 @@
 })();
 
 
-/* N2K Final UX Fixes 1.24.3-beta1 */
+/* N2K Final UX Fixes 1.24.4-beta1 */
 (function(){
   "use strict";
 
@@ -4915,7 +4915,7 @@
 })();
 
 
-/* N2K Chat + Mesh Route Fix 1.24.3-beta1 */
+/* N2K Chat + Mesh Route Fix 1.24.4-beta1 */
 (function(){
   "use strict";
 
@@ -5034,7 +5034,7 @@
 })();
 
 
-/* N2K Chat + Contacts Refresh 1.24.3-beta1 */
+/* N2K Chat + Contacts Refresh 1.24.4-beta1 */
 (function(){
   "use strict";
 
@@ -5134,6 +5134,175 @@
     wrap();
     [250,1000,2200,3800].forEach(function(delay){
       setTimeout(wrap,delay);
+    });
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+
+
+/* N2K Page Reparent Guard 1.24.4-beta1 */
+(function(){
+  "use strict";
+
+  function byId(id){return document.getElementById(id);}
+
+  function put(el,page){
+    if(el && page && el.parentElement!==page){
+      page.appendChild(el);
+    }
+  }
+
+  function repairChat(){
+    const page=byId("n2k-page-chat");
+    if(!page || !page.classList.contains("is-active")) return;
+
+    const search=document.querySelector(".messenger-search-wrap");
+    const list=byId("messenger-chat-list");
+    const conv=document.querySelector(".messenger-conversation");
+
+    put(search,page);
+    put(list,page);
+    put(conv,page);
+
+    if(search){
+      search.hidden=false;
+      search.style.setProperty("display","block","important");
+      search.style.setProperty("visibility","visible","important");
+      search.style.setProperty("opacity","1","important");
+    }
+
+    if(list){
+      list.hidden=false;
+      list.style.setProperty("display","block","important");
+      list.style.setProperty("visibility","visible","important");
+      list.style.setProperty("opacity","1","important");
+      list.style.setProperty("min-height","120px","important");
+    }
+
+    if(conv && !conv.classList.contains("n2k-desktop-chat-open") &&
+       !conv.classList.contains("n2k-real-chat-open")){
+      conv.hidden=true;
+      conv.style.setProperty("display","none","important");
+    }
+
+    try{
+      if(window.reticulumMessengerChats097 &&
+         typeof window.reticulumMessengerChats097.refresh==="function"){
+        window.reticulumMessengerChats097.refresh();
+      }
+    }catch(_){}
+  }
+
+  function repairContacts(){
+    const page=byId("n2k-page-contacts");
+    if(!page || !page.classList.contains("is-active")) return;
+
+    const view=byId("msg-contacts-view");
+    put(view,page);
+
+    if(view){
+      view.hidden=false;
+      view.style.setProperty("display","block","important");
+      view.style.setProperty("visibility","visible","important");
+      view.style.setProperty("opacity","1","important");
+      view.style.setProperty("height","auto","important");
+      view.style.setProperty("max-height","none","important");
+      view.style.setProperty("overflow","visible","important");
+    }
+
+    const head=view?.querySelector(".m110-contact-head");
+    const tools=view?.querySelector(".m110-contact-tools");
+    const list=byId("msg-contact-list");
+
+    if(head){
+      head.hidden=false;
+      head.style.setProperty("display","flex","important");
+      head.style.setProperty("visibility","visible","important");
+      head.style.setProperty("opacity","1","important");
+    }
+
+    if(tools){
+      tools.hidden=false;
+      tools.style.setProperty("display","flex","important");
+      tools.style.setProperty("visibility","visible","important");
+      tools.style.setProperty("opacity","1","important");
+    }
+
+    if(list){
+      list.hidden=false;
+      list.style.setProperty("display","block","important");
+      list.style.setProperty("visibility","visible","important");
+      list.style.setProperty("opacity","1","important");
+      list.style.setProperty("min-height","120px","important");
+    }
+
+    try{
+      const core=window.reticulumMessenger097;
+      if(core && typeof core.loadContacts==="function"){
+        core.loadContacts();
+      }
+    }catch(_){}
+  }
+
+  function repairActive(){
+    repairChat();
+    repairContacts();
+  }
+
+  function wrapShowPage(){
+    const original=window.n2kShowPage;
+    if(typeof original!=="function" || original.__n2k1244) return;
+
+    const wrapped=function(name){
+      const result=original(name);
+
+      if(name==="chat" || name==="contacts"){
+        [0,80,250,650,1400].forEach(function(delay){
+          setTimeout(repairActive,delay);
+        });
+      }
+
+      return result;
+    };
+
+    wrapped.__n2k1244=true;
+    window.n2kShowPage=wrapped;
+  }
+
+  function installObserver(){
+    if(document.documentElement.dataset.n2kReparent1244==="1") return;
+    document.documentElement.dataset.n2kReparent1244="1";
+
+    const root=byId("n2k-mobile-real-content");
+    if(!root) return;
+
+    const observer=new MutationObserver(function(){
+      repairActive();
+    });
+
+    observer.observe(root,{
+      childList:true,
+      subtree:false
+    });
+
+    window.setInterval(repairActive,1200);
+  }
+
+  function boot(){
+    wrapShowPage();
+    installObserver();
+    repairActive();
+
+    [300,1200,2600,4200].forEach(function(delay){
+      setTimeout(function(){
+        wrapShowPage();
+        repairActive();
+      },delay);
     });
   }
 
