@@ -1,81 +1,99 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#020813"/>
-      <stop offset=".5" stop-color="#04111f"/>
-      <stop offset="1" stop-color="#02070d"/>
-    </linearGradient>
-    <radialGradient id="earth" cx="50%" cy="38%" r="72%">
-      <stop offset="0" stop-color="#0a3352"/>
-      <stop offset=".48" stop-color="#082239"/>
-      <stop offset=".78" stop-color="#04121f"/>
-      <stop offset="1" stop-color="#020812"/>
-    </radialGradient>
-    <radialGradient id="glow">
-      <stop offset="0" stop-color="#4de7ff" stop-opacity=".95"/>
-      <stop offset=".25" stop-color="#149cff" stop-opacity=".75"/>
-      <stop offset="1" stop-color="#149cff" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="warm">
-      <stop offset="0" stop-color="#ffb24b" stop-opacity=".95"/>
-      <stop offset=".3" stop-color="#ff5d32" stop-opacity=".65"/>
-      <stop offset="1" stop-color="#ff5d32" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="horizon" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#0b74b8" stop-opacity="0"/>
-      <stop offset=".5" stop-color="#28c9ff" stop-opacity=".7"/>
-      <stop offset="1" stop-color="#0b74b8" stop-opacity="0"/>
-    </linearGradient>
-    <filter id="blur12"><feGaussianBlur stdDeviation="12"/></filter>
-    <filter id="blur4"><feGaussianBlur stdDeviation="4"/></filter>
-  </defs>
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#010711"/>
+    <stop offset=".46" stop-color="#06192b"/>
+    <stop offset="1" stop-color="#02070d"/>
+  </linearGradient>
+  <radialGradient id="dawn" cx="76%" cy="42%" r="34%">
+    <stop offset="0" stop-color="#ffd27a" stop-opacity=".54"/>
+    <stop offset=".12" stop-color="#ff9b42" stop-opacity=".26"/>
+    <stop offset=".42" stop-color="#1e8dce" stop-opacity=".09"/>
+    <stop offset="1" stop-color="#08121d" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="blue">
+    <stop offset="0" stop-color="#b8f7ff"/>
+    <stop offset=".12" stop-color="#42ddff"/>
+    <stop offset=".36" stop-color="#078cff" stop-opacity=".72"/>
+    <stop offset="1" stop-color="#078cff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="orange">
+    <stop offset="0" stop-color="#fff0c2"/>
+    <stop offset=".16" stop-color="#ffb84e"/>
+    <stop offset=".42" stop-color="#ff6435" stop-opacity=".72"/>
+    <stop offset="1" stop-color="#ff6435" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="mesh" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#0b82d9" stop-opacity=".18"/>
+    <stop offset=".5" stop-color="#3ddfff" stop-opacity=".9"/>
+    <stop offset="1" stop-color="#0b82d9" stop-opacity=".16"/>
+  </linearGradient>
+  <filter id="soft"><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="glow"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
 
-  <rect width="1920" height="1080" fill="url(#bg)"/>
+<rect width="1920" height="1080" fill="url(#sky)"/>
+<rect width="1920" height="1080" fill="url(#dawn)"/>
 
-  <g opacity=".52" fill="#8edfff">
-    <circle cx="90" cy="90" r="1.2"/><circle cx="260" cy="70" r=".9"/><circle cx="430" cy="130" r="1.1"/>
-    <circle cx="720" cy="64" r=".8"/><circle cx="890" cy="120" r="1.2"/><circle cx="1110" cy="65" r=".9"/>
-    <circle cx="1340" cy="140" r="1.1"/><circle cx="1540" cy="80" r=".8"/><circle cx="1780" cy="120" r="1.2"/>
-    <circle cx="170" cy="260" r=".8"/><circle cx="560" cy="250" r="1.1"/><circle cx="1020" cy="230" r=".8"/>
-    <circle cx="1460" cy="265" r="1.1"/><circle cx="1840" cy="250" r=".9"/>
-  </g>
+<!-- stars -->
+<g fill="#a9dcff" opacity=".5">
+  <circle cx="74" cy="88" r="1"/><circle cx="170" cy="142" r=".8"/><circle cx="310" cy="70" r="1.1"/>
+  <circle cx="468" cy="118" r=".8"/><circle cx="620" cy="62" r="1.2"/><circle cx="760" cy="144" r=".8"/>
+  <circle cx="934" cy="90" r="1"/><circle cx="1080" cy="54" r=".9"/><circle cx="1218" cy="122" r="1.2"/>
+  <circle cx="1400" cy="70" r=".8"/><circle cx="1580" cy="138" r="1.1"/><circle cx="1760" cy="82" r=".9"/>
+  <circle cx="1860" cy="164" r=".7"/>
+</g>
 
-  <ellipse cx="960" cy="880" rx="1120" ry="530" fill="url(#earth)"/>
-  <ellipse cx="960" cy="558" rx="1080" ry="78" fill="none" stroke="url(#horizon)" stroke-width="3" opacity=".75"/>
+<!-- distant atmospheric horizon -->
+<ellipse cx="960" cy="640" rx="1160" ry="340" fill="#0a2840" opacity=".55"/>
+<ellipse cx="960" cy="620" rx="1060" ry="230" fill="#072038" opacity=".72"/>
+<path d="M0 614 Q370 585 740 616 T1450 610 T1920 590" fill="none" stroke="url(#mesh)" stroke-width="3" opacity=".6"/>
 
-  <g fill="none" stroke="#1aa9ff" stroke-width="1.25" opacity=".42">
-    <path d="M90 820 Q360 530 620 760 T1090 690 T1640 760 T1900 620"/>
-    <path d="M0 720 Q300 560 550 690 T1040 630 T1510 710 T1920 560"/>
-    <path d="M180 940 Q470 650 780 820 T1280 760 T1790 850"/>
-    <path d="M310 610 Q660 420 910 640 T1450 610 T1880 700"/>
-    <path d="M520 980 Q880 700 1180 840 T1770 760"/>
-  </g>
+<!-- mountains -->
+<path d="M0 760 L150 650 260 706 420 560 540 688 690 590 820 718 1000 570 1140 700 1260 610 1390 735 1540 565 1670 690 1810 590 1920 670 1920 1080 0 1080Z" fill="#06111d"/>
+<path d="M0 830 L190 706 350 790 520 655 705 812 900 680 1075 800 1280 670 1460 820 1630 710 1920 820 1920 1080 0 1080Z" fill="#030a11"/>
 
-  <g fill="none" stroke="#4fe4ff" stroke-width=".8" opacity=".22">
-    <path d="M120 770 L330 650 L520 730 L720 600 L930 710 L1130 590 L1330 690 L1550 570 L1810 660"/>
-    <path d="M250 900 L470 760 L690 850 L910 720 L1160 820 L1400 690 L1660 790"/>
-    <path d="M420 620 L610 540 L820 620 L1020 520 L1260 620 L1490 540 L1730 610"/>
-  </g>
+<!-- radio tower on right -->
+<g transform="translate(1635 430)" stroke="#243c4f" fill="none" opacity=".92">
+  <path d="M70 0 L15 360 M70 0 L125 360 M28 275 L112 275 M38 210 L102 210 M48 145 L92 145 M56 90 L84 90" stroke-width="6"/>
+  <path d="M15 360 L125 360" stroke-width="8"/>
+  <circle cx="70" cy="0" r="5" fill="#ff7142" stroke="none"/>
+  <circle cx="70" cy="0" r="32" fill="url(#orange)" opacity=".55" stroke="none"/>
+</g>
 
-  <g>
-    <circle cx="330" cy="650" r="52" fill="url(#glow)" opacity=".34"/><circle cx="330" cy="650" r="4" fill="#63efff"/>
-    <circle cx="620" cy="760" r="70" fill="url(#glow)" opacity=".38"/><circle cx="620" cy="760" r="5" fill="#54e7ff"/>
-    <circle cx="930" cy="710" r="60" fill="url(#glow)" opacity=".35"/><circle cx="930" cy="710" r="4" fill="#7ff4ff"/>
-    <circle cx="1130" cy="590" r="66" fill="url(#glow)" opacity=".4"/><circle cx="1130" cy="590" r="5" fill="#4fe3ff"/>
-    <circle cx="1330" cy="690" r="56" fill="url(#warm)" opacity=".34"/><circle cx="1330" cy="690" r="4" fill="#ffb14e"/>
-    <circle cx="1550" cy="570" r="70" fill="url(#glow)" opacity=".34"/><circle cx="1550" cy="570" r="5" fill="#56e5ff"/>
-    <circle cx="1660" cy="790" r="55" fill="url(#warm)" opacity=".28"/><circle cx="1660" cy="790" r="4" fill="#ff8952"/>
-    <circle cx="470" cy="760" r="54" fill="url(#warm)" opacity=".26"/><circle cx="470" cy="760" r="4" fill="#ff934b"/>
-  </g>
+<!-- mesh arcs -->
+<g fill="none" stroke-linecap="round">
+  <path d="M90 865 Q330 500 620 800" stroke="#27cfff" stroke-width="2" opacity=".62"/>
+  <path d="M240 820 Q610 450 930 760" stroke="#159dff" stroke-width="2" opacity=".52"/>
+  <path d="M480 870 Q820 500 1115 775" stroke="#41ddff" stroke-width="2" opacity=".56"/>
+  <path d="M720 820 Q1080 430 1390 735" stroke="#158dff" stroke-width="2" opacity=".5"/>
+  <path d="M1020 830 Q1370 500 1690 775" stroke="#35d9ff" stroke-width="2" opacity=".56"/>
+  <path d="M1220 820 Q1500 570 1870 760" stroke="#ff6941" stroke-width="1.6" opacity=".38"/>
+  <path d="M160 920 Q620 675 1060 860 T1800 835" stroke="#27cfff" stroke-width="1.4" opacity=".34"/>
+</g>
 
-  <g opacity=".34" filter="url(#blur12)">
-    <ellipse cx="960" cy="720" rx="720" ry="190" fill="#0069aa"/>
-    <ellipse cx="1250" cy="680" rx="420" ry="120" fill="#00b8ff"/>
-  </g>
+<!-- connecting mesh lines -->
+<g stroke="#25cfff" stroke-width="1" opacity=".26">
+  <path d="M120 865 L330 760 L520 815 L710 690 L900 780 L1110 685 L1315 760 L1510 650 L1770 750"/>
+  <path d="M260 930 L480 825 L720 900 L930 805 L1180 875 L1405 785 L1640 865"/>
+  <path d="M410 730 L620 650 L850 720 L1070 630 L1310 720 L1530 645 L1790 710"/>
+</g>
 
-  <g opacity=".2" stroke="#30c8ff" stroke-width="1" fill="none">
-    <circle cx="960" cy="760" r="360"/><circle cx="960" cy="760" r="520"/><circle cx="960" cy="760" r="690"/>
-  </g>
+<!-- nodes -->
+<g>
+  <g transform="translate(330 760)"><circle r="48" fill="url(#blue)" opacity=".38"/><circle r="5" fill="#74eeff"/></g>
+  <g transform="translate(520 815)"><circle r="58" fill="url(#orange)" opacity=".32"/><circle r="5" fill="#ffb24a"/></g>
+  <g transform="translate(710 690)"><circle r="55" fill="url(#blue)" opacity=".42"/><circle r="5" fill="#59eaff"/></g>
+  <g transform="translate(900 780)"><circle r="70" fill="url(#blue)" opacity=".46"/><circle r="6" fill="#72f0ff"/></g>
+  <g transform="translate(1110 685)"><circle r="55" fill="url(#orange)" opacity=".32"/><circle r="5" fill="#ffad48"/></g>
+  <g transform="translate(1315 760)"><circle r="65" fill="url(#blue)" opacity=".4"/><circle r="6" fill="#64ebff"/></g>
+  <g transform="translate(1510 650)"><circle r="72" fill="url(#blue)" opacity=".44"/><circle r="6" fill="#6bf1ff"/></g>
+  <g transform="translate(1770 750)"><circle r="58" fill="url(#orange)" opacity=".35"/><circle r="5" fill="#ff9750"/></g>
+  <g transform="translate(480 825)"><circle r="38" fill="url(#blue)" opacity=".32"/><circle r="4" fill="#5ce9ff"/></g>
+  <g transform="translate(1180 875)"><circle r="42" fill="url(#blue)" opacity=".3"/><circle r="4" fill="#5beaff"/></g>
+</g>
 
-  <rect width="1920" height="1080" fill="url(#bg)" opacity=".12"/>
+<!-- ambient cyan mist -->
+<ellipse cx="1000" cy="760" rx="820" ry="180" fill="#009ce0" opacity=".06" filter="url(#soft)"/>
+<rect width="1920" height="1080" fill="#000b13" opacity=".08"/>
 </svg>
