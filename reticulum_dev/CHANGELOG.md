@@ -1,3 +1,9 @@
+## 1.30.4-beta1
+
+- Add original CC0 SVG line icons for radio, mesh, chat, contacts, status, setup and navigation.
+- Replace interface emoji/glyph icons with consistent local artwork; message emojis remain unchanged.
+- Document icon licensing in ICONS_LICENSE.md and the in-app license panel.
+
 ## 1.30.3-beta1
 
 - Keep the full mobile header claim: OFFGRID · MESH · LOCAL INTELLIGENCE.

@@ -137,3 +137,13 @@ body.n2k-os-ready .n2k-overview-dot.wait{background:#f1bf5b !important;box-shado
     line-height:1.4 !important;letter-spacing:.06em !important;
   }
 }
+/* Original CC0 line icons: local SVG sprite, inherited theme color. */
+body.n2k-os-ready .n2k-ui-icon{
+  display:inline-block;width:20px;height:20px;flex:0 0 auto;
+  vertical-align:middle;fill:none;stroke:currentColor;
+  pointer-events:none;overflow:visible;
+}
+body.n2k-os-ready #n2k-mobile-real-nav button b .n2k-ui-icon{width:23px;height:23px;}
+body.n2k-os-ready .n2k-os-nav-icon .n2k-ui-icon{width:18px;height:18px;}
+body.n2k-os-ready :is(.n2k-overview-icon,.n2k-status-summary-icon){display:inline-grid !important;place-items:center !important;}
+body.n2k-os-ready :is(.n2k-os-more-card b,.n2k-hardware-usb-title,.n2k-propagation-title,.n2k-setup-assistant h2,.n2k-radio-widget h2,.n2k-help-title,.n2k-selftest-title) > .n2k-ui-icon{margin-right:8px;color:#f1bf5b;}

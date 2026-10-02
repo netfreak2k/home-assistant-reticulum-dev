@@ -1,3 +1,10 @@
+/* Original icon artwork: assets/n2k-icons.svg, CC0-1.0. */
+function n2kIcon(name){
+  const allowed=new Set(["overview", "radio", "mesh", "chat", "contacts", "status", "settings", "setup", "about", "more", "forward", "link"]);
+  if(!allowed.has(name)) return "";
+  return '<svg class="n2k-ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="static/assets/n2k-icons.svg#'+name+'"></use></svg>';
+}
+
 /*
  * Netfreak2k Reticulum Messenger
  * 0.97.0 · External App Core
@@ -3733,7 +3740,7 @@
 (function(){
   "use strict";
 
-  const VERSION="1.30.3-beta1";
+  const VERSION="1.30.4-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3865,14 +3872,14 @@
         '<div><strong>N2K RNS Gateway</strong><small>Reticulum · LXMF NODE</small></div>'+
       '</div>'+
       '<div class="n2k-os-nav-list">'+
-        '<button class="n2k-os-nav-button is-active" data-n2k-action="overview"><span class="n2k-os-nav-icon">⌂</span>Übersicht</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">✉</span>Chat</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">◎</span>Kontakte</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">⌘</span>Living Mesh</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">◉</span>Status</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">⚙</span>Einstellungen</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">⌁</span>Setup</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="about"><span class="n2k-os-nav-icon">ⓘ</span>Über / Lizenz</button>'+
+        '<button class="n2k-os-nav-button is-active" data-n2k-action="overview"><span class="n2k-os-nav-icon">'+n2kIcon("overview")+'</span>Übersicht</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">'+n2kIcon("chat")+'</span>Chat</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">'+n2kIcon("contacts")+'</span>Kontakte</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">'+n2kIcon("mesh")+'</span>Living Mesh</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">'+n2kIcon("status")+'</span>Status</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">'+n2kIcon("settings")+'</span>Einstellungen</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">'+n2kIcon("radio")+'</span>Setup</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="about"><span class="n2k-os-nav-icon">'+n2kIcon("about")+'</span>Über / Lizenz</button>'+
       '</div>'+
       '<div class="n2k-os-sidebar-foot">NETFREAK2K<br>OFFGRID · MESH · LOCAL INTELLIGENCE<br><span style="color:#20d8ff">KEIN NETZ KEIN PROBLEM</span></div>';
 
@@ -3897,20 +3904,20 @@
 
     if(chats){
       const s=chats.querySelector("small"); if(s) s.textContent="Chat";
-      const b=chats.querySelector("b"); if(b) b.textContent="✉";
+      const b=chats.querySelector("b"); if(b) b.innerHTML=n2kIcon("chat");
     }
     if(mesh){
       const s=mesh.querySelector("small"); if(s) s.textContent="Mesh";
-      const b=mesh.querySelector("b"); if(b) b.textContent="⌘";
+      const b=mesh.querySelector("b"); if(b) b.innerHTML=n2kIcon("mesh");
     }
     if(status){
       const s=status.querySelector("small"); if(s) s.textContent="Status";
-      const b=status.querySelector("b"); if(b) b.textContent="◉";
+      const b=status.querySelector("b"); if(b) b.innerHTML=n2kIcon("status");
     }
 
     const overview=document.createElement("button");
     overview.type="button";
-    overview.innerHTML="<b>⌂</b><small>Übersicht</small>";
+    overview.innerHTML="<b>"+n2kIcon("overview")+"</b><small>Übersicht</small>";
     overview.addEventListener("click",function(){
       if(typeof window.n2kOsMobilePage==="function"){
         window.n2kOsMobilePage("overview");
@@ -3924,7 +3931,7 @@
 
     const more=document.createElement("button");
     more.type="button";
-    more.innerHTML="<b>•••</b><small>Mehr</small>";
+    more.innerHTML="<b>"+n2kIcon("more")+"</b><small>Mehr</small>";
     more.addEventListener("click",function(){
       buttons.concat([overview,more]).forEach(function(b){b.classList.remove("active");});
       more.classList.add("active");
@@ -4030,22 +4037,22 @@
     overview.innerHTML=
       '<div class="n2k-overview-grid">'+
         '<article class="n2k-overview-card">'+
-          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">⌁</span>RNode</div><i id="n2k-ov-rnode-dot" class="n2k-overview-dot"></i></div>'+
+          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("radio")+'</span>RNode</div><i id="n2k-ov-rnode-dot" class="n2k-overview-dot"></i></div>'+
           '<div id="n2k-ov-rnode-main" class="n2k-overview-main">Prüfe…</div>'+
           '<div id="n2k-ov-rnode-sub" class="n2k-overview-sub">Live-Funkhardware</div>'+
         '</article>'+
         '<article class="n2k-overview-card">'+
-          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">◎</span>Reticulum</div><i id="n2k-ov-rns-dot" class="n2k-overview-dot"></i></div>'+
+          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("mesh")+'</span>Reticulum</div><i id="n2k-ov-rns-dot" class="n2k-overview-dot"></i></div>'+
           '<div id="n2k-ov-rns-main" class="n2k-overview-main">Prüfe…</div>'+
           '<div id="n2k-ov-rns-sub" class="n2k-overview-sub">Network Stack</div>'+
         '</article>'+
         '<article class="n2k-overview-card">'+
-          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">✉</span>LXMF</div><i id="n2k-ov-lxmf-dot" class="n2k-overview-dot"></i></div>'+
+          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("chat")+'</span>LXMF</div><i id="n2k-ov-lxmf-dot" class="n2k-overview-dot"></i></div>'+
           '<div id="n2k-ov-lxmf-main" class="n2k-overview-main">Prüfe…</div>'+
           '<div id="n2k-ov-lxmf-sub" class="n2k-overview-sub">Messenger</div>'+
         '</article>'+
         '<article class="n2k-overview-card">'+
-          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">☁</span>Store &amp; Forward</div><i id="n2k-ov-backbone-dot" class="n2k-overview-dot"></i></div>'+
+          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("forward")+'</span>Store &amp; Forward</div><i id="n2k-ov-backbone-dot" class="n2k-overview-dot"></i></div>'+
           '<div id="n2k-ov-backbone-main" class="n2k-overview-main">Prüfe…</div>'+
           '<div id="n2k-ov-backbone-sub" class="n2k-overview-sub">Propagation / Sync</div>'+
         '</article>'+
@@ -4275,9 +4282,9 @@
     more.innerHTML=
       '<div class="n2k-overview-panel-head"><div><strong>Mehr</strong><br><small>Weitere Bereiche des Gateways</small></div></div>'+
       '<div class="n2k-os-more-grid">'+
-        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="settings"><b>Einstellungen</b><span>Gateway, Identity und Netzwerk konfigurieren</span></button>'+
-        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="setup"><b>Setup</b><span>RNode und Gateway Schritt für Schritt einrichten</span></button>'+
-        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="about"><b>Über / Lizenz</b><span>Version, Projekt- und Lizenzinformationen</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="settings"><b>'+n2kIcon("settings")+'Einstellungen</b><span>Gateway, Identity und Netzwerk konfigurieren</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="setup"><b>'+n2kIcon("setup")+'Setup</b><span>RNode und Gateway Schritt für Schritt einrichten</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="about"><b>'+n2kIcon("about")+'Über / Lizenz</b><span>Version, Projekt- und Lizenzinformationen</span></button>'+
       '</div>';
 
     root.prepend(more);
@@ -4422,11 +4429,11 @@
     if(!nav) return;
 
     nav.innerHTML=
-      '<button type="button" data-n2k-os-tab="overview"><b>⌂</b><small>Übersicht</small></button>'+
-      '<button type="button" data-n2k-os-tab="chat"><b>✉</b><small>Chat</small></button>'+
-      '<button type="button" data-n2k-os-tab="contacts"><b>◎</b><small>Kontakte</small></button>'+
-      '<button type="button" data-n2k-os-tab="status"><b>◉</b><small>Status</small></button>'+
-      '<button type="button" data-n2k-os-tab="more"><b>•••</b><small>Mehr</small></button>';
+      '<button type="button" data-n2k-os-tab="overview"><b>'+n2kIcon("overview")+'</b><small>Übersicht</small></button>'+
+      '<button type="button" data-n2k-os-tab="chat"><b>'+n2kIcon("chat")+'</b><small>Chat</small></button>'+
+      '<button type="button" data-n2k-os-tab="contacts"><b>'+n2kIcon("contacts")+'</b><small>Kontakte</small></button>'+
+      '<button type="button" data-n2k-os-tab="status"><b>'+n2kIcon("status")+'</b><small>Status</small></button>'+
+      '<button type="button" data-n2k-os-tab="more"><b>'+n2kIcon("more")+'</b><small>Mehr</small></button>';
 
     nav.onclick=function(event){
       const button=event.target.closest("[data-n2k-os-tab]");
@@ -4598,9 +4605,9 @@
       const grid=document.createElement("div");
       grid.className="n2k-os-more-grid";
       grid.innerHTML=
-        '<button class="n2k-os-more-card" type="button" data-page="settings"><b>Einstellungen</b><span>Identity, Netzwerk und Store & Forward</span></button>'+
-        '<button class="n2k-os-more-card" type="button" data-page="setup"><b>Setup</b><span>Gateway und RNode einrichten</span></button>'+
-        '<button class="n2k-os-more-card" type="button" data-page="about"><b>Über / Lizenz</b><span>Version und Lizenzinformationen</span></button>';
+        '<button class="n2k-os-more-card" type="button" data-page="settings"><b>'+n2kIcon("settings")+'Einstellungen</b><span>Identity, Netzwerk und Store & Forward</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-page="setup"><b>'+n2kIcon("setup")+'Setup</b><span>Gateway und RNode einrichten</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-page="about"><b>'+n2kIcon("about")+'Über / Lizenz</b><span>Version und Lizenzinformationen</span></button>';
       grid.addEventListener("click",function(e){
         const b=e.target.closest("[data-page]");
         if(b) showPage(b.dataset.page);
@@ -4677,14 +4684,14 @@
     if(!list) return;
 
     list.innerHTML=
-      '<button class="n2k-os-nav-button" data-n2k-action="overview"><span class="n2k-os-nav-icon">⌂</span>Übersicht</button>'+
-      '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">✉</span>Chat</button>'+
-      '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">◎</span>Kontakte</button>'+
-      '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">⌘</span>Living Mesh</button>'+
-      '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">◉</span>Status</button>'+
-      '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">⚙</span>Einstellungen</button>'+
-      '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">⌁</span>Setup</button>'+
-      '<button class="n2k-os-nav-button" data-n2k-action="about"><span class="n2k-os-nav-icon">ⓘ</span>Über / Lizenz</button>';
+      '<button class="n2k-os-nav-button" data-n2k-action="overview"><span class="n2k-os-nav-icon">'+n2kIcon("overview")+'</span>Übersicht</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">'+n2kIcon("chat")+'</span>Chat</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">'+n2kIcon("contacts")+'</span>Kontakte</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">'+n2kIcon("mesh")+'</span>Living Mesh</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">'+n2kIcon("status")+'</span>Status</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">'+n2kIcon("settings")+'</span>Einstellungen</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">'+n2kIcon("radio")+'</span>Setup</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="about"><span class="n2k-os-nav-icon">'+n2kIcon("about")+'</span>Über / Lizenz</button>';
 
     list.onclick=function(e){
       const btn=e.target.closest("[data-n2k-action]");
@@ -4700,11 +4707,11 @@
     if(!nav) return;
 
     nav.innerHTML=
-      '<button type="button" data-n2k-os-tab="overview"><b>⌂</b><small>Übersicht</small></button>'+
-      '<button type="button" data-n2k-os-tab="chat"><b>✉</b><small>Chat</small></button>'+
-      '<button type="button" data-n2k-os-tab="contacts"><b>◎</b><small>Kontakte</small></button>'+
-      '<button type="button" data-n2k-os-tab="status"><b>◉</b><small>Status</small></button>'+
-      '<button type="button" data-n2k-os-tab="more"><b>•••</b><small>Mehr</small></button>';
+      '<button type="button" data-n2k-os-tab="overview"><b>'+n2kIcon("overview")+'</b><small>Übersicht</small></button>'+
+      '<button type="button" data-n2k-os-tab="chat"><b>'+n2kIcon("chat")+'</b><small>Chat</small></button>'+
+      '<button type="button" data-n2k-os-tab="contacts"><b>'+n2kIcon("contacts")+'</b><small>Kontakte</small></button>'+
+      '<button type="button" data-n2k-os-tab="status"><b>'+n2kIcon("status")+'</b><small>Status</small></button>'+
+      '<button type="button" data-n2k-os-tab="more"><b>'+n2kIcon("more")+'</b><small>Mehr</small></button>';
 
     nav.onclick=function(e){
       const btn=e.target.closest("[data-n2k-os-tab]");
@@ -4791,7 +4798,7 @@
   "use strict";
 
   const LICENSE_TEXT="MIT License\n\nCopyright (c) 2026 Netfreak2k\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof the original N2K RNS Gateway software and associated documentation files\n(the \"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish,\ndistribute, sublicense, and/or sell copies of the Software, and to permit\npersons to whom the Software is furnished to do so, subject to the following\nconditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nThis license applies only to original N2K RNS Gateway code authored by\nNetfreak2k. Third-party components remain subject to their respective\nlicenses.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.";
-  const THIRD_PARTY_TEXT="N2K RNS Gateway includes or depends on third-party software.\n\nReticulum / rns==1.5.4\nLicense: Reticulum License\nCopyright (c) 2016-2026 Mark Qvist\n\nLXMF / lxmf==1.1.1\nLicense: Reticulum License\nCopyright (c) 2020-2025 Mark Qvist\n\nPython qrcode / qrcode==7.4.2\nLicense: BSD 3-Clause-style license\n\nHome Assistant\nLicense: Apache License 2.0\nN2K RNS Gateway is not an official Home Assistant add-on.\n\nWhen redistributing N2K RNS Gateway, retain the project LICENSE,\nTHIRD_PARTY_NOTICES.md and all license/copyright notices required by\nbundled or installed third-party components.";
+  const THIRD_PARTY_TEXT="Original N2K SVG icons: CC0-1.0; free to use, modify and redistribute, including commercially. See ICONS_LICENSE.md.\n\nN2K RNS Gateway includes or depends on third-party software.\n\nReticulum / rns==1.5.4\nLicense: Reticulum License\nCopyright (c) 2016-2026 Mark Qvist\n\nLXMF / lxmf==1.1.1\nLicense: Reticulum License\nCopyright (c) 2020-2025 Mark Qvist\n\nPython qrcode / qrcode==7.4.2\nLicense: BSD 3-Clause-style license\n\nHome Assistant\nLicense: Apache License 2.0\nN2K RNS Gateway is not an official Home Assistant add-on.\n\nWhen redistributing N2K RNS Gateway, retain the project LICENSE,\nTHIRD_PARTY_NOTICES.md and all license/copyright notices required by\nbundled or installed third-party components.";
 
   function byId(id){return document.getElementById(id);}
 
@@ -4856,11 +4863,11 @@
     nav.setAttribute("aria-label","App Navigation");
 
     nav.innerHTML=
-      '<button type="button" data-n2k-os-tab="overview"><b>⌂</b><small>Übersicht</small></button>'+
-      '<button type="button" data-n2k-os-tab="chat"><b>✉</b><small>Chat</small></button>'+
-      '<button type="button" data-n2k-os-tab="contacts"><b>◎</b><small>Kontakte</small></button>'+
-      '<button type="button" data-n2k-os-tab="status"><b>◉</b><small>Status</small></button>'+
-      '<button type="button" data-n2k-os-tab="more"><b>•••</b><small>Mehr</small></button>';
+      '<button type="button" data-n2k-os-tab="overview"><b>'+n2kIcon("overview")+'</b><small>Übersicht</small></button>'+
+      '<button type="button" data-n2k-os-tab="chat"><b>'+n2kIcon("chat")+'</b><small>Chat</small></button>'+
+      '<button type="button" data-n2k-os-tab="contacts"><b>'+n2kIcon("contacts")+'</b><small>Kontakte</small></button>'+
+      '<button type="button" data-n2k-os-tab="status"><b>'+n2kIcon("status")+'</b><small>Status</small></button>'+
+      '<button type="button" data-n2k-os-tab="more"><b>'+n2kIcon("more")+'</b><small>Mehr</small></button>';
 
     old.replaceWith(nav);
 
@@ -5367,12 +5374,12 @@
         '<div id="n2k-showcase-checks" class="n2k-showcase-checks"></div>'+
       '</section>'+
       '<section class="n2k-showcase-quick">'+
-        '<div class="n2k-showcase-head"><div><span class="n2k-showcase-head-icon">⌁</span><strong>Schnellzugriff</strong></div></div>'+
+        '<div class="n2k-showcase-head"><div><span class="n2k-showcase-head-icon">'+n2kIcon("radio")+'</span><strong>Schnellzugriff</strong></div></div>'+
         '<div class="n2k-showcase-quick-grid">'+
-          '<button type="button" data-n2k-quick="chat"><b>✉</b><span>Neue Nachricht</span></button>'+
-          '<button type="button" data-n2k-quick="contacts"><b>◎</b><span>Kontakte</span></button>'+
-          '<button type="button" data-n2k-quick="mesh"><b>⌘</b><span>Living Mesh</span></button>'+
-          '<button type="button" data-n2k-quick="status"><b>◉</b><span>Systemcheck</span></button>'+
+          '<button type="button" data-n2k-quick="chat"><b>'+n2kIcon("chat")+'</b><span>Neue Nachricht</span></button>'+
+          '<button type="button" data-n2k-quick="contacts"><b>'+n2kIcon("contacts")+'</b><span>Kontakte</span></button>'+
+          '<button type="button" data-n2k-quick="mesh"><b>'+n2kIcon("mesh")+'</b><span>Living Mesh</span></button>'+
+          '<button type="button" data-n2k-quick="status"><b>'+n2kIcon("status")+'</b><span>Systemcheck</span></button>'+
         '</div>'+
       '</section>';
 
