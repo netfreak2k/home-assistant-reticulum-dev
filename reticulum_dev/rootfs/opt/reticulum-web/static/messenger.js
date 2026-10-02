@@ -3729,11 +3729,11 @@
 })();
 
 
-/* N2K OS UI Layer 1.23.1-beta1 */
+/* N2K OS UI Layer 1.24.0-beta1 */
 (function(){
   "use strict";
 
-  const VERSION="1.23.1-beta1";
+  const VERSION="1.24.0-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3792,6 +3792,11 @@
     document.querySelectorAll(".n2k-os-nav-button").forEach(function(btn){
       btn.classList.toggle("is-active",btn.dataset.n2kAction===action);
     });
+
+    if(typeof window.n2kShowPage==="function"){
+      window.n2kShowPage(action);
+      return;
+    }
 
     switch(action){
       case "overview":
@@ -3959,7 +3964,7 @@
 })();
 
 
-/* N2K OS Overview Dashboard 1.23.1-beta1 */
+/* N2K OS Overview Dashboard 1.24.0-beta1 */
 (function(){
   "use strict";
 
@@ -4188,7 +4193,7 @@
 })();
 
 
-/* N2K OS Mobile Router 1.23.1-beta1 */
+/* N2K OS Mobile Router 1.24.0-beta1 */
 (function(){
   "use strict";
 
@@ -4447,4 +4452,291 @@
   }
 
   window.n2kOsMobilePage=showPage;
+})();
+
+
+/* N2K Unified App Router 1.24.0-beta1 */
+(function(){
+  "use strict";
+
+  const PAGE_DEFS={
+    overview:{title:"Übersicht",sub:"Live-Status, Living Mesh und aktuelle Aktivitäten"},
+    chat:{title:"Chat",sub:"LXMF Nachrichten"},
+    contacts:{title:"Kontakte",sub:"Kontaktverwaltung, QR, Import und Export"},
+    mesh:{title:"Living Mesh",sub:"Live-Aktivität, Routen und Relays"},
+    status:{title:"Status",sub:"Systemzustand, Funkstatus und Diagnose"},
+    settings:{title:"Einstellungen",sub:"Identity, Netzwerk und Store & Forward"},
+    setup:{title:"Setup",sub:"Gateway und RNode Schritt für Schritt einrichten"},
+    about:{title:"Über / Lizenz",sub:"Projekt-, Versions- und Lizenzinformationen"},
+    more:{title:"Mehr",sub:"Weitere Bereiche des Gateways"}
+  };
+
+  function byId(id){return document.getElementById(id);}
+  function root(){return byId("n2k-mobile-real-content");}
+
+  function makePage(name){
+    let page=byId("n2k-page-"+name);
+    if(page) return page;
+    const r=root();
+    if(!r) return null;
+
+    page=document.createElement("section");
+    page.id="n2k-page-"+name;
+    page.className="n2k-app-page";
+    page.dataset.n2kPage=name;
+
+    if(name!=="overview"){
+      const meta=PAGE_DEFS[name];
+      const head=document.createElement("div");
+      head.className="n2k-app-page-head";
+      head.innerHTML="<div><h2></h2><p></p></div>";
+      head.querySelector("h2").textContent=meta.title;
+      head.querySelector("p").textContent=meta.sub;
+      page.appendChild(head);
+    }
+
+    r.prepend(page);
+    return page;
+  }
+
+  function move(id,pageName){
+    const el=typeof id==="string" ? document.querySelector(id) : id;
+    const page=makePage(pageName);
+    if(el && page && el.parentElement!==page) page.appendChild(el);
+  }
+
+  function buildPages(){
+    const r=root();
+    if(!r) return false;
+
+    Object.keys(PAGE_DEFS).forEach(makePage);
+
+    /* Overview */
+    move("#n2k-os-overview","overview");
+
+    /* Chat */
+    move(".messenger-search-wrap","chat");
+    move("#messenger-chat-list","chat");
+    move(".messenger-conversation","chat");
+
+    /* Contacts / Mesh */
+    move("#msg-contacts-view","contacts");
+    move("#msg-mesh-view","mesh");
+
+    /* Status = only status/health/diagnostics */
+    [
+      "#n2k-status-overview",
+      "#n2k-radio-widget",
+      "#n2k-resilience-card",
+      "#n2k-selftest-card"
+    ].forEach(function(sel){move(sel,"status");});
+
+    /* Settings = actual configuration surfaces */
+    [
+      "#reticulum-network",
+      "#reticulum-identity",
+      "#n2k-propagation-card"
+    ].forEach(function(sel){move(sel,"settings");});
+
+    /* Setup = onboarding and hardware setup */
+    [
+      "#n2k-first-run-guide",
+      "#n2k-setup-assistant",
+      "#n2k-hardware-usb-card",
+      "#n2k-help"
+    ].forEach(function(sel){move(sel,"setup");});
+
+    move(".n2k-about-card","about");
+
+    const more=makePage("more");
+    if(more && !more.querySelector(".n2k-os-more-grid")){
+      const grid=document.createElement("div");
+      grid.className="n2k-os-more-grid";
+      grid.innerHTML=
+        '<button class="n2k-os-more-card" type="button" data-page="contacts"><b>Kontakte</b><span>Kontakte verwalten und QR verwenden</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-page="settings"><b>Einstellungen</b><span>Identity, Netzwerk und Store & Forward</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-page="setup"><b>Setup</b><span>Gateway und RNode einrichten</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-page="about"><b>Über / Lizenz</b><span>Version und Lizenzinformationen</span></button>';
+      grid.addEventListener("click",function(e){
+        const b=e.target.closest("[data-page]");
+        if(b) showPage(b.dataset.page);
+      });
+      more.appendChild(grid);
+    }
+
+    document.body.classList.add("n2k-pages-ready");
+    return true;
+  }
+
+  function hideAll(){
+    document.querySelectorAll(".n2k-app-page").forEach(function(page){
+      page.classList.remove("is-active");
+      page.hidden=true;
+      page.style.setProperty("display","none","important");
+    });
+  }
+
+  function activateNav(name){
+    document.querySelectorAll(".n2k-os-nav-button").forEach(function(btn){
+      btn.classList.toggle("is-active",btn.dataset.n2kAction===name);
+    });
+    document.querySelectorAll("#n2k-mobile-real-nav [data-n2k-os-tab]").forEach(function(btn){
+      btn.classList.toggle("active",btn.dataset.n2kOsTab===name);
+    });
+  }
+
+  function showPage(name){
+    if(!buildPages()) return false;
+    hideAll();
+
+    const page=byId("n2k-page-"+name);
+    if(!page) return false;
+
+    page.hidden=false;
+    page.classList.add("is-active");
+    page.style.setProperty("display","block","important");
+    document.body.classList.remove(
+      "n2k-overview-active",
+      "n2k-os-mobile-page-overview",
+      "n2k-os-mobile-page-chat",
+      "n2k-os-mobile-page-mesh",
+      "n2k-os-mobile-page-status",
+      "n2k-os-mobile-page-contacts",
+      "n2k-os-mobile-page-more",
+      "n2k-os-mobile-chat-open"
+    );
+
+    activateNav(name);
+    window.scrollTo({top:0,behavior:"smooth"});
+
+    if(name==="contacts"){
+      try{
+        const core=window.reticulumMessenger097;
+        if(core && typeof core.loadContacts==="function") core.loadContacts();
+      }catch(_){}
+    }
+
+    if(name==="settings" || name==="status"){
+      try{
+        if(window.reticulumProfile099 &&
+           typeof window.reticulumProfile099.loadIdentity==="function"){
+          window.reticulumProfile099.loadIdentity();
+        }
+      }catch(_){}
+    }
+
+    return false;
+  }
+
+  function rebuildDesktopNav(){
+    const list=document.querySelector(".n2k-os-nav-list");
+    if(!list) return;
+
+    list.innerHTML=
+      '<button class="n2k-os-nav-button" data-n2k-action="overview"><span class="n2k-os-nav-icon">⌂</span>Übersicht</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">✉</span>Chat</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">◎</span>Kontakte</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">⌘</span>Living Mesh</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">◉</span>Status</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">⚙</span>Einstellungen</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">⌁</span>Setup</button>'+
+      '<button class="n2k-os-nav-button" data-n2k-action="about"><span class="n2k-os-nav-icon">ⓘ</span>Über / Lizenz</button>';
+
+    list.onclick=function(e){
+      const btn=e.target.closest("[data-n2k-action]");
+      if(!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      showPage(btn.dataset.n2kAction);
+    };
+  }
+
+  function rebuildMobileNav(){
+    const nav=byId("n2k-mobile-real-nav");
+    if(!nav) return;
+
+    nav.innerHTML=
+      '<button type="button" data-n2k-os-tab="overview"><b>⌂</b><small>Übersicht</small></button>'+
+      '<button type="button" data-n2k-os-tab="chat"><b>✉</b><small>Chat</small></button>'+
+      '<button type="button" data-n2k-os-tab="mesh"><b>⌘</b><small>Mesh</small></button>'+
+      '<button type="button" data-n2k-os-tab="status"><b>◉</b><small>Status</small></button>'+
+      '<button type="button" data-n2k-os-tab="more"><b>•••</b><small>Mehr</small></button>';
+
+    nav.onclick=function(e){
+      const btn=e.target.closest("[data-n2k-os-tab]");
+      if(!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      showPage(btn.dataset.n2kOsTab);
+    };
+  }
+
+  function wrapChatOpen(){
+    const old=window.openMessengerConversation;
+    if(typeof old==="function" && !old.__n2kUnified1240){
+      const wrapped=function(peer){
+        showPage("chat");
+        old(peer);
+        setTimeout(function(){
+          const page=byId("n2k-page-chat");
+          const conv=page?.querySelector(".messenger-conversation");
+          const search=page?.querySelector(".messenger-search-wrap");
+          const list=page?.querySelector("#messenger-chat-list");
+          if(search) search.style.setProperty("display","none","important");
+          if(list) list.style.setProperty("display","none","important");
+          if(conv){
+            conv.hidden=false;
+            conv.style.setProperty("display","flex","important");
+          }
+        },0);
+      };
+      wrapped.__n2kUnified1240=true;
+      window.openMessengerConversation=wrapped;
+    }
+
+    const back=byId("messenger-back");
+    if(back){
+      back.onclick=function(e){
+        if(e){e.preventDefault();e.stopPropagation();}
+        showPage("chat");
+        const page=byId("n2k-page-chat");
+        const conv=page?.querySelector(".messenger-conversation");
+        const search=page?.querySelector(".messenger-search-wrap");
+        const list=page?.querySelector("#messenger-chat-list");
+        if(conv) conv.style.setProperty("display","none","important");
+        if(search) search.style.setProperty("display","block","important");
+        if(list) list.style.setProperty("display","block","important");
+        return false;
+      };
+    }
+  }
+
+  function boot(){
+    if(!buildPages()) return;
+
+    rebuildDesktopNav();
+    rebuildMobileNav();
+    wrapChatOpen();
+
+    /* Old scripts run delayed. Re-assemble after all known legacy binds. */
+    [250,900,1800,3000].forEach(function(delay){
+      setTimeout(function(){
+        buildPages();
+        rebuildDesktopNav();
+        rebuildMobileNav();
+        wrapChatOpen();
+        const active=document.querySelector(".n2k-app-page.is-active");
+        if(!active) showPage("overview");
+      },delay);
+    });
+
+    showPage("overview");
+    window.n2kShowPage=showPage;
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
 })();
