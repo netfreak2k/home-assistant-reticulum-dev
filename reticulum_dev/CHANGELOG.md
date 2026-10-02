@@ -1,3 +1,8 @@
+## 1.30.3-beta1
+
+- Keep the full mobile header claim: OFFGRID · MESH · LOCAL INTELLIGENCE.
+- Allow the brand line to wrap on narrow phones instead of shortening or clipping it.
+
 ## 1.30.2-beta1
 
 - Show propagation status in the overview without substituting an unrelated Internet-interface status.

@@ -126,3 +126,14 @@ body.n2k-os-ready .n2k-universe-legend .local{background:#72dba7 !important;}
 
 /* Propagation pending is not a confirmed successful retrieval. */
 body.n2k-os-ready .n2k-overview-dot.wait{background:#f1bf5b !important;box-shadow:none !important;}
+/* 1.30.3-beta1 · retain the complete brand claim on every phone width. */
+@media (max-width:900px){
+  body.n2k-os-ready .n2k-brand-kicker{
+    flex-wrap:wrap !important;white-space:normal !important;row-gap:4px !important;
+  }
+  body.n2k-os-ready .n2k-brand-kicker::after{
+    content:"OFFGRID · MESH · LOCAL INTELLIGENCE" !important;
+    white-space:normal !important;overflow:visible !important;text-overflow:clip !important;
+    line-height:1.4 !important;letter-spacing:.06em !important;
+  }
+}
