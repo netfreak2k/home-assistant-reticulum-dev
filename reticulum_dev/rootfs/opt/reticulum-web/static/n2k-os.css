@@ -1946,3 +1946,97 @@ body.n2k-os-ready .n2k-main-header{
     display:none !important;
   }
 }
+
+
+/* =========================================================
+   1.26.0-beta1 · N2K OS wallpaper layer
+   Original SVG asset, no place names, no third-party artwork.
+   Visual only: no routing / JS / backend changes.
+   ========================================================= */
+
+html{
+  background:#02070d !important;
+}
+
+body.n2k-os-ready,
+body.n2k-pages-ready{
+  background:
+    linear-gradient(180deg,rgba(2,8,14,.68),rgba(2,9,16,.80)),
+    radial-gradient(circle at 18% 0%,rgba(0,178,255,.08),transparent 28%),
+    radial-gradient(circle at 88% 8%,rgba(0,120,255,.07),transparent 30%),
+    url("assets/n2k-mesh-wallpaper.svg") center center / cover fixed no-repeat !important;
+}
+
+/* Keep primary surfaces readable while allowing wallpaper depth to show through. */
+body.n2k-os-ready .n2k-os-sidebar,
+body.n2k-os-ready .n2k-main-header,
+body.n2k-pages-ready .n2k-app-page > section,
+body.n2k-pages-ready .n2k-app-page > .card,
+body.n2k-pages-ready .n2k-app-page > .n2k-about-card,
+body.n2k-pages-ready #n2k-page-chat .messenger-search-wrap,
+body.n2k-pages-ready #n2k-page-chat #messenger-chat-list,
+body.n2k-pages-ready #n2k-page-chat .messenger-conversation,
+body.n2k-pages-ready #n2k-page-contacts #msg-contacts-view{
+  -webkit-backdrop-filter:blur(12px) saturate(118%);
+  backdrop-filter:blur(12px) saturate(118%);
+}
+
+body.n2k-os-ready .n2k-os-sidebar{
+  background:
+    linear-gradient(180deg,rgba(5,23,39,.90),rgba(3,14,24,.93)) !important;
+}
+
+body.n2k-os-ready .n2k-main-header{
+  background:
+    linear-gradient(135deg,rgba(7,28,47,.88),rgba(3,16,29,.90)) !important;
+}
+
+body.n2k-pages-ready #n2k-page-status > section,
+body.n2k-pages-ready #n2k-page-settings > section,
+body.n2k-pages-ready #n2k-page-setup > section,
+body.n2k-pages-ready #n2k-page-about > .n2k-about-card,
+body.n2k-pages-ready #n2k-page-chat #messenger-chat-list,
+body.n2k-pages-ready #n2k-page-contacts #msg-contacts-view{
+  background:
+    radial-gradient(circle at 100% 0%,rgba(31,207,255,.035),transparent 34%),
+    linear-gradient(145deg,rgba(7,22,37,.88),rgba(3,13,23,.91)) !important;
+}
+
+/* Overview: wallpaper should be visible around the dashboard, never overpower it. */
+#n2k-page-overview.is-active{
+  background:transparent !important;
+}
+
+#n2k-os-overview{
+  background:transparent !important;
+}
+
+/* Mobile uses the same asset with a calmer crop and stronger veil.
+   background-attachment:scroll avoids iOS fixed-background glitches. */
+@media (max-width:900px){
+  body.n2k-os-ready,
+  body.n2k-pages-ready{
+    background:
+      linear-gradient(180deg,rgba(2,8,14,.78),rgba(2,9,16,.88)),
+      radial-gradient(circle at 50% 0%,rgba(0,178,255,.07),transparent 24%),
+      url("assets/n2k-mesh-wallpaper.svg") 58% top / auto 100vh scroll repeat-y !important;
+  }
+
+  body.n2k-os-ready .n2k-main-header,
+  body.n2k-os-ready #n2k-mobile-real-nav{
+    -webkit-backdrop-filter:blur(14px) saturate(120%);
+    backdrop-filter:blur(14px) saturate(120%);
+  }
+
+  body.n2k-os-ready #n2k-mobile-real-nav{
+    background:rgba(3,14,24,.91) !important;
+  }
+}
+
+/* Respect reduced motion; wallpaper itself is static. */
+@media (prefers-reduced-motion:reduce){
+  body.n2k-os-ready,
+  body.n2k-pages-ready{
+    background-attachment:scroll !important;
+  }
+}
