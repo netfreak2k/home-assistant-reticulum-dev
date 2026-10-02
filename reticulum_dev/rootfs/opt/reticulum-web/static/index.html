@@ -3243,8 +3243,10 @@ code {
     <div class="n2k-propagation-runtime">
       <span>Runtime</span>
       <strong id="n2k-propagation-runtime">nicht aktiv</strong>
-      <span>Letzter Abruf</span>
+      <span>Letzter Versuch</span>
       <strong id="n2k-propagation-last-sync">—</strong>
+      <span>Erfolgreicher Abruf</span>
+      <strong id="n2k-propagation-last-success">—</strong>
     </div>
 
     <button id="n2k-propagation-save" class="n2k-propagation-save" type="button">
@@ -10741,6 +10743,7 @@ if (
     var state=$("n2k-propagation-state");
     var runtime=$("n2k-propagation-runtime");
     var last=$("n2k-propagation-last-sync");
+    var success=$("n2k-propagation-last-success");
     var note=$("n2k-propagation-note");
     var selected=$("n2k-propagation-selected");
 
@@ -10752,7 +10755,15 @@ if (
     if(runtime){
       if(data.runtime_enabled){
         runtime.textContent=
-          (data.sync_result||"BEREIT")+
+          ({READY:"Server gewählt · bereit",IDLE:"Bereit",REQUESTED:"Abruf angefordert",
+            PATH_REQUESTED:"Suche Serverpfad",LINK_ESTABLISHING:"Verbinde mit Server",
+            LINK_ESTABLISHED:"Server verbunden",REQUEST_SENT:"Warte auf Serverantwort",
+            RECEIVING:"Empfange Nachrichten",RESPONSE_RECEIVED:"Verarbeite Antwort",
+            COMPLETE:"Abruf erfolgreich"+(data.received_count!=null?" · "+data.received_count+" Nachricht(en)":""),
+            NO_PATH:"Fehler · kein Serverpfad",LINK_FAILED:"Fehler · Verbindung gescheitert",
+            TRANSFER_FAILED:"Fehler · Übertragung gescheitert",NO_IDENTITY_RCVD:"Fehler · Identität nicht bestätigt",
+            NO_ACCESS:"Fehler · Zugriff verweigert",FAILED:"Abruf gescheitert",
+            ERROR:"Abruf gescheitert",UNKNOWN:"Abrufstatus unbekannt"}[data.sync_result]||"Server gewählt · bereit")+
           (data.runtime_node?" · "+data.runtime_node.slice(0,8)+"…":"");
       }else if(data.enabled){
         runtime.textContent=data.auto_discovery
@@ -10764,13 +10775,14 @@ if (
     }
 
     if(last) last.textContent=stamp(data.last_sync);
+    if(success) success.textContent=stamp(data.last_success);
 
     if(selected){
       if(data.runtime_node){
         selected.textContent=
           (data.runtime_source==="auto"?"Automatisch gewählt: ":"Aktiv: ")+
           data.runtime_node+
-          (data.selected_hops?" · "+data.selected_hops+" Hop(s)":"");
+          (data.selected_hops?" · Auswahl: "+data.selected_hops+" Hop(s)":"");
       }else{
         selected.textContent=data.enabled&&data.auto_discovery
           ?"Suche läuft · noch kein aktiver Propagation Node entdeckt."
@@ -10911,7 +10923,7 @@ if (
             String(item.destination_hash||"").slice(0,12)+'…'+
           '</span>'+
           '<span>'+
-            Number(item.hops||0)+' Hop(s) · vor '+age(item.age_seconds)+
+            Number(item.hops||0)+' Announce-Hop(s) · vor '+age(item.age_seconds)+
             (Number(item.stamp_cost||0)>0?" · Stamp "+Number(item.stamp_cost):"")+
           '</span>'+
         '</div>';

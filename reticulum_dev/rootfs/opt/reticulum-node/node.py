@@ -1857,6 +1857,52 @@ next_auto_announce = (
     int(time.time()) + AUTO_ANNOUNCE_INITIAL_DELAY
 )
 
+def propagation_transfer_snapshot(router):
+    """Read LXMF 1.1.1 transfer state; a request is not a completed sync."""
+    code = getattr(router, "propagation_transfer_state", None)
+    names = (
+        "IDLE", "PATH_REQUESTED", "LINK_ESTABLISHING", "LINK_ESTABLISHED",
+        "REQUEST_SENT", "RECEIVING", "RESPONSE_RECEIVED", "COMPLETE",
+        "NO_PATH", "LINK_FAILED", "TRANSFER_FAILED", "NO_IDENTITY_RCVD",
+        "NO_ACCESS", "FAILED",
+    )
+    for name in names:
+        if code == getattr(LXMF.LXMRouter, "PR_" + name, object()):
+            count = getattr(router, "propagation_transfer_last_result", None)
+            return name, int(count) if name == "COMPLETE" and count is not None else None
+    return "UNKNOWN", None
+
+
+def update_propagation_runtime(now):
+    state["lxmf_propagation_enabled"] = bool(PROPAGATION_ENABLED and PROPAGATION_READY)
+    state["lxmf_propagation_node"] = (
+        PROPAGATION_NODE_HASH.hex()
+        if PROPAGATION_ENABLED and isinstance(PROPAGATION_NODE_HASH, bytes) else ""
+    )
+    state["lxmf_propagation_source"] = PROPAGATION_SELECTED_SOURCE or ""
+    if not PROPAGATION_ENABLED or not PROPAGATION_READY:
+        return
+    if state.get("lxmf_propagation_request_error"):
+        return
+    result, count = propagation_transfer_snapshot(lxmf_router)
+    if result == "IDLE":
+        # Keep the last confirmed outcome while waiting for the next interval.
+        state.setdefault("lxmf_propagation_sync_result", "READY")
+        return
+    previous = state.get("lxmf_propagation_transfer_state")
+    state["lxmf_propagation_transfer_state"] = result
+    state["lxmf_propagation_sync_result"] = result
+    if result == "COMPLETE":
+        if previous != "COMPLETE":
+            state["lxmf_propagation_last_success"] = now
+        state["lxmf_propagation_received"] = count
+        state["lxmf_propagation_error"] = None
+    elif result in ("NO_PATH", "LINK_FAILED", "TRANSFER_FAILED", "NO_IDENTITY_RCVD", "NO_ACCESS", "FAILED"):
+        state["lxmf_propagation_error"] = result
+    elif result != "UNKNOWN":
+        state["lxmf_propagation_error"] = None
+
+
 last_propagation_sync = 0
 last_propagation_selection = 0
 last_propagation_probe = 0
@@ -2070,6 +2116,10 @@ while running:
         PROPAGATION_ENABLED
         and PROPAGATION_READY
         and PROPAGATION_AUTO_SYNC
+        and propagation_transfer_snapshot(lxmf_router)[0] not in (
+            "PATH_REQUESTED", "LINK_ESTABLISHING", "LINK_ESTABLISHED",
+            "REQUEST_SENT", "RECEIVING", "RESPONSE_RECEIVED",
+        )
         and (
             last_propagation_sync == 0
             or now - last_propagation_sync
@@ -2077,9 +2127,11 @@ while running:
         )
     ):
         try:
+            state["lxmf_propagation_transfer_state"] = "REQUESTED"
             lxmf_router.request_messages_from_propagation_node(
                 identity
             )
+            state["lxmf_propagation_request_error"] = None
 
             last_propagation_sync = now
             state["lxmf_propagation_enabled"] = True
@@ -2108,6 +2160,7 @@ while running:
             )
             state["lxmf_propagation_last_sync"] = now
             state["lxmf_propagation_sync_result"] = "ERROR"
+            state["lxmf_propagation_request_error"] = str(exc)
             state["lxmf_propagation_error"] = str(exc)
             state["updated"] = now
             write_state(state)
@@ -2318,6 +2371,7 @@ while running:
                 state["announce_error"] = str(exc)
                 state["announce_requested_at"] = requested_at
 
+    update_propagation_runtime(now)
     state["updated"] = now
     write_state(state)
     time.sleep(2)

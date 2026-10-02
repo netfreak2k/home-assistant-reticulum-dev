@@ -1,3 +1,12 @@
+## 1.30.2-beta1
+
+- Show propagation status in the overview without substituting an unrelated Internet-interface status.
+- Track LXMF propagation transfer completion and asynchronous failures instead of leaving the runtime at REQUESTED.
+- Show the selected propagation server immediately, including when automatic retrieval is disabled.
+- Separate last retrieval attempt from last confirmed successful retrieval; show received message count when LXMF reports it.
+- Do not start overlapping scheduled retrievals while the LXMF transfer is in progress.
+- Label selection hops and last-announced hops explicitly instead of presenting them as identical measurements.
+
 ## 1.30.1-beta1
 
 - Align the mobile header and all page sections on a shared centered content axis.

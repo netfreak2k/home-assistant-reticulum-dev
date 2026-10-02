@@ -3733,7 +3733,7 @@
 (function(){
   "use strict";
 
-  const VERSION="1.30.1-beta1";
+  const VERSION="1.30.2-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4120,12 +4120,8 @@
     const lxmf=textOf("n2k-status-lxmf",textOf("messenger-status-text","—"));
     const propagation=textOf("n2k-propagation-runtime","—");
     const propagationDetail=textOf("n2k-propagation-last-sync","Propagation / Sync");
-    const backbone=/aktiv|active|bereit|ready|requested|sync/i.test(propagation)
-      ? propagation
-      : textOf("hero-internet",textOf("n2k-status-ifaces","—"));
-    const backboneSub=/aktiv|active|bereit|ready|requested|sync/i.test(propagation)
-      ? propagationDetail
-      : "Store & Forward";
+    const backbone=propagation!=="—" ? propagation : "Status wird geprüft";
+    const backboneSub=propagationDetail;
 
     const map={
       "n2k-ov-rnode-main":rnode,
@@ -4149,7 +4145,12 @@
     setDot("n2k-ov-rnode-dot",rnode);
     setDot("n2k-ov-rns-dot",rns);
     setDot("n2k-ov-lxmf-dot",lxmf);
-    setDot("n2k-ov-backbone-dot",backbone);
+    const propagationDot=byId("n2k-ov-backbone-dot");
+    if(propagationDot){
+      const kind=/fehler|gescheitert|verweigert|ERROR|FAILED|NO_PATH|NO_ACCESS/i.test(backbone) ? "bad"
+        : /erfolgreich|COMPLETE/i.test(backbone) ? "ok" : "wait";
+      propagationDot.className="n2k-overview-dot "+kind;
+    }
 
     watchValue("rnode",rnode,"RNode Status");
     watchValue("rns",rns,"Reticulum Status");

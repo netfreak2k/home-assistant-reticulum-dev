@@ -123,3 +123,6 @@ body.n2k-os-ready .n2k-universe-legend .local{background:#72dba7 !important;}
   }
   body.n2k-os-ready :is(.n2k-overview-grid,.n2k-overview-lower,.n2k-showcase-footer) > *{box-sizing:border-box !important;min-width:0 !important;max-width:100% !important;}
 }
+
+/* Propagation pending is not a confirmed successful retrieval. */
+body.n2k-os-ready .n2k-overview-dot.wait{background:#f1bf5b !important;box-shadow:none !important;}

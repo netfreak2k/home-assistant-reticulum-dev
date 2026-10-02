@@ -2688,6 +2688,9 @@ def get_propagation_config():
             )
             or ""
         ),
+        "last_success": int(state.get("lxmf_propagation_last_success") or 0),
+        "received_count": state.get("lxmf_propagation_received"),
+        "transfer_state": str(state.get("lxmf_propagation_transfer_state") or ""),
         "last_probe": int(
             state.get(
                 "lxmf_propagation_last_probe",
