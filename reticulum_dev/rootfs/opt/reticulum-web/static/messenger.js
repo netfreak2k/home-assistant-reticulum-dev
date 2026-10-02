@@ -4063,7 +4063,6 @@
               '<div class="n2k-overview-mesh-stat"><small>Paths</small><strong id="n2k-ov-paths">—</strong></div>'+
               '<div class="n2k-overview-mesh-stat"><small>Relays</small><strong id="n2k-ov-relays">—</strong></div>'+
             '</div>'+
-            '<div class="n2k-overview-mesh-copy"><strong>Mesh beobachten</strong><span>Tippen oder klicken, um Living Mesh zu öffnen.</span></div>'+
           '</div>'+
         '</section>'+
         '<section class="n2k-overview-activity">'+
@@ -4152,10 +4151,10 @@
       previous.set("paths",String(pathsValue||"").trim());
     }
 
-    if(previous.has("live") && previous.get("live")!==String(liveValue||"").trim()){
-      previous.set("live",String(liveValue||"").trim());
-      addEvent("Living Mesh meldet "+liveValue+" aktive Nodes","ok");
-    }else if(!previous.has("live") && String(liveValue||"").trim()){
+    /* Live-node counts fluctuate constantly and were flooding the activity
+       feed. Keep the current count on the Mesh card, but do not log every
+       2 -> 3 -> 5 -> 6 change as an activity event. */
+    if(String(liveValue||"").trim()){
       previous.set("live",String(liveValue||"").trim());
     }
   }
