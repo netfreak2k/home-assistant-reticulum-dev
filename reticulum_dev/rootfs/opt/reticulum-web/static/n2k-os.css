@@ -1464,3 +1464,469 @@ body.n2k-pages-ready .wrap > hr{
 #n2k-page-contacts.is-active #msg-contact-list{
   min-height:140px !important;
 }
+
+
+/* =========================================================
+   1.25.0-beta1 · FULL N2K OS VISUAL PASS
+   CSS-only polish. No routing/backend changes.
+   ========================================================= */
+
+body.n2k-pages-ready .n2k-app-page{
+  animation:n2k-page-in .22s ease-out;
+}
+@keyframes n2k-page-in{
+  from{opacity:.55;transform:translateY(4px)}
+  to{opacity:1;transform:none}
+}
+
+/* Unified page title */
+.n2k-app-page-head{
+  position:relative;
+  overflow:hidden;
+  padding:18px 20px;
+  border:1px solid rgba(63,170,255,.28);
+  background:
+    radial-gradient(circle at 92% -20%,rgba(33,198,255,.12),transparent 38%),
+    linear-gradient(135deg,rgba(10,34,57,.96),rgba(5,18,31,.95));
+}
+.n2k-app-page-head::after{
+  content:"";
+  position:absolute;
+  top:0;right:0;
+  width:180px;height:100%;
+  pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(32,216,255,.035));
+}
+.n2k-app-page-head h2{
+  font-size:22px;
+  font-weight:850;
+  letter-spacing:-.025em;
+}
+.n2k-app-page-head p{
+  max-width:720px;
+  color:#8fa9be;
+  font-size:11px;
+}
+
+/* Shared OS panels */
+#n2k-page-chat > *,
+#n2k-page-contacts > *,
+#n2k-page-status > *,
+#n2k-page-settings > *,
+#n2k-page-setup > *,
+#n2k-page-about > *{
+  box-sizing:border-box;
+}
+
+#n2k-page-status > section,
+#n2k-page-status > .n2k-selftest-card,
+#n2k-page-settings > section,
+#n2k-page-settings > .card,
+#n2k-page-setup > section,
+#n2k-page-about > .n2k-about-card{
+  border:1px solid rgba(57,160,255,.18) !important;
+  border-radius:18px !important;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(32,216,255,.035),transparent 36%),
+    linear-gradient(145deg,rgba(9,26,43,.92),rgba(4,15,26,.94)) !important;
+  box-shadow:0 10px 30px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.018) !important;
+}
+
+/* ---------------------------------------------------------
+   CHAT
+   --------------------------------------------------------- */
+#n2k-page-chat{
+  min-height:520px;
+}
+#n2k-page-chat .messenger-search-wrap{
+  margin:0 0 10px !important;
+  padding:10px !important;
+  border:1px solid rgba(57,160,255,.18) !important;
+  border-radius:16px !important;
+  background:rgba(5,18,31,.82) !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.18) !important;
+}
+#n2k-page-chat .messenger-search-wrap input,
+#n2k-page-chat input[type="search"]{
+  min-height:42px !important;
+  padding:0 13px !important;
+  border:1px solid rgba(57,160,255,.22) !important;
+  border-radius:12px !important;
+  background:rgba(1,10,18,.72) !important;
+  color:#eef7ff !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.01) !important;
+}
+#n2k-page-chat #messenger-chat-list{
+  padding:6px 10px 14px !important;
+  border:1px solid rgba(57,160,255,.16) !important;
+  border-radius:18px !important;
+  background:linear-gradient(180deg,rgba(8,23,38,.86),rgba(4,14,24,.9)) !important;
+  box-shadow:0 12px 30px rgba(0,0,0,.2) !important;
+}
+#n2k-page-chat .messenger-contact{
+  width:100% !important;
+  min-height:58px !important;
+  display:grid !important;
+  grid-template-columns:auto minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:11px !important;
+  padding:9px 10px !important;
+  margin:0 !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(255,255,255,.045) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  text-align:left !important;
+}
+#n2k-page-chat .messenger-contact:hover{
+  background:rgba(22,139,255,.07) !important;
+}
+#n2k-page-chat .messenger-contact-avatar{
+  width:36px !important;
+  height:36px !important;
+  display:grid !important;
+  place-items:center !important;
+  border-radius:12px !important;
+  border:1px solid rgba(32,216,255,.26) !important;
+  background:linear-gradient(145deg,rgba(22,139,255,.22),rgba(16,58,89,.22)) !important;
+  color:#9eefff !important;
+  font-weight:850 !important;
+  box-shadow:0 0 18px rgba(22,139,255,.09) !important;
+}
+#n2k-page-chat .messenger-contact-name{
+  color:#f2f7fb !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+}
+#n2k-page-chat .messenger-contact-preview{
+  margin-top:3px !important;
+  color:#7f95a8 !important;
+  font-size:10px !important;
+}
+#n2k-page-chat .messenger-contact-time{
+  color:#657c91 !important;
+  font-size:9px !important;
+}
+#n2k-page-chat .messenger-conversation{
+  border:1px solid rgba(57,160,255,.18) !important;
+  border-radius:18px !important;
+  background:linear-gradient(180deg,rgba(7,22,36,.94),rgba(3,13,22,.96)) !important;
+  box-shadow:0 14px 34px rgba(0,0,0,.25) !important;
+}
+#n2k-page-chat #lxmf-inbox{
+  background:
+    radial-gradient(circle at 50% 0%,rgba(22,139,255,.035),transparent 38%),
+    rgba(2,11,19,.42) !important;
+}
+
+/* ---------------------------------------------------------
+   CONTACTS
+   --------------------------------------------------------- */
+#n2k-page-contacts #msg-contacts-view{
+  padding:0 !important;
+  border:1px solid rgba(57,160,255,.18) !important;
+  border-radius:18px !important;
+  background:linear-gradient(180deg,rgba(8,23,38,.9),rgba(4,14,24,.94)) !important;
+  box-shadow:0 12px 30px rgba(0,0,0,.22) !important;
+  overflow:hidden !important;
+}
+#n2k-page-contacts .m110-contact-head{
+  padding:14px 16px !important;
+  border-bottom:1px solid rgba(255,255,255,.055) !important;
+  background:rgba(10,30,49,.58) !important;
+}
+#n2k-page-contacts .m110-contact-tools{
+  padding:10px 14px !important;
+  border-bottom:1px solid rgba(255,255,255,.045) !important;
+  background:rgba(4,16,27,.55) !important;
+}
+#n2k-page-contacts .m110-contact-tools button{
+  min-height:34px !important;
+  padding:0 10px !important;
+  border-radius:10px !important;
+  font-size:10px !important;
+}
+#n2k-page-contacts #msg-contact-list{
+  padding:4px 12px 14px !important;
+}
+#n2k-page-contacts .messenger-contact{
+  width:100% !important;
+  display:grid !important;
+  grid-template-columns:auto minmax(0,1fr) auto !important;
+  gap:10px !important;
+  align-items:center !important;
+  min-height:58px !important;
+  padding:9px 8px !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(255,255,255,.045) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+}
+#n2k-page-contacts .messenger-contact:hover{
+  background:rgba(22,139,255,.07) !important;
+}
+
+/* ---------------------------------------------------------
+   STATUS
+   --------------------------------------------------------- */
+#n2k-page-status .n2k-status-overview,
+#n2k-page-status .n2k-radio-widget,
+#n2k-page-status .n2k-resilience-card,
+#n2k-page-status .n2k-selftest-card{
+  padding:16px !important;
+}
+#n2k-page-status .n2k-status-kicker,
+#n2k-page-setup .n2k-status-kicker{
+  color:#32d7ff !important;
+  font-size:9px !important;
+  font-weight:850 !important;
+  letter-spacing:.12em !important;
+}
+#n2k-page-status .n2k-status-summary-grid{
+  gap:9px !important;
+}
+#n2k-page-status .n2k-status-summary-card{
+  min-height:78px !important;
+  padding:11px 12px !important;
+  border:1px solid rgba(57,160,255,.15) !important;
+  border-radius:14px !important;
+  background:rgba(3,14,24,.58) !important;
+}
+#n2k-page-status .n2k-status-summary-icon{
+  width:30px !important;
+  height:30px !important;
+  border-radius:10px !important;
+  background:rgba(22,139,255,.11) !important;
+  color:#38d8ff !important;
+  border:1px solid rgba(32,216,255,.22) !important;
+}
+#n2k-page-status .n2k-radio-metrics > div,
+#n2k-page-status .n2k-resilience-stat{
+  border:1px solid rgba(57,160,255,.13) !important;
+  border-radius:12px !important;
+  background:rgba(2,12,21,.54) !important;
+}
+#n2k-page-status .n2k-selftest-actions button{
+  min-height:34px !important;
+}
+
+/* ---------------------------------------------------------
+   SETTINGS
+   --------------------------------------------------------- */
+#n2k-page-settings #reticulum-network,
+#n2k-page-settings #reticulum-identity,
+#n2k-page-settings #n2k-propagation-card{
+  padding:16px !important;
+}
+#n2k-page-settings h2,
+#n2k-page-settings h3{
+  color:#eef7ff !important;
+}
+#n2k-page-settings .network-summary{
+  gap:8px !important;
+}
+#n2k-page-settings .network-stat{
+  padding:11px 12px !important;
+  border:1px solid rgba(57,160,255,.14) !important;
+  border-radius:12px !important;
+  background:rgba(2,12,21,.54) !important;
+}
+#n2k-page-settings .network-stat-label{
+  color:#6f879c !important;
+  font-size:9px !important;
+  text-transform:uppercase !important;
+  letter-spacing:.06em !important;
+}
+#n2k-page-settings .network-stat-value{
+  margin-top:5px !important;
+  color:#f0f7fd !important;
+  font-size:16px !important;
+  font-weight:850 !important;
+}
+#n2k-page-settings .network-table-wrap{
+  margin-top:10px !important;
+  border:1px solid rgba(57,160,255,.12) !important;
+  border-radius:12px !important;
+  overflow:hidden !important;
+}
+#n2k-page-settings table{
+  background:rgba(2,12,21,.4) !important;
+}
+#n2k-page-settings th{
+  color:#7d93a6 !important;
+  background:rgba(8,25,41,.7) !important;
+  font-size:9px !important;
+  text-transform:uppercase !important;
+}
+#n2k-page-settings td{
+  border-top:1px solid rgba(255,255,255,.04) !important;
+  color:#afc0ce !important;
+}
+#n2k-page-settings #reticulum-identity > div{
+  padding:6px 0 !important;
+  border-bottom:1px solid rgba(255,255,255,.04) !important;
+}
+#n2k-page-settings #reticulum-identity b{
+  color:#e9f5ff !important;
+}
+#n2k-page-settings .n2k-propagation-toggle,
+#n2k-page-settings .n2k-propagation-runtime{
+  border-radius:11px !important;
+}
+#n2k-page-settings input,
+#n2k-page-settings select,
+#n2k-page-settings textarea{
+  min-height:38px !important;
+  border-radius:10px !important;
+}
+
+/* ---------------------------------------------------------
+   SETUP
+   --------------------------------------------------------- */
+#n2k-page-setup .n2k-first-run-guide,
+#n2k-page-setup .n2k-setup-assistant,
+#n2k-page-setup .n2k-hardware-usb-card,
+#n2k-page-setup .n2k-help-card{
+  padding:16px !important;
+}
+#n2k-page-setup .n2k-first-run-steps,
+#n2k-page-setup .n2k-setup-steps{
+  gap:9px !important;
+}
+#n2k-page-setup .n2k-first-run-steps > div,
+#n2k-page-setup .n2k-setup-step{
+  border:1px solid rgba(57,160,255,.14) !important;
+  border-radius:13px !important;
+  background:rgba(2,12,21,.52) !important;
+  box-shadow:none !important;
+}
+#n2k-page-setup .n2k-setup-number,
+#n2k-page-setup .n2k-first-run-steps > div > span{
+  background:rgba(22,139,255,.13) !important;
+  color:#4fdfff !important;
+  border:1px solid rgba(32,216,255,.2) !important;
+}
+#n2k-page-setup .n2k-next-action{
+  border:1px solid rgba(255,159,49,.18) !important;
+  border-radius:16px !important;
+  background:rgba(31,20,6,.22) !important;
+}
+#n2k-page-setup .n2k-hardware-usb-card{
+  background:
+    radial-gradient(circle at 100% 0%,rgba(40,223,141,.05),transparent 30%),
+    linear-gradient(145deg,rgba(9,26,43,.92),rgba(4,15,26,.94)) !important;
+}
+#n2k-page-setup .n2k-help-item{
+  border:1px solid rgba(57,160,255,.1) !important;
+  background:rgba(2,12,21,.42) !important;
+}
+
+/* ---------------------------------------------------------
+   ABOUT / LICENSE
+   --------------------------------------------------------- */
+#n2k-page-about .n2k-about-card{
+  padding:18px !important;
+  background:
+    radial-gradient(circle at 85% 0%,rgba(32,216,255,.07),transparent 32%),
+    linear-gradient(145deg,rgba(9,26,43,.92),rgba(4,15,26,.94)) !important;
+}
+#n2k-page-about .n2k-about-title{
+  margin-bottom:12px !important;
+  color:#f4f8fb !important;
+  font-size:16px !important;
+  font-weight:850 !important;
+}
+#n2k-page-about .n2k-about-row{
+  display:grid !important;
+  grid-template-columns:140px minmax(0,1fr) !important;
+  gap:12px !important;
+  padding:8px 0 !important;
+  border-bottom:1px solid rgba(255,255,255,.045) !important;
+}
+#n2k-page-about .n2k-about-row span{
+  color:#71889c !important;
+}
+#n2k-page-about .n2k-about-row strong{
+  color:#eaf6ff !important;
+  text-align:right !important;
+}
+#n2k-page-about .n2k-about-notice{
+  margin-top:12px !important;
+  padding:11px 12px !important;
+  border:1px solid rgba(57,160,255,.12) !important;
+  border-radius:11px !important;
+  background:rgba(2,12,21,.48) !important;
+  color:#90a7b9 !important;
+}
+
+/* ---------------------------------------------------------
+   SIDEBAR / HEADER refinement
+   --------------------------------------------------------- */
+.n2k-os-sidebar{
+  background:
+    radial-gradient(circle at 50% -10%,rgba(32,216,255,.08),transparent 30%),
+    linear-gradient(180deg,rgba(8,29,48,.98),rgba(3,14,24,.98)) !important;
+}
+.n2k-os-nav-button{
+  min-height:40px !important;
+  border-radius:11px !important;
+}
+.n2k-os-nav-button.is-active{
+  box-shadow:
+    inset 0 0 20px rgba(22,139,255,.10),
+    0 0 18px rgba(22,139,255,.08) !important;
+}
+body.n2k-os-ready .n2k-main-header{
+  border-color:rgba(57,160,255,.22) !important;
+  box-shadow:0 10px 34px rgba(0,0,0,.26),0 0 24px rgba(22,139,255,.08) !important;
+}
+
+/* ---------------------------------------------------------
+   Mobile polish
+   --------------------------------------------------------- */
+@media (max-width:900px){
+  .n2k-app-page-head{
+    padding:12px 13px !important;
+    margin-bottom:8px !important;
+  }
+  .n2k-app-page-head h2{
+    font-size:17px !important;
+  }
+  #n2k-page-chat,
+  #n2k-page-contacts,
+  #n2k-page-status,
+  #n2k-page-settings,
+  #n2k-page-setup,
+  #n2k-page-about{
+    padding-bottom:10px !important;
+  }
+  #n2k-page-chat .messenger-contact,
+  #n2k-page-contacts .messenger-contact{
+    min-height:54px !important;
+    padding:8px 6px !important;
+  }
+  #n2k-page-status .n2k-status-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  #n2k-page-settings .network-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  #n2k-page-about .n2k-about-row{
+    grid-template-columns:1fr !important;
+    gap:3px !important;
+  }
+  #n2k-page-about .n2k-about-row strong{
+    text-align:left !important;
+  }
+  .n2k-os-more-card{
+    min-height:94px !important;
+    border-radius:15px !important;
+  }
+}
+
+@media (max-width:430px){
+  #n2k-page-status .n2k-status-summary-grid,
+  #n2k-page-settings .network-summary{
+    grid-template-columns:1fr !important;
+  }
+}
