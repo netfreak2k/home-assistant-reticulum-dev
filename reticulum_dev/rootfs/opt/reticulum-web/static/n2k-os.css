@@ -1467,7 +1467,7 @@ body.n2k-pages-ready .wrap > hr{
 
 
 /* =========================================================
-   1.25.0-beta1 · FULL N2K OS VISUAL PASS
+   1.25.1-beta1 · FULL N2K OS VISUAL PASS
    CSS-only polish. No routing/backend changes.
    ========================================================= */
 
@@ -1928,5 +1928,21 @@ body.n2k-os-ready .n2k-main-header{
   #n2k-page-status .n2k-status-summary-grid,
   #n2k-page-settings .network-summary{
     grid-template-columns:1fr !important;
+  }
+}
+
+
+/* 1.25.1-beta1 · remove redundant page title bars */
+.n2k-app-page > .n2k-app-page-head{
+  display:none !important;
+}
+
+.n2k-app-page.is-active{
+  padding-top:0 !important;
+}
+
+@media (max-width:900px){
+  .n2k-app-page > .n2k-app-page-head{
+    display:none !important;
   }
 }
