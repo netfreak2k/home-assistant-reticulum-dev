@@ -103,3 +103,23 @@ body.n2k-os-ready :is(.n2k-cnode-hop,.n2k-cnode-route){fill:#9aa99e !important;}
 body.n2k-os-ready .n2k-universe-legend .radio{background:#f1bf5b !important;}
 body.n2k-os-ready .n2k-universe-legend .internet{background:#a7b9ad !important;}
 body.n2k-os-ready .n2k-universe-legend .local{background:#72dba7 !important;}
+/* 1.30.1-beta1 · one shared mobile content axis, including iOS landscape. */
+@media (max-width:900px){
+  body.n2k-os-ready{padding:0 !important;}
+  body.n2k-os-ready .wrap{
+    box-sizing:border-box !important;
+    width:100% !important;max-width:760px !important;
+    margin:0 auto !important;
+    padding:8px max(10px,env(safe-area-inset-right,0px),env(safe-area-inset-left,0px)) calc(104px + env(safe-area-inset-bottom,0px)) !important;
+  }
+  body.n2k-os-ready :is(.n2k-main-header,#n2k-mobile-real-stage,#n2k-mobile-real-content,.n2k-app-page,#n2k-os-overview){
+    box-sizing:border-box !important;
+    width:100% !important;min-width:0 !important;max-width:100% !important;
+    margin-left:0 !important;margin-right:0 !important;
+  }
+  body.n2k-os-ready :is(#n2k-mobile-real-stage,#n2k-mobile-real-content,.n2k-app-page,#n2k-os-overview){padding-left:0 !important;padding-right:0 !important;}
+  body.n2k-os-ready :is(.n2k-overview-grid,.n2k-overview-lower,.n2k-showcase-footer){
+    box-sizing:border-box !important;width:100% !important;min-width:0 !important;max-width:100% !important;margin-left:0 !important;margin-right:0 !important;
+  }
+  body.n2k-os-ready :is(.n2k-overview-grid,.n2k-overview-lower,.n2k-showcase-footer) > *{box-sizing:border-box !important;min-width:0 !important;max-width:100% !important;}
+}

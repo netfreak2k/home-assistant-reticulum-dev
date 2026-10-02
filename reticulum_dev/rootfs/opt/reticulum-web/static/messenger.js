@@ -3733,7 +3733,7 @@
 (function(){
   "use strict";
 
-  const VERSION="1.30.0-beta1";
+  const VERSION="1.30.1-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;

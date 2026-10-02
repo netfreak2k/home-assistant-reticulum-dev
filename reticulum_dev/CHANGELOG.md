@@ -1,3 +1,10 @@
+## 1.30.1-beta1
+
+- Align the mobile header and all page sections on a shared centered content axis.
+- Use border-box sizing and remove nested horizontal padding to prevent right-edge overflow.
+- Apply symmetric iOS safe-area gutters and preserve bottom-navigation clearance.
+- Desktop layout, controls and backend unchanged.
+
 ## 1.30.0-beta1
 
 - Add the Funk-Terminal theme across desktop and mobile: graphite panels, restrained amber accents and mint live indicators.
