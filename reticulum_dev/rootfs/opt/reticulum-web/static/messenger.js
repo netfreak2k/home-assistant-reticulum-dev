@@ -4048,15 +4048,7 @@
         '<section class="n2k-overview-mesh">'+
           '<div class="n2k-overview-panel-head"><div><strong>Living Mesh</strong><br><small>Echtzeit-Ansicht des N2K Mesh-Netzwerks</small></div><span id="n2k-overview-live-badge" class="n2k-overview-live">LIVE</span></div>'+
           '<div id="n2k-overview-mesh-stage" class="n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen">'+
-            '<svg class="n2k-overview-mesh-lines" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">'+
-              '<line x1="140" y1="300" x2="285" y2="190"></line>'+
-              '<line x1="285" y1="190" x2="510" y2="250"></line>'+
-              '<line x1="510" y1="250" x2="680" y2="160"></line>'+
-              '<line x1="510" y1="250" x2="790" y2="330"></line>'+
-              '<line x1="285" y1="190" x2="430" y2="365"></line>'+
-              '<line x1="790" y1="330" x2="900" y2="205"></line>'+
-              '<circle cx="510" cy="250" r="4"></circle>'+
-            '</svg>'+
+            '<svg id="n2k-overview-live-svg" class="n2k-overview-mesh-lines" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>'+
             '<div class="n2k-overview-mesh-stats">'+
               '<div class="n2k-overview-mesh-stat"><small>Live</small><strong id="n2k-ov-live">—</strong></div>'+
               '<div class="n2k-overview-mesh-stat"><small>Seen</small><strong id="n2k-ov-seen">—</strong></div>'+
@@ -4101,8 +4093,19 @@
     dot.className="n2k-overview-dot "+statusClass(value);
   }
 
+  function syncOverviewMesh(){
+    const source=byId("n2k-constellation-svg");
+    const target=byId("n2k-overview-live-svg");
+    if(!source||!target) return;
+    const viewBox=source.getAttribute("viewBox")||"0 0 1100 620";
+    if(target.getAttribute("viewBox")!==viewBox) target.setAttribute("viewBox",viewBox);
+    const next=source.innerHTML;
+    if(next && target.innerHTML!==next) target.innerHTML=next;
+  }
+
   function update(){
     if(!ensureOverview()) return;
+    syncOverviewMesh();
 
     const rnode=textOf("hero-lora",textOf("n2k-status-rnode","—"));
     const rnodeSub=textOf("rnode-live-rate",textOf("n2k-status-rnode-sub","Live-Funkhardware"));
