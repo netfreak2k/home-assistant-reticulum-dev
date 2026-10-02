@@ -1949,7 +1949,7 @@ body.n2k-os-ready .n2k-main-header{
 
 
 /* =========================================================
-   1.27.0-beta1 · N2K OS wallpaper layer
+   1.28.0-beta1 · N2K OS wallpaper layer
    Original SVG asset, no place names, no third-party artwork.
    Visual only: no routing / JS / backend changes.
    ========================================================= */
@@ -2043,7 +2043,7 @@ body.n2k-pages-ready #n2k-page-contacts #msg-contacts-view{
 
 
 /* =========================================================
-   1.27.0-beta1 · force wallpaper visibility
+   1.28.0-beta1 · force wallpaper visibility
    Dedicated fixed layer so legacy body/stage backgrounds cannot hide it.
    ========================================================= */
 
@@ -2153,7 +2153,7 @@ body.n2k-os-ready .n2k-main-header{
 
 
 /* =========================================================
-   1.27.0-beta1 · N2K showcase styling
+   1.28.0-beta1 · N2K showcase styling
    Match the approved reference while preserving all live UI.
    ========================================================= */
 
@@ -2626,5 +2626,298 @@ body.n2k-pages-ready #n2k-page-about > .n2k-about-card{
 
   .n2k-showcase-checks{
     grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+
+/* =========================================================
+   1.28.0-beta1 · CLEAN DASHBOARD LAYOUT
+   Desktop + mobile, visual-only cleanup.
+   ========================================================= */
+
+/* Overall spacing */
+#n2k-page-overview{
+  max-width:1540px;
+  margin:0 auto;
+}
+
+#n2k-os-overview{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* Top cards: calm, equal, readable */
+.n2k-overview-grid{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:12px !important;
+  margin:0 !important;
+}
+
+.n2k-overview-card{
+  min-height:118px !important;
+  padding:14px 15px !important;
+  border-radius:16px !important;
+}
+
+.n2k-overview-card-head{
+  align-items:center !important;
+}
+
+.n2k-overview-card-title{
+  font-size:12px !important;
+  font-weight:760 !important;
+}
+
+.n2k-overview-main{
+  margin-top:12px !important;
+  font-size:14px !important;
+}
+
+.n2k-overview-sub{
+  margin-top:4px !important;
+  font-size:10px !important;
+}
+
+/* Main area: one dominant visual + one activity rail */
+.n2k-overview-lower{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.65fr) minmax(320px,.8fr) !important;
+  gap:12px !important;
+  margin:0 !important;
+}
+
+.n2k-overview-mesh,
+.n2k-overview-activity{
+  min-width:0;
+  border-radius:18px !important;
+}
+
+.n2k-overview-panel-head{
+  min-height:58px;
+  padding:12px 15px !important;
+}
+
+.n2k-overview-panel-head strong{
+  font-size:14px !important;
+}
+
+.n2k-overview-panel-head small{
+  font-size:9px !important;
+}
+
+/* Remove duplicated mini metrics from the mesh preview.
+   Live count now lives in the header badge. */
+.n2k-overview-mesh-stats{
+  display:none !important;
+}
+
+.n2k-overview-mesh-stage{
+  min-height:360px !important;
+}
+
+.n2k-overview-activity-list{
+  min-height:360px !important;
+  padding:4px 12px 10px !important;
+}
+
+.n2k-overview-event{
+  grid-template-columns:46px 9px minmax(0,1fr) !important;
+  min-height:52px;
+  padding:11px 2px !important;
+}
+
+.n2k-overview-event span{
+  font-size:10px !important;
+}
+
+/* Bottom row: compact summary + actions */
+.n2k-showcase-footer{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.45fr) minmax(340px,.75fr) !important;
+  gap:12px !important;
+  margin-top:0 !important;
+}
+
+.n2k-showcase-system,
+.n2k-showcase-quick{
+  border-radius:18px !important;
+}
+
+.n2k-showcase-head{
+  min-height:48px !important;
+  padding:9px 12px !important;
+}
+
+.n2k-showcase-progress{
+  height:27px !important;
+  margin:10px 12px 8px !important;
+}
+
+.n2k-showcase-checks{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:7px !important;
+  padding:0 12px 12px !important;
+}
+
+.n2k-showcase-check{
+  min-height:58px;
+  padding:9px !important;
+}
+
+.n2k-showcase-check b{
+  font-size:9px !important;
+}
+
+.n2k-showcase-check small{
+  font-size:8px !important;
+}
+
+.n2k-showcase-quick-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:8px !important;
+  padding:10px !important;
+}
+
+.n2k-showcase-quick-grid button{
+  min-height:88px !important;
+}
+
+/* Sidebar becomes quieter and easier to scan */
+.n2k-os-nav-list{
+  gap:4px !important;
+}
+
+.n2k-os-nav-button{
+  min-height:42px !important;
+  border-radius:10px !important;
+  font-size:10.5px !important;
+}
+
+.n2k-os-nav-button:not(.is-active){
+  opacity:.82;
+}
+
+.n2k-os-nav-button:hover{
+  opacity:1;
+}
+
+/* Keep header compact so content gets the focus */
+body.n2k-os-ready .n2k-main-header{
+  min-height:58px !important;
+  margin-bottom:10px !important;
+}
+
+/* Desktop breathing room */
+@media (pointer:fine) and (min-width:1101px){
+  body.n2k-os-ready .wrap{
+    padding-right:8px !important;
+  }
+}
+
+/* Tablet: top cards 2x2, main content stacked */
+@media (max-width:1100px){
+  .n2k-overview-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .n2k-overview-lower,
+  .n2k-showcase-footer{
+    grid-template-columns:1fr !important;
+  }
+
+  .n2k-overview-mesh-stage{
+    min-height:320px !important;
+  }
+
+  .n2k-overview-activity-list{
+    min-height:220px !important;
+  }
+}
+
+/* Mobile: same hierarchy, no duplicated or squeezed blocks */
+@media (max-width:900px){
+  #n2k-os-overview{
+    gap:8px;
+  }
+
+  .n2k-overview-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+
+  .n2k-overview-card{
+    min-height:100px !important;
+    padding:10px !important;
+    border-radius:14px !important;
+  }
+
+  .n2k-overview-card-title{
+    font-size:10px !important;
+  }
+
+  .n2k-overview-main{
+    margin-top:8px !important;
+    font-size:12px !important;
+  }
+
+  .n2k-overview-sub{
+    font-size:8.5px !important;
+  }
+
+  .n2k-overview-lower{
+    gap:8px !important;
+  }
+
+  .n2k-overview-mesh-stage{
+    min-height:270px !important;
+  }
+
+  .n2k-overview-activity-list{
+    min-height:190px !important;
+  }
+
+  .n2k-showcase-footer{
+    gap:8px !important;
+  }
+
+  .n2k-showcase-checks{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .n2k-showcase-quick-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .n2k-showcase-quick-grid button{
+    min-height:70px !important;
+  }
+
+  .n2k-showcase-head strong{
+    font-size:12px !important;
+  }
+
+  #n2k-showcase-run-check{
+    min-height:28px !important;
+    font-size:8px !important;
+  }
+}
+
+/* Small phones: keep 2x2 cards but simplify metadata */
+@media (max-width:430px){
+  .n2k-overview-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .n2k-overview-sub{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .n2k-overview-live{
+    font-size:8px !important;
+    padding:4px 7px !important;
   }
 }
