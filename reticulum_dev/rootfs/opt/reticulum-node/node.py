@@ -892,7 +892,22 @@ def remember_lxmf_contact(
             }
             contacts.append(existing)
 
-        existing["display_name"] = display_name
+        # Always remember the name announced by the remote peer,
+        # but never overwrite a user-defined local alias.
+        existing["announced_name"] = display_name
+
+        if not bool(existing.get("manual_alias")):
+            existing["display_name"] = display_name
+        else:
+            alias = str(
+                existing.get("alias")
+                or existing.get("display_name")
+                or ""
+            ).strip()
+
+            if alias:
+                existing["display_name"] = alias
+
         existing["last_seen"] = max(
             int(existing.get("last_seen") or 0),
             now,
