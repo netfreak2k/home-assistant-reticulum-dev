@@ -1,3 +1,12 @@
+## 1.21.58-beta1
+
+- Fix contact renaming persistence.
+- Store user-defined contact names as manual aliases.
+- Preserve the remote peer's announced name separately as announced_name.
+- Prevent LXMF announces and cache scans from overwriting manual contact aliases.
+- Allow clearing an alias to fall back to the last announced name.
+- Refresh chat header, chat list and contact list immediately after renaming.
+
 ## 1.21.57-beta1
 
 - Rework Status for first-time users while preserving the existing working backend and controls.
