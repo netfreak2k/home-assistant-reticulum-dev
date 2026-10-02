@@ -1949,7 +1949,7 @@ body.n2k-os-ready .n2k-main-header{
 
 
 /* =========================================================
-   1.26.0-beta1 · N2K OS wallpaper layer
+   1.26.1-beta1 · N2K OS wallpaper layer
    Original SVG asset, no place names, no third-party artwork.
    Visual only: no routing / JS / backend changes.
    ========================================================= */
@@ -2038,5 +2038,115 @@ body.n2k-pages-ready #n2k-page-contacts #msg-contacts-view{
   body.n2k-os-ready,
   body.n2k-pages-ready{
     background-attachment:scroll !important;
+  }
+}
+
+
+/* =========================================================
+   1.26.1-beta1 · force wallpaper visibility
+   Dedicated fixed layer so legacy body/stage backgrounds cannot hide it.
+   ========================================================= */
+
+body.n2k-os-ready,
+body.n2k-pages-ready{
+  position:relative !important;
+  isolation:isolate !important;
+  background:#02070d !important;
+}
+
+/* Real wallpaper plane */
+body.n2k-os-ready::after,
+body.n2k-pages-ready::after{
+  content:"" !important;
+  position:fixed !important;
+  inset:0 !important;
+  z-index:-1 !important;
+  pointer-events:none !important;
+  background:
+    linear-gradient(180deg,rgba(2,8,14,.34),rgba(2,8,14,.52)),
+    radial-gradient(circle at 18% 8%,rgba(0,183,255,.10),transparent 30%),
+    url("assets/n2k-mesh-wallpaper.svg") center center / cover no-repeat !important;
+  opacity:1 !important;
+}
+
+/* Make every shell layer transparent; these were hiding the wallpaper. */
+body.n2k-os-ready .wrap,
+body.n2k-os-ready #n2k-mobile-real-stage,
+body.n2k-os-ready #n2k-mobile-real-content,
+body.n2k-pages-ready .wrap,
+body.n2k-pages-ready #n2k-mobile-real-stage,
+body.n2k-pages-ready #n2k-mobile-real-content,
+body.n2k-pages-ready .n2k-app-page,
+body.n2k-pages-ready #n2k-os-overview{
+  background:transparent !important;
+  background-color:transparent !important;
+}
+
+/* Overview cards become true glass instead of nearly solid panels. */
+body.n2k-pages-ready .n2k-overview-card,
+body.n2k-pages-ready .n2k-overview-mesh,
+body.n2k-pages-ready .n2k-overview-activity{
+  background:
+    radial-gradient(circle at 100% 0%,rgba(32,216,255,.07),transparent 40%),
+    linear-gradient(145deg,rgba(7,24,40,.76),rgba(3,14,24,.82)) !important;
+  -webkit-backdrop-filter:blur(12px) saturate(122%);
+  backdrop-filter:blur(12px) saturate(122%);
+}
+
+/* Other pages: visible wallpaper around and subtly through panels. */
+body.n2k-pages-ready #n2k-page-status > section,
+body.n2k-pages-ready #n2k-page-settings > section,
+body.n2k-pages-ready #n2k-page-setup > section,
+body.n2k-pages-ready #n2k-page-about > .n2k-about-card,
+body.n2k-pages-ready #n2k-page-chat #messenger-chat-list,
+body.n2k-pages-ready #n2k-page-chat .messenger-search-wrap,
+body.n2k-pages-ready #n2k-page-contacts #msg-contacts-view{
+  background:
+    linear-gradient(145deg,rgba(6,22,37,.78),rgba(3,13,23,.84)) !important;
+  -webkit-backdrop-filter:blur(13px) saturate(120%);
+  backdrop-filter:blur(13px) saturate(120%);
+}
+
+/* Sidebar/header remain darker for readability, but not fully opaque. */
+body.n2k-os-ready .n2k-os-sidebar{
+  background:
+    linear-gradient(180deg,rgba(5,23,39,.84),rgba(3,14,24,.88)) !important;
+  -webkit-backdrop-filter:blur(16px) saturate(120%);
+  backdrop-filter:blur(16px) saturate(120%);
+}
+
+body.n2k-os-ready .n2k-main-header{
+  background:
+    linear-gradient(135deg,rgba(7,28,47,.80),rgba(3,16,29,.84)) !important;
+}
+
+/* Give the content area a little breathing room so wallpaper is visible
+   around cards instead of every pixel being filled by solid panels. */
+@media (pointer:fine){
+  body.n2k-os-ready #n2k-mobile-real-content{
+    padding:2px 2px 16px !important;
+  }
+
+  body.n2k-pages-ready .n2k-app-page.is-active{
+    border-radius:18px !important;
+  }
+}
+
+@media (max-width:900px){
+  body.n2k-os-ready::after,
+  body.n2k-pages-ready::after{
+    background:
+      linear-gradient(180deg,rgba(2,8,14,.48),rgba(2,8,14,.66)),
+      url("assets/n2k-mesh-wallpaper.svg") 58% top / auto 100vh repeat-y !important;
+  }
+
+  body.n2k-os-ready .wrap,
+  body.n2k-os-ready #n2k-mobile-real-stage,
+  body.n2k-os-ready #n2k-mobile-real-content{
+    background:transparent !important;
+  }
+
+  body.n2k-os-ready #n2k-mobile-real-nav{
+    background:rgba(3,14,24,.86) !important;
   }
 }
