@@ -3729,11 +3729,11 @@
 })();
 
 
-/* N2K OS UI Layer 1.22.2-beta1 */
+/* N2K OS UI Layer 1.23.0-beta1 */
 (function(){
   "use strict";
 
-  const VERSION="1.22.2-beta1";
+  const VERSION="1.23.0-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3795,36 +3795,45 @@
 
     switch(action){
       case "overview":
-        /* Until the dedicated dashboard lands, overview opens the stable
-           chat/home surface instead of a dead anchor. */
-        switchExistingView("chats");
-        window.scrollTo({top:0,behavior:"smooth"});
+        if(typeof window.n2kOpenOverview==="function"){
+          window.n2kOpenOverview();
+        }else{
+          switchExistingView("chats");
+          window.scrollTo({top:0,behavior:"smooth"});
+        }
         break;
       case "chat":
+        document.body.classList.remove("n2k-overview-active");
         switchExistingView("chats");
         break;
       case "mesh":
+        document.body.classList.remove("n2k-overview-active");
         switchExistingView("mesh");
         break;
       case "status":
+        document.body.classList.remove("n2k-overview-active");
         switchExistingView("settings");
         break;
       case "contacts":
+        document.body.classList.remove("n2k-overview-active");
         switchExistingView("contacts");
         break;
       case "setup":
+        document.body.classList.remove("n2k-overview-active");
         afterView("settings",function(){
           scrollToTarget("#rnode-probe-button") ||
           scrollToTarget(".n2k-tech-panel");
         });
         break;
       case "settings":
+        document.body.classList.remove("n2k-overview-active");
         afterView("settings",function(){
           scrollToTarget("#n2k-status-overview") ||
           scrollToTarget("#msg-settings-view");
         });
         break;
       case "about":
+        document.body.classList.remove("n2k-overview-active");
         afterView("settings",function(){
           scrollToTarget(".n2k-about-card");
         });
@@ -3942,5 +3951,234 @@
     document.addEventListener("DOMContentLoaded",init,{once:true});
   }else{
     init();
+  }
+})();
+
+
+/* N2K OS Overview Dashboard 1.23.0-beta1 */
+(function(){
+  "use strict";
+
+  const MAX_EVENTS=8;
+  const previous=new Map();
+  const events=[];
+
+  function byId(id){return document.getElementById(id);}
+
+  function textOf(id,fallback){
+    const el=byId(id);
+    const value=(el && el.textContent ? el.textContent : "").trim();
+    return value || fallback || "—";
+  }
+
+  function statusClass(value){
+    const v=String(value||"").toLowerCase();
+    if(/online|bereit|up|aktiv|ok|running|verbunden/.test(v)) return "ok";
+    if(/offline|down|fehler|error|aus/.test(v)) return "bad";
+    return "";
+  }
+
+  function addEvent(label,kind){
+    if(!label) return;
+    events.unshift({
+      time:new Date(),
+      label:String(label),
+      kind:kind||""
+    });
+    if(events.length>MAX_EVENTS) events.length=MAX_EVENTS;
+    renderEvents();
+  }
+
+  function watchValue(key,value,label){
+    const normalized=String(value||"").trim();
+    if(!normalized) return;
+    if(!previous.has(key)){
+      previous.set(key,normalized);
+      return;
+    }
+    const old=previous.get(key);
+    if(old===normalized) return;
+    previous.set(key,normalized);
+    addEvent(label+": "+normalized,statusClass(normalized));
+  }
+
+  function ensureOverview(){
+    let overview=byId("n2k-os-overview");
+    if(overview) return overview;
+
+    const stage=byId("n2k-mobile-real-content");
+    if(!stage) return null;
+
+    overview=document.createElement("section");
+    overview.id="n2k-os-overview";
+    overview.setAttribute("aria-label","N2K Übersicht");
+    overview.innerHTML=
+      '<div class="n2k-overview-grid">'+
+        '<article class="n2k-overview-card">'+
+          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">⌁</span>RNode</div><i id="n2k-ov-rnode-dot" class="n2k-overview-dot"></i></div>'+
+          '<div id="n2k-ov-rnode-main" class="n2k-overview-main">Prüfe…</div>'+
+          '<div id="n2k-ov-rnode-sub" class="n2k-overview-sub">Live-Funkhardware</div>'+
+        '</article>'+
+        '<article class="n2k-overview-card">'+
+          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">◎</span>Reticulum</div><i id="n2k-ov-rns-dot" class="n2k-overview-dot"></i></div>'+
+          '<div id="n2k-ov-rns-main" class="n2k-overview-main">Prüfe…</div>'+
+          '<div id="n2k-ov-rns-sub" class="n2k-overview-sub">Network Stack</div>'+
+        '</article>'+
+        '<article class="n2k-overview-card">'+
+          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">✉</span>LXMF</div><i id="n2k-ov-lxmf-dot" class="n2k-overview-dot"></i></div>'+
+          '<div id="n2k-ov-lxmf-main" class="n2k-overview-main">Prüfe…</div>'+
+          '<div id="n2k-ov-lxmf-sub" class="n2k-overview-sub">Messenger</div>'+
+        '</article>'+
+        '<article class="n2k-overview-card">'+
+          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">☁</span>Backbone</div><i id="n2k-ov-backbone-dot" class="n2k-overview-dot"></i></div>'+
+          '<div id="n2k-ov-backbone-main" class="n2k-overview-main">Prüfe…</div>'+
+          '<div id="n2k-ov-backbone-sub" class="n2k-overview-sub">TCP / Internet</div>'+
+        '</article>'+
+      '</div>'+
+      '<div class="n2k-overview-lower">'+
+        '<section class="n2k-overview-mesh">'+
+          '<div class="n2k-overview-panel-head"><div><strong>Living Mesh</strong><br><small>Echte bekannte Mesh-Daten</small></div><span class="n2k-overview-live">LIVE</span></div>'+
+          '<div id="n2k-overview-mesh-stage" class="n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen">'+
+            '<svg class="n2k-overview-mesh-lines" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">'+
+              '<line x1="140" y1="300" x2="285" y2="190"></line>'+
+              '<line x1="285" y1="190" x2="510" y2="250"></line>'+
+              '<line x1="510" y1="250" x2="680" y2="160"></line>'+
+              '<line x1="510" y1="250" x2="790" y2="330"></line>'+
+              '<line x1="285" y1="190" x2="430" y2="365"></line>'+
+              '<line x1="790" y1="330" x2="900" y2="205"></line>'+
+              '<circle cx="510" cy="250" r="4"></circle>'+
+            '</svg>'+
+            '<div class="n2k-overview-mesh-stats">'+
+              '<div class="n2k-overview-mesh-stat"><small>Live</small><strong id="n2k-ov-live">—</strong></div>'+
+              '<div class="n2k-overview-mesh-stat"><small>Seen</small><strong id="n2k-ov-seen">—</strong></div>'+
+              '<div class="n2k-overview-mesh-stat"><small>Paths</small><strong id="n2k-ov-paths">—</strong></div>'+
+              '<div class="n2k-overview-mesh-stat"><small>Relays</small><strong id="n2k-ov-relays">—</strong></div>'+
+            '</div>'+
+            '<div class="n2k-overview-mesh-copy"><strong>Mesh beobachten</strong><span>Tippen oder klicken, um Living Mesh zu öffnen.</span></div>'+
+          '</div>'+
+        '</section>'+
+        '<section class="n2k-overview-activity">'+
+          '<div class="n2k-overview-panel-head"><div><strong>Live Aktivitäten</strong><br><small>Änderungen aus laufenden Diensten</small></div></div>'+
+          '<div id="n2k-overview-activity-list" class="n2k-overview-activity-list"><div class="n2k-overview-empty">Noch keine Statusänderung seit Öffnen der Übersicht.</div></div>'+
+        '</section>'+
+      '</div>';
+
+    stage.prepend(overview);
+
+    const mesh=byId("n2k-overview-mesh-stage");
+    if(mesh){
+      const open=function(){
+        document.body.classList.remove("n2k-overview-active");
+        if(typeof window.n2kDesktopView==="function" && window.matchMedia("(pointer:fine)").matches){
+          window.n2kDesktopView("mesh");
+        }else if(typeof window.n2kMobileRealView==="function"){
+          window.n2kMobileRealView("mesh");
+        }
+        document.querySelectorAll(".n2k-os-nav-button").forEach(function(btn){
+          btn.classList.toggle("is-active",btn.dataset.n2kAction==="mesh");
+        });
+      };
+      mesh.addEventListener("click",open);
+      mesh.addEventListener("keydown",function(e){
+        if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}
+      });
+    }
+
+    return overview;
+  }
+
+  function setDot(id,value){
+    const dot=byId(id);
+    if(!dot) return;
+    dot.className="n2k-overview-dot "+statusClass(value);
+  }
+
+  function update(){
+    if(!ensureOverview()) return;
+
+    const rnode=textOf("hero-lora",textOf("n2k-status-rnode","—"));
+    const rnodeSub=textOf("rnode-live-rate",textOf("n2k-status-rnode-sub","Live-Funkhardware"));
+    const rns=textOf("hero-rns",textOf("n2k-status-rns","—"));
+    const rnsSub=textOf("shared-name","Reticulum Network Stack");
+    const lxmf=textOf("n2k-status-lxmf",textOf("messenger-status-text","—"));
+    const backbone=textOf("hero-internet",textOf("n2k-status-ifaces","—"));
+    const backboneSub=textOf("hero-internet-detail","TCP / Internet");
+
+    const map={
+      "n2k-ov-rnode-main":rnode,
+      "n2k-ov-rnode-sub":rnodeSub,
+      "n2k-ov-rns-main":rns,
+      "n2k-ov-rns-sub":rnsSub,
+      "n2k-ov-lxmf-main":lxmf,
+      "n2k-ov-lxmf-sub":"LXMF Messenger",
+      "n2k-ov-backbone-main":backbone,
+      "n2k-ov-backbone-sub":backboneSub,
+      "n2k-ov-live":textOf("n2k-map-live","—"),
+      "n2k-ov-seen":textOf("n2k-map-visible","—"),
+      "n2k-ov-paths":textOf("n2k-map-paths",textOf("net-paths","—")),
+      "n2k-ov-relays":textOf("n2k-map-relays","—")
+    };
+
+    Object.keys(map).forEach(function(id){
+      const el=byId(id); if(el) el.textContent=map[id];
+    });
+
+    setDot("n2k-ov-rnode-dot",rnode);
+    setDot("n2k-ov-rns-dot",rns);
+    setDot("n2k-ov-lxmf-dot",lxmf);
+    setDot("n2k-ov-backbone-dot",backbone);
+
+    watchValue("rnode",rnode,"RNode");
+    watchValue("rns",rns,"Reticulum");
+    watchValue("lxmf",lxmf,"LXMF");
+    watchValue("backbone",backbone,"Backbone");
+    watchValue("paths",map["n2k-ov-paths"],"Bekannte Pfade");
+    watchValue("live",map["n2k-ov-live"],"Live Nodes");
+  }
+
+  function renderEvents(){
+    const root=byId("n2k-overview-activity-list");
+    if(!root) return;
+    if(!events.length){
+      root.innerHTML='<div class="n2k-overview-empty">Noch keine Statusänderung seit Öffnen der Übersicht.</div>';
+      return;
+    }
+
+    root.innerHTML="";
+    events.forEach(function(event){
+      const row=document.createElement("div");
+      row.className="n2k-overview-event "+(event.kind||"");
+      const hh=String(event.time.getHours()).padStart(2,"0");
+      const mm=String(event.time.getMinutes()).padStart(2,"0");
+      row.innerHTML="<time>"+hh+":"+mm+"</time><i></i><span></span>";
+      row.querySelector("span").textContent=event.label;
+      root.appendChild(row);
+    });
+  }
+
+  function openOverview(){
+    ensureOverview();
+    document.body.classList.add("n2k-overview-active");
+    document.querySelectorAll(".n2k-os-nav-button").forEach(function(btn){
+      btn.classList.toggle("is-active",btn.dataset.n2kAction==="overview");
+    });
+    window.scrollTo({top:0,behavior:"smooth"});
+    update();
+  }
+
+  function boot(){
+    ensureOverview();
+    update();
+    setInterval(update,1500);
+    window.n2kOpenOverview=openOverview;
+
+    /* First page after load is the new overview. */
+    setTimeout(openOverview,120);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
   }
 })();
