@@ -1,6 +1,6 @@
 /* =========================================================
    N2K RNS Gateway · N2K OS UI Layer
-   1.22.2-beta1
+   1.23.0-beta1
    Visual shell only – no Reticulum/LXMF backend changes.
    ========================================================= */
 
@@ -516,7 +516,7 @@ body.n2k-os-ready .n2k-about-card{
 }
 
 
-/* 1.22.2-beta1 · desktop single-navigation fix */
+/* 1.23.0-beta1 · desktop single-navigation fix */
 @media (pointer:fine){
   /* The legacy desktop switcher remains in the DOM because old app-shell
      code uses its view model, but N2K OS is now the only visible navigation. */
@@ -547,7 +547,7 @@ body.n2k-os-ready .n2k-about-card{
 }
 
 
-/* 1.22.2-beta1 · settings visibility + iOS safe-area fix */
+/* 1.23.0-beta1 · settings visibility + iOS safe-area fix */
 @media (pointer:fine){
   /* Legacy shell contains several older hidden-state rules.
      The active settings view must always win when n2kDesktopView opens it. */
@@ -608,5 +608,397 @@ body.n2k-os-ready .n2k-about-card{
       right:max(10px, env(safe-area-inset-right)) !important;
       bottom:max(18px, calc(env(safe-area-inset-bottom) + 12px)) !important;
     }
+  }
+}
+
+
+/* =========================================================
+   1.23.0-beta1 · N2K OS Overview Dashboard
+   Uses only existing live DOM values.
+   ========================================================= */
+
+#n2k-os-overview{
+  display:none;
+  width:100%;
+  min-width:0;
+}
+
+body.n2k-os-ready.n2k-overview-active #n2k-os-overview{
+  display:block;
+}
+
+body.n2k-os-ready.n2k-overview-active #n2k-mobile-real-content > :not(#n2k-os-overview){
+  display:none !important;
+}
+
+.n2k-overview-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.n2k-overview-card{
+  position:relative;
+  min-height:132px;
+  padding:16px;
+  overflow:hidden;
+  border:1px solid var(--n2k-os-line);
+  border-radius:var(--n2k-os-r);
+  background:
+    radial-gradient(circle at 100% 0%,rgba(32,216,255,.10),transparent 42%),
+    linear-gradient(145deg,var(--n2k-os-panel),rgba(5,18,31,.9));
+  box-shadow:var(--n2k-os-shadow);
+}
+
+.n2k-overview-card::after{
+  content:"";
+  position:absolute;
+  width:98px;
+  height:98px;
+  right:-30px;
+  bottom:-38px;
+  border:1px solid rgba(32,216,255,.10);
+  border-radius:50%;
+}
+
+.n2k-overview-card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.n2k-overview-card-title{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-size:13px;
+  font-weight:800;
+  color:var(--n2k-os-text);
+}
+
+.n2k-overview-icon{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  border:1px solid rgba(32,216,255,.35);
+  background:rgba(22,139,255,.11);
+  color:var(--n2k-os-cyan);
+  box-shadow:0 0 18px rgba(22,139,255,.12);
+}
+
+.n2k-overview-dot{
+  width:9px;
+  height:9px;
+  flex:0 0 9px;
+  border-radius:50%;
+  background:var(--n2k-os-orange);
+  box-shadow:0 0 10px currentColor;
+}
+
+.n2k-overview-dot.ok{background:var(--n2k-os-green)}
+.n2k-overview-dot.bad{background:var(--n2k-os-red)}
+
+.n2k-overview-main{
+  margin-top:12px;
+  font-size:16px;
+  font-weight:850;
+  color:var(--n2k-os-text);
+}
+
+.n2k-overview-sub{
+  margin-top:5px;
+  color:var(--n2k-os-soft);
+  font-size:11px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+
+.n2k-overview-lower{
+  display:grid;
+  grid-template-columns:minmax(0,1.75fr) minmax(270px,.75fr);
+  gap:12px;
+}
+
+.n2k-overview-mesh,
+.n2k-overview-activity{
+  border:1px solid var(--n2k-os-line);
+  border-radius:var(--n2k-os-r-lg);
+  background:linear-gradient(145deg,var(--n2k-os-panel),rgba(5,18,31,.9));
+  box-shadow:var(--n2k-os-shadow);
+  overflow:hidden;
+}
+
+.n2k-overview-panel-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px 11px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+
+.n2k-overview-panel-head strong{
+  font-size:15px;
+}
+
+.n2k-overview-panel-head small{
+  color:var(--n2k-os-muted);
+}
+
+.n2k-overview-live{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 8px;
+  border-radius:999px;
+  color:var(--n2k-os-green);
+  background:rgba(40,223,141,.08);
+  border:1px solid rgba(40,223,141,.22);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.06em;
+}
+
+.n2k-overview-live::before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:currentColor;
+  box-shadow:0 0 10px currentColor;
+}
+
+.n2k-overview-mesh-stage{
+  position:relative;
+  min-height:390px;
+  cursor:pointer;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 52% 50%,rgba(22,139,255,.16),transparent 32%),
+    radial-gradient(circle at 24% 68%,rgba(32,216,255,.09),transparent 20%),
+    linear-gradient(180deg,#04111d,#061523);
+}
+
+.n2k-overview-mesh-stage::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.5;
+  background-image:
+    linear-gradient(rgba(32,216,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(32,216,255,.035) 1px,transparent 1px);
+  background-size:34px 34px;
+}
+
+.n2k-overview-mesh-stage::after{
+  content:"";
+  position:absolute;
+  inset:12% 8%;
+  background:
+    radial-gradient(circle at 15% 58%,#20d8ff 0 2px,transparent 3px),
+    radial-gradient(circle at 28% 38%,#168bff 0 3px,transparent 4px),
+    radial-gradient(circle at 43% 72%,#20d8ff 0 2px,transparent 3px),
+    radial-gradient(circle at 52% 48%,#28df8d 0 4px,transparent 5px),
+    radial-gradient(circle at 68% 32%,#168bff 0 3px,transparent 4px),
+    radial-gradient(circle at 78% 62%,#ff9f31 0 3px,transparent 4px),
+    radial-gradient(circle at 90% 40%,#20d8ff 0 2px,transparent 3px);
+  filter:drop-shadow(0 0 8px rgba(32,216,255,.8));
+  opacity:.95;
+}
+
+.n2k-overview-mesh-lines{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:2;
+  pointer-events:none;
+}
+
+.n2k-overview-mesh-lines line{
+  stroke:rgba(32,216,255,.28);
+  stroke-width:1.2;
+}
+
+.n2k-overview-mesh-lines circle{
+  fill:#20d8ff;
+  filter:drop-shadow(0 0 5px #20d8ff);
+}
+
+.n2k-overview-mesh-copy{
+  position:absolute;
+  left:16px;
+  bottom:16px;
+  z-index:3;
+  max-width:72%;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(57,160,255,.22);
+  background:rgba(3,14,25,.72);
+  backdrop-filter:blur(9px);
+}
+
+.n2k-overview-mesh-copy strong{
+  display:block;
+  font-size:14px;
+}
+
+.n2k-overview-mesh-copy span{
+  display:block;
+  margin-top:4px;
+  color:var(--n2k-os-soft);
+  font-size:10px;
+}
+
+.n2k-overview-mesh-stats{
+  position:absolute;
+  top:14px;
+  left:14px;
+  z-index:3;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(90px,1fr));
+  gap:7px;
+}
+
+.n2k-overview-mesh-stat{
+  padding:8px 10px;
+  border:1px solid rgba(57,160,255,.18);
+  border-radius:11px;
+  background:rgba(3,14,25,.72);
+  backdrop-filter:blur(8px);
+}
+
+.n2k-overview-mesh-stat small{
+  display:block;
+  color:var(--n2k-os-muted);
+  font-size:8px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+.n2k-overview-mesh-stat strong{
+  display:block;
+  margin-top:2px;
+  font-size:15px;
+}
+
+.n2k-overview-activity-list{
+  padding:4px 14px 14px;
+  min-height:390px;
+}
+
+.n2k-overview-event{
+  display:grid;
+  grid-template-columns:50px 10px minmax(0,1fr);
+  gap:8px;
+  align-items:start;
+  padding:11px 2px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+
+.n2k-overview-event time{
+  color:var(--n2k-os-muted);
+  font-size:9px;
+  font-variant-numeric:tabular-nums;
+}
+
+.n2k-overview-event i{
+  width:8px;
+  height:8px;
+  margin-top:2px;
+  border-radius:50%;
+  background:var(--n2k-os-blue);
+  box-shadow:0 0 8px currentColor;
+}
+
+.n2k-overview-event.ok i{background:var(--n2k-os-green)}
+.n2k-overview-event.warn i{background:var(--n2k-os-orange)}
+.n2k-overview-event.bad i{background:var(--n2k-os-red)}
+
+.n2k-overview-event span{
+  color:var(--n2k-os-soft);
+  font-size:10px;
+  line-height:1.42;
+}
+
+.n2k-overview-empty{
+  padding:30px 10px;
+  text-align:center;
+  color:var(--n2k-os-muted);
+  font-size:10px;
+}
+
+@media (max-width:1100px){
+  .n2k-overview-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .n2k-overview-lower{
+    grid-template-columns:1fr;
+  }
+  .n2k-overview-activity-list{
+    min-height:180px;
+  }
+}
+
+@media (max-width:900px){
+  .n2k-overview-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .n2k-overview-card{
+    min-height:104px;
+    padding:11px;
+  }
+
+  .n2k-overview-icon{
+    width:29px;
+    height:29px;
+  }
+
+  .n2k-overview-card-title{
+    font-size:10px;
+  }
+
+  .n2k-overview-main{
+    margin-top:8px;
+    font-size:13px;
+  }
+
+  .n2k-overview-sub{
+    font-size:9px;
+  }
+
+  .n2k-overview-lower{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+
+  .n2k-overview-mesh-stage{
+    min-height:330px;
+  }
+
+  .n2k-overview-panel-head{
+    padding:11px 12px 9px;
+  }
+
+  .n2k-overview-mesh-stats{
+    top:10px;
+    left:10px;
+  }
+
+  .n2k-overview-mesh-copy{
+    left:10px;
+    right:10px;
+    bottom:10px;
+    max-width:none;
+  }
+
+  .n2k-overview-activity-list{
+    min-height:160px;
   }
 }
