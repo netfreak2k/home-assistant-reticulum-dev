@@ -1,6 +1,6 @@
 /* =========================================================
    N2K RNS Gateway · N2K OS UI Layer
-   1.22.1-beta1
+   1.22.2-beta1
    Visual shell only – no Reticulum/LXMF backend changes.
    ========================================================= */
 
@@ -516,7 +516,7 @@ body.n2k-os-ready .n2k-about-card{
 }
 
 
-/* 1.22.1-beta1 · desktop single-navigation fix */
+/* 1.22.2-beta1 · desktop single-navigation fix */
 @media (pointer:fine){
   /* The legacy desktop switcher remains in the DOM because old app-shell
      code uses its view model, but N2K OS is now the only visible navigation. */
@@ -543,5 +543,70 @@ body.n2k-os-ready .n2k-about-card{
     width:100% !important;
     max-width:none !important;
     min-width:0 !important;
+  }
+}
+
+
+/* 1.22.2-beta1 · settings visibility + iOS safe-area fix */
+@media (pointer:fine){
+  /* Legacy shell contains several older hidden-state rules.
+     The active settings view must always win when n2kDesktopView opens it. */
+  body.n2k-os-ready #n2k-mobile-real-content #msg-settings-view:not([hidden]){
+    display:block !important;
+    visibility:visible !important;
+    opacity:1 !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+    pointer-events:auto !important;
+  }
+
+  body.n2k-os-ready #n2k-mobile-real-content #msg-settings-view[hidden]{
+    display:none !important;
+  }
+}
+
+@media (max-width:900px){
+  body.n2k-os-ready{
+    padding-bottom:calc(104px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  body.n2k-os-ready .wrap{
+    padding-bottom:calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Keep the full control above the iPhone home indicator / rounded screen.
+     The extra 18px is deliberate: safe-area alone can still feel too low
+     inside the Home Assistant iOS WebView. */
+  #n2k-mobile-real-nav{
+    left:max(10px, env(safe-area-inset-left, 0px)) !important;
+    right:max(10px, env(safe-area-inset-right, 0px)) !important;
+    bottom:calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+    min-height:62px !important;
+    padding:6px 7px !important;
+    border-radius:20px !important;
+    pointer-events:auto !important;
+    touch-action:manipulation !important;
+  }
+
+  #n2k-mobile-real-nav button{
+    position:relative !important;
+    z-index:1 !important;
+    min-height:50px !important;
+    touch-action:manipulation !important;
+    -webkit-tap-highlight-color:transparent !important;
+  }
+}
+
+@supports (padding: max(0px)){
+  @media (max-width:900px){
+    #n2k-mobile-real-nav{
+      left:max(10px, env(safe-area-inset-left)) !important;
+      right:max(10px, env(safe-area-inset-right)) !important;
+      bottom:max(18px, calc(env(safe-area-inset-bottom) + 12px)) !important;
+    }
   }
 }
