@@ -16732,9 +16732,19 @@ hr{
     var rnode=text("rnode-live-status") || text("rnode-config-status");
     var ifaces=text("n2k-resilience-interfaces") || "—";
 
+    var rnodeSelftestOk=Array.from(document.querySelectorAll("#n2k-selftest-results .n2k-selftest-row")).some(function(row){
+      var label=upper(row.querySelector("strong") ? row.querySelector("strong").textContent : "");
+      var state=upper(row.querySelector(".n2k-selftest-state") ? row.querySelector(".n2k-selftest-state").textContent : "");
+      return label.indexOf("RNODE / SERIAL")>=0 && state==="PASS";
+    });
+
     var rnsState=stateFromText(rns);
     var lxmfState=stateFromText(lxmf);
-    var rnodeState=stateFromText(rnode);
+    var rnodeState=rnodeSelftestOk ? "ok" : stateFromText(rnode);
+
+    if(rnodeSelftestOk && rnodeState==="ok" && !/UP|ONLINE|BEREIT|AKTIV|READY|CONNECTED/i.test(rnode)){
+      rnode="BEREIT · SELFTEST";
+    }
     var ifaceState=/[1-9]\d*\s*\/|[1-9]\d*\s+AKTIV|UP/i.test(ifaces) ? "ok" : stateFromText(ifaces);
 
     setCard("n2k-status-rns", rns || "Prüfe…", rnsState);
@@ -17366,7 +17376,15 @@ hr{
 
   function updateRadioWidget(){
     var live=val("rnode-live-status");
-    var ok=isOk(live);
+    var rnodeSelftestOk=Array.from(document.querySelectorAll("#n2k-selftest-results .n2k-selftest-row")).some(function(row){
+      var label=upper(row.querySelector("strong") ? row.querySelector("strong").textContent : "");
+      var state=upper(row.querySelector(".n2k-selftest-state") ? row.querySelector(".n2k-selftest-state").textContent : "");
+      return label.indexOf("RNODE / SERIAL")>=0 && state==="PASS";
+    });
+    var ok=isOk(live) || rnodeSelftestOk;
+    if(rnodeSelftestOk && !isOk(live)){
+      live="BEREIT · SELFTEST";
+    }
     var state=id("n2k-radio-widget-state");
     var main=id("n2k-radio-main-state");
 
@@ -17395,7 +17413,12 @@ hr{
   function updateBeginnerFlow(){
     var rns=isOk(val("n2k-status-rns")) || isOk(val("n2k-resilience-rns"));
     var lxmf=isOk(val("n2k-status-lxmf")) || isOk(val("n2k-resilience-lxmf"));
-    var rnode=isOk(val("rnode-live-status")) || isOk(val("n2k-status-rnode"));
+    var rnodeSelftestOk=Array.from(document.querySelectorAll("#n2k-selftest-results .n2k-selftest-row")).some(function(row){
+      var label=upper(row.querySelector("strong") ? row.querySelector("strong").textContent : "");
+      var state=upper(row.querySelector(".n2k-selftest-state") ? row.querySelector(".n2k-selftest-state").textContent : "");
+      return label.indexOf("RNODE / SERIAL")>=0 && state==="PASS";
+    });
+    var rnode=isOk(val("rnode-live-status")) || isOk(val("n2k-status-rnode")) || rnodeSelftestOk;
     var ifaceText=val("n2k-status-ifaces") || val("n2k-resilience-interfaces");
     var network=/[1-9]\d*\s*\//.test(ifaceText) || isOk(ifaceText);
 
