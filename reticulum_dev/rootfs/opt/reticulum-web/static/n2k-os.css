@@ -1,6 +1,6 @@
 /* =========================================================
    N2K RNS Gateway · N2K OS UI Layer
-   1.24.2-beta1
+   1.24.3-beta1
    Visual shell only – no Reticulum/LXMF backend changes.
    ========================================================= */
 
@@ -516,7 +516,7 @@ body.n2k-os-ready .n2k-about-card{
 }
 
 
-/* 1.24.2-beta1 · desktop single-navigation fix */
+/* 1.24.3-beta1 · desktop single-navigation fix */
 @media (pointer:fine){
   /* The legacy desktop switcher remains in the DOM because old app-shell
      code uses its view model, but N2K OS is now the only visible navigation. */
@@ -547,7 +547,7 @@ body.n2k-os-ready .n2k-about-card{
 }
 
 
-/* 1.24.2-beta1 · settings visibility + iOS safe-area fix */
+/* 1.24.3-beta1 · settings visibility + iOS safe-area fix */
 @media (pointer:fine){
   /* Legacy shell contains several older hidden-state rules.
      The active settings view must always win when n2kDesktopView opens it. */
@@ -613,7 +613,7 @@ body.n2k-os-ready .n2k-about-card{
 
 
 /* =========================================================
-   1.24.2-beta1 · N2K OS Overview Dashboard
+   1.24.3-beta1 · N2K OS Overview Dashboard
    Uses only existing live DOM values.
    ========================================================= */
 
@@ -1005,7 +1005,7 @@ body.n2k-os-ready.n2k-overview-active #n2k-mobile-real-content > :not(#n2k-os-ov
 
 
 /* =========================================================
-   1.24.2-beta1 · strict mobile page router
+   1.24.3-beta1 · strict mobile page router
    One bottom-nav item = one page. No appended legacy views.
    ========================================================= */
 
@@ -1117,7 +1117,7 @@ body.n2k-os-ready.n2k-overview-active #n2k-mobile-real-content > :not(#n2k-os-ov
 
 
 /* =========================================================
-   1.24.2-beta1 · real app pages
+   1.24.3-beta1 · real app pages
    Every main destination is an isolated page container.
    ========================================================= */
 
@@ -1270,7 +1270,7 @@ body.n2k-pages-ready .wrap > hr{
 
 
 /* =========================================================
-   1.24.2-beta1 · overview return + mobile touch final
+   1.24.3-beta1 · overview return + mobile touch final
    ========================================================= */
 
 /* The overview was historically hidden unless n2k-overview-active was set.
@@ -1382,7 +1382,7 @@ body.n2k-pages-ready .wrap > hr{
 }
 
 
-/* 1.24.2-beta1 · force Chat + Living Mesh page visibility */
+/* 1.24.3-beta1 · force Chat + Living Mesh page visibility */
 #n2k-page-chat.is-active .messenger-search-wrap,
 #n2k-page-chat.is-active #messenger-chat-list{
   display:block !important;
@@ -1419,4 +1419,48 @@ body.n2k-pages-ready .wrap > hr{
     width:100% !important;
     min-height:360px !important;
   }
+}
+
+
+/* 1.24.3-beta1 · restore Chat + Contacts content */
+#n2k-page-chat.is-active .messenger-search-wrap,
+#n2k-page-chat.is-active #messenger-chat-list{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  width:100% !important;
+  min-height:0 !important;
+}
+
+#n2k-page-chat.is-active #messenger-chat-list{
+  min-height:140px !important;
+}
+
+#n2k-page-contacts.is-active #msg-contacts-view,
+#n2k-page-contacts.is-active .m110-contact-head,
+#n2k-page-contacts.is-active .m110-contact-tools,
+#n2k-page-contacts.is-active #msg-contact-list{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  width:100% !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+
+#n2k-page-contacts.is-active .m110-contact-head{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+}
+
+#n2k-page-contacts.is-active .m110-contact-tools{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:8px !important;
+}
+
+#n2k-page-contacts.is-active #msg-contact-list{
+  min-height:140px !important;
 }
