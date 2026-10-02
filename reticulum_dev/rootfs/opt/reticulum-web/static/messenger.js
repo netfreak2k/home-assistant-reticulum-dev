@@ -3733,7 +3733,7 @@
 (function(){
   "use strict";
 
-  const VERSION="1.28.1-beta1";
+  const VERSION="1.28.3-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4257,7 +4257,6 @@
     more.innerHTML=
       '<div class="n2k-overview-panel-head"><div><strong>Mehr</strong><br><small>Weitere Bereiche des Gateways</small></div></div>'+
       '<div class="n2k-os-more-grid">'+
-        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="contacts"><b>Kontakte</b><span>Kontakte verwalten, QR, Import und Export</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="settings"><b>Einstellungen</b><span>Gateway, Identity und Netzwerk konfigurieren</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="setup"><b>Setup</b><span>RNode und Gateway Schritt für Schritt einrichten</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="about"><b>Über / Lizenz</b><span>Version, Projekt- und Lizenzinformationen</span></button>'+
@@ -4407,7 +4406,7 @@
     nav.innerHTML=
       '<button type="button" data-n2k-os-tab="overview"><b>⌂</b><small>Übersicht</small></button>'+
       '<button type="button" data-n2k-os-tab="chat"><b>✉</b><small>Chat</small></button>'+
-      '<button type="button" data-n2k-os-tab="mesh"><b>⌘</b><small>Mesh</small></button>'+
+      '<button type="button" data-n2k-os-tab="contacts"><b>◎</b><small>Kontakte</small></button>'+
       '<button type="button" data-n2k-os-tab="status"><b>◉</b><small>Status</small></button>'+
       '<button type="button" data-n2k-os-tab="more"><b>•••</b><small>Mehr</small></button>';
 
@@ -4581,7 +4580,6 @@
       const grid=document.createElement("div");
       grid.className="n2k-os-more-grid";
       grid.innerHTML=
-        '<button class="n2k-os-more-card" type="button" data-page="contacts"><b>Kontakte</b><span>Kontakte verwalten und QR verwenden</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-page="settings"><b>Einstellungen</b><span>Identity, Netzwerk und Store & Forward</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-page="setup"><b>Setup</b><span>Gateway und RNode einrichten</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-page="about"><b>Über / Lizenz</b><span>Version und Lizenzinformationen</span></button>';
@@ -4686,7 +4684,7 @@
     nav.innerHTML=
       '<button type="button" data-n2k-os-tab="overview"><b>⌂</b><small>Übersicht</small></button>'+
       '<button type="button" data-n2k-os-tab="chat"><b>✉</b><small>Chat</small></button>'+
-      '<button type="button" data-n2k-os-tab="mesh"><b>⌘</b><small>Mesh</small></button>'+
+      '<button type="button" data-n2k-os-tab="contacts"><b>◎</b><small>Kontakte</small></button>'+
       '<button type="button" data-n2k-os-tab="status"><b>◉</b><small>Status</small></button>'+
       '<button type="button" data-n2k-os-tab="more"><b>•••</b><small>Mehr</small></button>';
 
@@ -4842,7 +4840,7 @@
     nav.innerHTML=
       '<button type="button" data-n2k-os-tab="overview"><b>⌂</b><small>Übersicht</small></button>'+
       '<button type="button" data-n2k-os-tab="chat"><b>✉</b><small>Chat</small></button>'+
-      '<button type="button" data-n2k-os-tab="mesh"><b>⌘</b><small>Mesh</small></button>'+
+      '<button type="button" data-n2k-os-tab="contacts"><b>◎</b><small>Kontakte</small></button>'+
       '<button type="button" data-n2k-os-tab="status"><b>◉</b><small>Status</small></button>'+
       '<button type="button" data-n2k-os-tab="more"><b>•••</b><small>Mehr</small></button>';
 
