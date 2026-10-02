@@ -3041,3 +3041,11 @@ body.n2k-os-ready .n2k-main-header{
     font-size:7px !important;
   }
 }
+
+
+/* 1.28.4-beta1 · MOBILE OVERVIEW CLEANUP */
+@media (max-width:900px){
+  #n2k-page-overview .n2k-showcase-quick{
+    display:none !important;
+  }
+}
