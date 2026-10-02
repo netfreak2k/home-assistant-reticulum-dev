@@ -1924,6 +1924,12 @@ def get_n2k_selftest():
                 )
             )
 
+            propagation_optional = bool(
+                auto_discovery
+                and configured
+                and not runtime_ok
+            )
+
             add_check(
                 "propagation",
                 "LXMF Store & Forward",
@@ -1947,6 +1953,7 @@ def get_n2k_selftest():
                         else "Konfiguration gespeichert · Add-on-Neustart prüfen"
                     )
                 ),
+                optional=propagation_optional,
             )
 
         else:
