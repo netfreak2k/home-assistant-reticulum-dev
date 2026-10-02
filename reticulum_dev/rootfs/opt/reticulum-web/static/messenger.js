@@ -3729,11 +3729,11 @@
 })();
 
 
-/* N2K OS UI Layer 1.24.1-beta1 */
+/* N2K OS UI Layer 1.24.2-beta1 */
 (function(){
   "use strict";
 
-  const VERSION="1.24.1-beta1";
+  const VERSION="1.24.2-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3964,7 +3964,7 @@
 })();
 
 
-/* N2K OS Overview Dashboard 1.24.1-beta1 */
+/* N2K OS Overview Dashboard 1.24.2-beta1 */
 (function(){
   "use strict";
 
@@ -4208,7 +4208,7 @@
 })();
 
 
-/* N2K OS Mobile Router 1.24.1-beta1 */
+/* N2K OS Mobile Router 1.24.2-beta1 */
 (function(){
   "use strict";
 
@@ -4470,7 +4470,7 @@
 })();
 
 
-/* N2K Unified App Router 1.24.1-beta1 */
+/* N2K Unified App Router 1.24.2-beta1 */
 (function(){
   "use strict";
 
@@ -4757,7 +4757,7 @@
 })();
 
 
-/* N2K Final UX Fixes 1.24.1-beta1 */
+/* N2K Final UX Fixes 1.24.2-beta1 */
 (function(){
   "use strict";
 
@@ -4903,6 +4903,125 @@
         hardenOverview();
         replaceMobileNav();
         ensureLicensePanel();
+      },delay);
+    });
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+
+
+/* N2K Chat + Mesh Route Fix 1.24.2-beta1 */
+(function(){
+  "use strict";
+
+  function byId(id){return document.getElementById(id);}
+
+  function force(el,show,display){
+    if(!el) return;
+    el.hidden=!show;
+    el.style.setProperty("display",show?(display||"block"):"none","important");
+    if(show){
+      el.style.setProperty("visibility","visible","important");
+      el.style.setProperty("opacity","1","important");
+    }
+  }
+
+  function fixChatPage(){
+    const page=byId("n2k-page-chat");
+    if(!page) return;
+    const search=page.querySelector(".messenger-search-wrap");
+    const list=page.querySelector("#messenger-chat-list");
+    const conv=page.querySelector(".messenger-conversation");
+
+    force(search,true,"block");
+    force(list,true,"block");
+    force(conv,false,"flex");
+
+    try{
+      const core=window.reticulumMessenger097;
+      if(core && typeof core.loadChats==="function") core.loadChats();
+      if(core && typeof core.loadContacts==="function") core.loadContacts();
+    }catch(_){}
+  }
+
+  function fixMeshPage(){
+    const page=byId("n2k-page-mesh");
+    const mesh=byId("msg-mesh-view");
+    const card=byId("n2k-constellation-card");
+    const svg=byId("n2k-constellation-svg");
+
+    if(page){
+      page.hidden=false;
+      page.classList.add("is-active");
+      page.style.setProperty("display","block","important");
+    }
+    force(mesh,true,"block");
+    force(card,true,"block");
+    if(svg){
+      svg.style.setProperty("display","block","important");
+      svg.style.setProperty("visibility","visible","important");
+      svg.style.setProperty("opacity","1","important");
+    }
+
+    /* Existing Living Mesh loader already runs every 5 seconds.
+       A resize event forces its current responsive layout to recalculate. */
+    requestAnimationFrame(function(){
+      window.dispatchEvent(new Event("resize"));
+    });
+  }
+
+  function wrapShowPage(){
+    const original=window.n2kShowPage;
+    if(typeof original!=="function" || original.__n2k1242) return;
+
+    const wrapped=function(name){
+      const result=original(name);
+
+      if(name==="chat"){
+        setTimeout(fixChatPage,0);
+        setTimeout(fixChatPage,120);
+      }
+
+      if(name==="mesh"){
+        setTimeout(fixMeshPage,0);
+        setTimeout(fixMeshPage,120);
+      }
+
+      return result;
+    };
+
+    wrapped.__n2k1242=true;
+    window.n2kShowPage=wrapped;
+  }
+
+  function installDirectNavCapture(){
+    if(document.documentElement.dataset.n2kMeshCapture1242==="1") return;
+    document.documentElement.dataset.n2kMeshCapture1242="1";
+
+    document.addEventListener("click",function(event){
+      const button=event.target.closest(".n2k-os-nav-button[data-n2k-action='mesh']");
+      if(!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if(typeof window.n2kShowPage==="function"){
+        window.n2kShowPage("mesh");
+      }
+    },true);
+  }
+
+  function boot(){
+    wrapShowPage();
+    installDirectNavCapture();
+
+    [200,900,1900,3600].forEach(function(delay){
+      setTimeout(function(){
+        wrapShowPage();
+        installDirectNavCapture();
       },delay);
     });
   }
