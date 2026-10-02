@@ -3729,11 +3729,11 @@
 })();
 
 
-/* N2K OS UI Layer 1.24.0-beta1 */
+/* N2K OS UI Layer 1.24.1-beta1 */
 (function(){
   "use strict";
 
-  const VERSION="1.24.0-beta1";
+  const VERSION="1.24.1-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3964,7 +3964,7 @@
 })();
 
 
-/* N2K OS Overview Dashboard 1.24.0-beta1 */
+/* N2K OS Overview Dashboard 1.24.1-beta1 */
 (function(){
   "use strict";
 
@@ -4137,12 +4137,27 @@
     setDot("n2k-ov-lxmf-dot",lxmf);
     setDot("n2k-ov-backbone-dot",backbone);
 
-    watchValue("rnode",rnode,"RNode");
-    watchValue("rns",rns,"Reticulum");
-    watchValue("lxmf",lxmf,"LXMF");
-    watchValue("backbone",backbone,"Backbone");
-    watchValue("paths",map["n2k-ov-paths"],"Bekannte Pfade");
-    watchValue("live",map["n2k-ov-live"],"Live Nodes");
+    watchValue("rnode",rnode,"RNode Status");
+    watchValue("rns",rns,"Reticulum Status");
+    watchValue("lxmf",lxmf,"LXMF Status");
+    watchValue("backbone",backbone,"Backbone Status");
+
+    const pathsValue=map["n2k-ov-paths"];
+    const liveValue=map["n2k-ov-live"];
+
+    if(previous.has("paths") && previous.get("paths")!==String(pathsValue||"").trim()){
+      previous.set("paths",String(pathsValue||"").trim());
+      addEvent("Reticulum kennt jetzt "+pathsValue+" Pfade","ok");
+    }else if(!previous.has("paths") && String(pathsValue||"").trim()){
+      previous.set("paths",String(pathsValue||"").trim());
+    }
+
+    if(previous.has("live") && previous.get("live")!==String(liveValue||"").trim()){
+      previous.set("live",String(liveValue||"").trim());
+      addEvent("Living Mesh meldet "+liveValue+" aktive Nodes","ok");
+    }else if(!previous.has("live") && String(liveValue||"").trim()){
+      previous.set("live",String(liveValue||"").trim());
+    }
   }
 
   function renderEvents(){
@@ -4193,7 +4208,7 @@
 })();
 
 
-/* N2K OS Mobile Router 1.24.0-beta1 */
+/* N2K OS Mobile Router 1.24.1-beta1 */
 (function(){
   "use strict";
 
@@ -4455,7 +4470,7 @@
 })();
 
 
-/* N2K Unified App Router 1.24.0-beta1 */
+/* N2K Unified App Router 1.24.1-beta1 */
 (function(){
   "use strict";
 
@@ -4732,6 +4747,164 @@
 
     showPage("overview");
     window.n2kShowPage=showPage;
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+
+
+/* N2K Final UX Fixes 1.24.1-beta1 */
+(function(){
+  "use strict";
+
+  const LICENSE_TEXT="MIT License\n\nCopyright (c) 2026 Netfreak2k\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof the original N2K RNS Gateway software and associated documentation files\n(the \"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish,\ndistribute, sublicense, and/or sell copies of the Software, and to permit\npersons to whom the Software is furnished to do so, subject to the following\nconditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nThis license applies only to original N2K RNS Gateway code authored by\nNetfreak2k. Third-party components remain subject to their respective\nlicenses.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.";
+  const THIRD_PARTY_TEXT="N2K RNS Gateway includes or depends on third-party software.\n\nReticulum / rns==1.5.4\nLicense: Reticulum License\nCopyright (c) 2016-2026 Mark Qvist\n\nLXMF / lxmf==1.1.1\nLicense: Reticulum License\nCopyright (c) 2020-2025 Mark Qvist\n\nPython qrcode / qrcode==7.4.2\nLicense: BSD 3-Clause-style license\n\nHome Assistant\nLicense: Apache License 2.0\nN2K RNS Gateway is not an official Home Assistant add-on.\n\nWhen redistributing N2K RNS Gateway, retain the project LICENSE,\nTHIRD_PARTY_NOTICES.md and all license/copyright notices required by\nbundled or installed third-party components.";
+
+  function byId(id){return document.getElementById(id);}
+
+  function ensureLicensePanel(){
+    const page=byId("n2k-page-about");
+    if(!page || page.querySelector(".n2k-license-panel")) return;
+
+    const panel=document.createElement("section");
+    panel.className="n2k-license-panel";
+
+    const own=document.createElement("details");
+    const ownSummary=document.createElement("summary");
+    ownSummary.textContent="N2K RNS Gateway · MIT-Lizenz anzeigen";
+    const ownContent=document.createElement("div");
+    ownContent.className="n2k-license-content";
+    const ownIntro=document.createElement("p");
+    ownIntro.textContent="Diese Lizenz gilt für den originalen N2K-RNS-Gateway-Code von Netfreak2k.";
+    const ownPre=document.createElement("pre");
+    ownPre.textContent=LICENSE_TEXT;
+    ownContent.append(ownIntro,ownPre);
+    own.append(ownSummary,ownContent);
+
+    const third=document.createElement("details");
+    const thirdSummary=document.createElement("summary");
+    thirdSummary.textContent="Drittanbieter-Lizenzen & Hinweise anzeigen";
+    const thirdContent=document.createElement("div");
+    thirdContent.className="n2k-license-content";
+    const thirdPre=document.createElement("pre");
+    thirdPre.textContent=THIRD_PARTY_TEXT;
+
+    const links=document.createElement("div");
+    links.className="n2k-license-links";
+
+    [
+      ["Reticulum Lizenz","https://github.com/markqvist/Reticulum/blob/master/LICENSE"],
+      ["LXMF Lizenz","https://github.com/markqvist/LXMF/blob/master/LICENSE"],
+      ["Python qrcode Lizenz","https://github.com/lincolnloop/python-qrcode/blob/main/LICENSE"],
+      ["Home Assistant Lizenz","https://github.com/home-assistant/core/blob/dev/LICENSE.md"]
+    ].forEach(function(item){
+      const a=document.createElement("a");
+      a.href=item[1];
+      a.target="_blank";
+      a.rel="noopener noreferrer";
+      a.textContent=item[0];
+      links.appendChild(a);
+    });
+
+    thirdContent.append(thirdPre,links);
+    third.append(thirdSummary,thirdContent);
+
+    panel.append(own,third);
+    page.appendChild(panel);
+  }
+
+  function replaceMobileNav(){
+    const old=byId("n2k-mobile-real-nav");
+    if(!old || window.innerWidth>900) return;
+
+    const nav=old.cloneNode(false);
+    nav.id="n2k-mobile-real-nav";
+    nav.className="n2k-mobile-real-nav n2k-final-mobile-nav";
+    nav.setAttribute("aria-label","App Navigation");
+
+    nav.innerHTML=
+      '<button type="button" data-n2k-os-tab="overview"><b>⌂</b><small>Übersicht</small></button>'+
+      '<button type="button" data-n2k-os-tab="chat"><b>✉</b><small>Chat</small></button>'+
+      '<button type="button" data-n2k-os-tab="mesh"><b>⌘</b><small>Mesh</small></button>'+
+      '<button type="button" data-n2k-os-tab="status"><b>◉</b><small>Status</small></button>'+
+      '<button type="button" data-n2k-os-tab="more"><b>•••</b><small>Mehr</small></button>';
+
+    old.replaceWith(nav);
+
+    nav.addEventListener("click",function(event){
+      const button=event.target.closest("[data-n2k-os-tab]");
+      if(!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if(typeof window.n2kShowPage==="function"){
+        window.n2kShowPage(button.dataset.n2kOsTab);
+      }
+    });
+
+    nav.addEventListener("touchend",function(event){
+      const button=event.target.closest("[data-n2k-os-tab]");
+      if(!button) return;
+      event.preventDefault();
+      if(typeof window.n2kShowPage==="function"){
+        window.n2kShowPage(button.dataset.n2kOsTab);
+      }
+    },{passive:false});
+  }
+
+  function hardenOverview(){
+    const original=window.n2kShowPage;
+    if(typeof original!=="function" || original.__n2k1241) return;
+
+    const wrapped=function(name){
+      const result=original(name);
+
+      if(name==="overview"){
+        const page=byId("n2k-page-overview");
+        const overview=byId("n2k-os-overview");
+
+        document.querySelectorAll(".n2k-app-page").forEach(function(p){
+          const active=p===page;
+          p.hidden=!active;
+          p.classList.toggle("is-active",active);
+          p.style.setProperty("display",active?"block":"none","important");
+        });
+
+        if(overview){
+          overview.hidden=false;
+          overview.style.setProperty("display","block","important");
+          overview.style.setProperty("visibility","visible","important");
+          overview.style.setProperty("opacity","1","important");
+        }
+      }
+
+      if(name==="about"){
+        setTimeout(ensureLicensePanel,0);
+      }
+
+      return result;
+    };
+
+    wrapped.__n2k1241=true;
+    window.n2kShowPage=wrapped;
+  }
+
+  function boot(){
+    hardenOverview();
+    ensureLicensePanel();
+
+    /* Old delayed scripts have already attached listeners by now;
+       replacing the node removes every stale listener in one operation. */
+    [50,500,1600,3400].forEach(function(delay){
+      setTimeout(function(){
+        hardenOverview();
+        replaceMobileNav();
+        ensureLicensePanel();
+      },delay);
+    });
   }
 
   if(document.readyState==="loading"){
