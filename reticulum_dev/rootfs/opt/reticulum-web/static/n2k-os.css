@@ -1,6 +1,6 @@
 /* =========================================================
    N2K RNS Gateway · N2K OS UI Layer
-   1.22.0-beta1
+   1.22.1-beta1
    Visual shell only – no Reticulum/LXMF backend changes.
    ========================================================= */
 
@@ -512,5 +512,36 @@ body.n2k-os-ready .n2k-about-card{
     animation-duration:.01ms!important;
     animation-iteration-count:1!important;
     transition-duration:.01ms!important;
+  }
+}
+
+
+/* 1.22.1-beta1 · desktop single-navigation fix */
+@media (pointer:fine){
+  /* The legacy desktop switcher remains in the DOM because old app-shell
+     code uses its view model, but N2K OS is now the only visible navigation. */
+  #n2k-mobile-real-nav{
+    display:none !important;
+    width:0 !important;
+    min-width:0 !important;
+    max-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    overflow:hidden !important;
+  }
+
+  body.n2k-os-ready .wrap{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    gap:0 !important;
+  }
+
+  body.n2k-os-ready #n2k-mobile-real-stage,
+  body.n2k-os-ready #n2k-mobile-real-content{
+    grid-column:1 !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
   }
 }
