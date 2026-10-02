@@ -3723,10 +3723,10 @@ def get_messenger_nearby(since=0, probe=False):
     }
 
 def set_messenger_contact_alias(peer_hash, name):
-    peer_hash = str(peer_hash or "").strip()
+    peer_hash = str(peer_hash or "").strip().lower()
     name = str(name or "").strip()
 
-    if len(peer_hash) != 32:
+    if not re.fullmatch(r"[0-9a-f]{32}", peer_hash):
         return {
             "ok": False,
             "error": "Ungültiger Peer Hash",
@@ -3759,12 +3759,39 @@ def set_messenger_contact_alias(peer_hash, name):
             if not isinstance(item, dict):
                 continue
 
-            if str(
+            item_peer = str(
                 item.get("destination_hash") or ""
-            ).strip() != peer_hash:
+            ).strip().lower()
+
+            if item_peer != peer_hash:
                 continue
 
-            item["display_name"] = name
+            # Keep the network-announced name separately. A manually
+            # assigned alias must never be overwritten by later announces.
+            current_name = str(
+                item.get("display_name") or ""
+            ).strip()
+
+            if (
+                current_name
+                and not item.get("manual_alias")
+                and not item.get("announced_name")
+            ):
+                item["announced_name"] = current_name
+
+            if name:
+                item["display_name"] = name
+                item["manual_alias"] = True
+                item["alias"] = name
+            else:
+                # Empty name removes the manual alias and falls back to
+                # the last announced name if one is available.
+                item["manual_alias"] = False
+                item.pop("alias", None)
+                item["display_name"] = str(
+                    item.get("announced_name") or ""
+                ).strip()
+
             found = True
             break
 
@@ -3772,6 +3799,9 @@ def set_messenger_contact_alias(peer_hash, name):
             contacts.append({
                 "destination_hash": peer_hash,
                 "display_name": name,
+                "alias": name if name else "",
+                "manual_alias": bool(name),
+                "announced_name": "",
                 "last_seen": 0,
             })
 
@@ -3792,6 +3822,7 @@ def set_messenger_contact_alias(peer_hash, name):
             "ok": True,
             "peer_hash": peer_hash,
             "display_name": name,
+            "manual_alias": bool(name),
         }
 
     except Exception as exc:
