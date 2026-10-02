@@ -3733,7 +3733,7 @@
 (function(){
   "use strict";
 
-  const VERSION="1.28.4-beta1";
+  const VERSION="1.29.1-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3969,6 +3969,7 @@
   "use strict";
 
   const MAX_EVENTS=5;
+  let showAllEvents=false;
   const previous=new Map();
   const events=[];
 
@@ -4182,7 +4183,9 @@
     }
 
     root.innerHTML="";
-    events.forEach(function(event){
+    const compact=window.matchMedia("(max-width:900px)").matches;
+    const visibleEvents=compact && !showAllEvents ? events.slice(0,3) : events;
+    visibleEvents.forEach(function(event){
       const row=document.createElement("div");
       row.className="n2k-overview-event "+(event.kind||"");
       const hh=String(event.time.getHours()).padStart(2,"0");
@@ -4191,6 +4194,15 @@
       row.querySelector("span").textContent=event.label;
       root.appendChild(row);
     });
+    if(compact && events.length>3){
+      const toggle=document.createElement("button");
+      toggle.type="button";
+      toggle.className="n2k-overview-all-events";
+      toggle.textContent=showAllEvents ? "Weniger anzeigen" : "Alle anzeigen ("+events.length+")";
+      toggle.setAttribute("aria-expanded",String(showAllEvents));
+      toggle.addEventListener("click",function(){showAllEvents=!showAllEvents;renderEvents();});
+      root.appendChild(toggle);
+    }
   }
 
   function openOverview(){

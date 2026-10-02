@@ -1,3 +1,12 @@
+## 1.29.1-beta1
+
+- Mobile RNode setup and diagnostics use full-width cards; USB paths wrap and diagnostic line breaks remain readable.
+- Network statistics wrap into two columns; Living Mesh and its controls fit phone widths.
+- Reduce mobile header height and reserve bottom navigation space in the content container.
+- Show three live activity entries with an expandable remainder on phones.
+- Collapse the duplicate beginner quick guide while preserving all steps and the setup assistant.
+- Compact handbook accordions. Backend, radio settings and messaging APIs unchanged.
+
 ## 1.21.58-beta1
 
 - Fix contact renaming persistence.
