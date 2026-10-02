@@ -3733,7 +3733,7 @@
 (function(){
   "use strict";
 
-  const VERSION="1.29.1-beta1";
+  const VERSION="1.30.0-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3742,6 +3742,11 @@
     link.rel="stylesheet";
     link.href="static/n2k-os.css?v="+encodeURIComponent(VERSION);
     document.head.appendChild(link);
+    const theme=document.createElement("link");
+    theme.id="n2k-terminal-css";
+    theme.rel="stylesheet";
+    theme.href="static/n2k-terminal.css?v="+encodeURIComponent(VERSION);
+    document.head.appendChild(theme);
   }
 
   function activateExistingTab(tab){

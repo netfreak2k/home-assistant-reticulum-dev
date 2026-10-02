@@ -1,0 +1,105 @@
+/* N2K Funk-Terminal · 1.30.0-beta1
+   Presentation only. Keep all existing layout, controls and status semantics. */
+:root{
+  --n2k-os-bg:#101312;--n2k-os-bg-soft:#171b19;
+  --n2k-os-panel:rgba(25,30,27,.96);--n2k-os-panel-soft:rgba(31,37,33,.90);
+  --n2k-os-line:rgba(188,202,192,.18);--n2k-os-line-hot:rgba(241,191,91,.55);
+  --n2k-os-blue:#f1bf5b;--n2k-os-cyan:#f1bf5b;--n2k-os-green:#72dba7;
+  --n2k-os-orange:#f1bf5b;--n2k-os-red:#f07979;
+  --n2k-os-text:#edf1ed;--n2k-os-soft:#bdc8bf;--n2k-os-muted:#9aa99e;
+  --n2k-os-r:16px;--n2k-os-r-lg:18px;
+  --n2k-os-shadow:0 8px 24px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.025);
+  --n2k-os-glow:0 0 0 transparent;
+}
+html:has(body.n2k-os-ready),body.n2k-os-ready{background-color:#101312 !important;color:var(--n2k-os-text) !important;color-scheme:dark;}
+body.n2k-os-ready{
+  background-image:radial-gradient(ellipse at 50% 0%,rgba(114,219,167,.04),transparent 60%),linear-gradient(180deg,#151a17,#0d100e) !important;
+  background-attachment:scroll !important;
+}
+body.n2k-os-ready::before{
+  background-image:linear-gradient(rgba(170,190,178,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(170,190,178,.025) 1px,transparent 1px) !important;
+  background-size:48px 48px !important;opacity:.6 !important;
+}
+body.n2k-os-ready :is(.n2k-main-header,.n2k-os-sidebar,#n2k-mobile-real-nav){
+  background:linear-gradient(145deg,rgba(28,34,30,.98),rgba(17,22,19,.98)) !important;
+  border-color:rgba(188,202,192,.22) !important;box-shadow:var(--n2k-os-shadow) !important;
+}
+body.n2k-os-ready :is(.n2k-brand-kicker,.n2k-modern-title-text,.n2k-overview-icon,.n2k-os-nav-icon,.n2k-status-kicker,.n2k-hardware-usb-title,.n2k-constellation-title){color:var(--n2k-os-text) !important;text-shadow:none !important;}
+body.n2k-os-ready :is(.n2k-modern-title-orb,.n2k-overview-icon,.n2k-status-summary-icon,.n2k-setup-number,.n2k-os-more-icon,.messenger-contact-avatar){
+  color:#f1bf5b !important;background:rgba(241,191,91,.07) !important;border-color:rgba(241,191,91,.23) !important;box-shadow:none !important;
+}
+body.n2k-os-ready :is(.n2k-modern-title-version,.n2k-hardware-usb-badge,.m100-beta-badge){color:#bdc8bf !important;background:rgba(188,202,192,.05) !important;border-color:rgba(188,202,192,.22) !important;}
+body.n2k-os-ready :is(.n2k-overview-card,.n2k-overview-mesh,.n2k-overview-activity,.n2k-showcase-system,.n2k-showcase-quick,.n2k-os-more-card,.n2k-about-card,.n2k-constellation-card,.n2k-universe-focus){
+  background:linear-gradient(150deg,rgba(27,33,29,.97),rgba(18,23,20,.97)) !important;
+  border-color:rgba(188,202,192,.18) !important;box-shadow:var(--n2k-os-shadow) !important;
+}
+body.n2k-os-ready.n2k-pages-ready :is(#n2k-page-status,#n2k-page-settings,#n2k-page-setup) > section,
+body.n2k-os-ready.n2k-pages-ready #n2k-page-settings > .card,
+body.n2k-os-ready #n2k-page-chat :is(.messenger-search-wrap,#messenger-chat-list,.messenger-conversation),
+body.n2k-os-ready #n2k-page-contacts #msg-contacts-view{
+  background:linear-gradient(150deg,rgba(27,33,29,.97),rgba(18,23,20,.97)) !important;
+  border-color:rgba(188,202,192,.18) !important;box-shadow:var(--n2k-os-shadow) !important;
+}
+body.n2k-os-ready :is(.n2k-overview-panel-head,.n2k-showcase-system-head,.m110-contact-head,.m110-contact-tools,.lxmf-chat-header,.lxmf-chat-compose,.n2k-chat-toolbar){
+  background:rgba(25,31,27,.9) !important;border-color:rgba(188,202,192,.12) !important;
+}
+body.n2k-os-ready :is(.n2k-status-summary-card,.n2k-radio-metrics > div,.n2k-resilience-stat,.network-stat,.n2k-setup-step,.n2k-first-run-steps > div,.n2k-help-item,.n2k-showcase-check,.n2k-tech-content .card,.n2k-universe-focus-grid > div){
+  background:rgba(15,20,17,.64) !important;border-color:rgba(188,202,192,.15) !important;box-shadow:none !important;
+}
+body.n2k-os-ready #n2k-hardware-usb-slot .card{background:#171d19 !important;border-color:rgba(188,202,192,.15) !important;}
+body.n2k-os-ready :is(.n2k-overview-main,.network-stat-value,.messenger-contact-name,.lxmf-chat-name){color:#edf1ed !important;}
+body.n2k-os-ready :is(.n2k-overview-sub,.n2k-overview-panel-head small,.n2k-hardware-usb-sub,.n2k-constellation-sub,.network-stat-label,.messenger-contact-preview,.messenger-contact-time,.lxmf-chat-peer,.n2k-overview-event time){color:#9aa99e !important;}
+body.n2k-os-ready .n2k-overview-event span{color:#cbd5ce !important;}
+body.n2k-os-ready :is(.n2k-os-nav-button.is-active,#n2k-mobile-real-nav button.active){background:rgba(241,191,91,.08) !important;border-color:rgba(241,191,91,.22) !important;box-shadow:none !important;color:#f1bf5b !important;}
+body.n2k-os-ready #n2k-mobile-real-nav button.active :is(b,small){color:#f1bf5b !important;text-shadow:none !important;}
+body.n2k-os-ready .n2k-os-nav-button.is-active .n2k-os-nav-icon{color:#f1bf5b !important;}
+body.n2k-os-ready :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){
+  background:#101612 !important;color:#edf1ed !important;border-color:rgba(188,202,192,.26) !important;box-shadow:none !important;
+}
+body.n2k-os-ready ::placeholder{color:#9aa99e !important;opacity:1;}
+body.n2k-os-ready :is(button,input,select,textarea,summary,a,[role=button]):focus-visible{outline:2px solid #f1bf5b !important;outline-offset:3px !important;}
+body.n2k-os-ready :is(.n2k-status-jump button,.n2k-setup-step button,#n2k-hardware-usb-slot button,.m110-contact-tools button,.n2k-chat-filterbar button,.n2k-universe-toolbar button,.n2k-overview-all-events){
+  background:#242c26 !important;color:#edf1ed !important;border-color:rgba(188,202,192,.24) !important;box-shadow:none !important;
+}
+body.n2k-os-ready :is(.n2k-chat-filterbar button.active,.n2k-universe-toolbar button.active){color:#f1bf5b !important;background:rgba(241,191,91,.1) !important;border-color:rgba(241,191,91,.4) !important;}
+body.n2k-os-ready :is(.n2k-overview-mesh-stage,.n2k-universe-stage){
+  background-image:radial-gradient(ellipse at center,rgba(114,219,167,.04),transparent 68%),linear-gradient(rgba(188,202,192,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(188,202,192,.035) 1px,transparent 1px) !important;
+  background-color:#111813 !important;background-size:auto,32px 32px,32px 32px !important;
+}
+body.n2k-os-ready .n2k-overview-mesh-stage::before,
+body.n2k-os-ready .n2k-overview-mesh-stage::after{background:none !important;box-shadow:none !important;}
+body.n2k-os-ready :is(.n2k-radio-orbit-core,.n2k-radio-orbit-ring){border-color:rgba(241,191,91,.25) !important;background-color:rgba(241,191,91,.025) !important;box-shadow:none !important;}
+body.n2k-os-ready :is(.n2k-radio-rate,.n2k-radio-metrics strong,.network-stat-value,#rnode-config-port,#rnode-port-info,#node-inspect-details,#usb-bus,.n2k-overview-event time){
+  font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace !important;font-variant-numeric:tabular-nums;
+}
+body.n2k-os-ready :is(#node-inspect-details,#usb-bus){background:#0e1410 !important;color:#cbd5ce !important;border-color:rgba(188,202,192,.16) !important;}
+body.n2k-os-ready :is(.n2k-overview-live,.n2k-overview-dot.ok){color:#72dba7 !important;border-color:rgba(114,219,167,.3) !important;background-color:rgba(114,219,167,.08) !important;}
+body.n2k-os-ready #lxmf-inbox{background:#121814 !important;}
+body.n2k-os-ready .messenger-contact:hover{background:rgba(241,191,91,.04) !important;}
+body.n2k-os-ready .n2k-os-sidebar-foot{color:#9aa99e !important;}
+body.n2k-os-ready .n2k-os-sidebar-foot span{color:#f1bf5b !important;}
+@media (max-width:900px){
+  body.n2k-os-ready .n2k-main-header{border-radius:14px !important;}
+  body.n2k-os-ready #n2k-mobile-real-nav{border-radius:16px !important;}
+  body.n2k-os-ready :is(.n2k-overview-card,.n2k-overview-mesh,.n2k-overview-activity){border-radius:14px !important;}
+}
+@media (prefers-reduced-motion:reduce){
+  body.n2k-os-ready :is(.n2k-modern-title-orb,.n2k-radio-orbit-ring){animation:none !important;}
+}
+/* Action accents and live topology; route classes remain distinct. */
+body.n2k-os-ready :is(#lxmf-chat-send,#lxmf-send-button){background:#f1bf5b !important;color:#181d19 !important;border-color:#f1bf5b !important;box-shadow:none !important;}
+body.n2k-os-ready .n2k-overview-dot.ok{background:#72dba7 !important;box-shadow:0 0 6px rgba(114,219,167,.25) !important;}
+body.n2k-os-ready .n2k-clink{stroke:rgba(154,169,158,.38) !important;}
+body.n2k-os-ready .n2k-clink.route-radio{stroke:rgba(241,191,91,.48) !important;}
+body.n2k-os-ready .n2k-clink.route-local{stroke:rgba(114,219,167,.48) !important;}
+body.n2k-os-ready .n2k-clink.selected{stroke:#f1bf5b !important;}
+body.n2k-os-ready .n2k-cnode .n2k-cnode-orb{fill:#29382d !important;stroke:#72dba7 !important;}
+body.n2k-os-ready .n2k-cnode.route-radio .n2k-cnode-orb{fill:#3b3220 !important;stroke:#f1bf5b !important;}
+body.n2k-os-ready .n2k-cnode.route-internet .n2k-cnode-orb{fill:#28332c !important;stroke:#a7b9ad !important;}
+body.n2k-os-ready .n2k-cnode.cached .n2k-cnode-orb{fill:#222923 !important;stroke:#718176 !important;}
+body.n2k-os-ready .n2k-cnode.selected .n2k-cnode-orb{stroke:#ffe0a0 !important;}
+body.n2k-os-ready .n2k-cnode-label{fill:#dce6df !important;}
+body.n2k-os-ready :is(.n2k-cnode-hop,.n2k-cnode-route){fill:#9aa99e !important;}
+body.n2k-os-ready .n2k-universe-legend .radio{background:#f1bf5b !important;}
+body.n2k-os-ready .n2k-universe-legend .internet{background:#a7b9ad !important;}
+body.n2k-os-ready .n2k-universe-legend .local{background:#72dba7 !important;}

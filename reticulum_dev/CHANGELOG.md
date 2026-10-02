@@ -1,3 +1,11 @@
+## 1.30.0-beta1
+
+- Add the Funk-Terminal theme across desktop and mobile: graphite panels, restrained amber accents and mint live indicators.
+- Restyle overview, navigation, chat, contacts, status, setup and diagnostics while retaining the responsive layout.
+- Use a local grid backdrop and system monospace fonts for diagnostic values; no external font or image requests.
+- Keep warning/error/delivery status semantics and all existing controls and backend behavior.
+- Add visible keyboard focus outlines and respect reduced motion for decorative radio/header animation.
+
 ## 1.29.1-beta1
 
 - Mobile RNode setup and diagnostics use full-width cards; USB paths wrap and diagnostic line breaks remain readable.
