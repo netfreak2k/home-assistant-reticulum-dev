@@ -3729,11 +3729,11 @@
 })();
 
 
-/* N2K OS UI Layer 1.22.0-beta1 */
+/* N2K OS UI Layer 1.22.1-beta1 */
 (function(){
   "use strict";
 
-  const VERSION="1.22.0-beta1";
+  const VERSION="1.22.1-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3765,6 +3765,29 @@
     return true;
   }
 
+  function switchExistingView(name){
+    try{
+      if(window.matchMedia("(pointer:fine)").matches &&
+         typeof window.n2kDesktopView==="function"){
+        window.n2kDesktopView(name);
+        return true;
+      }
+      if(typeof window.n2kMobileRealView==="function"){
+        window.n2kMobileRealView(name);
+        return true;
+      }
+    }catch(error){
+      console.warn("[N2K OS] view switch",error);
+    }
+    activateExistingTab(name);
+    return false;
+  }
+
+  function afterView(name,callback){
+    switchExistingView(name);
+    window.setTimeout(callback,90);
+  }
+
   function navigate(action){
     document.querySelectorAll(".n2k-os-nav-button").forEach(function(btn){
       btn.classList.toggle("is-active",btn.dataset.n2kAction===action);
@@ -3772,33 +3795,36 @@
 
     switch(action){
       case "overview":
+        /* Until the dedicated dashboard lands, overview opens the stable
+           chat/home surface instead of a dead anchor. */
+        switchExistingView("chats");
         window.scrollTo({top:0,behavior:"smooth"});
         break;
       case "chat":
-        activateExistingTab("chats");
-        scrollToTarget(".messenger-search-wrap") || scrollToTarget("#messenger-app");
+        switchExistingView("chats");
         break;
       case "mesh":
-        activateExistingTab("mesh");
-        scrollToTarget("#msg-mesh-view");
+        switchExistingView("mesh");
         break;
       case "status":
-        activateExistingTab("settings");
-        scrollToTarget(".node-hero");
+        switchExistingView("settings");
         break;
       case "contacts":
-        activateExistingTab("chats");
-        scrollToTarget("#msg-contacts-view") || scrollToTarget("#msg-contact-list");
+        switchExistingView("contacts");
         break;
       case "setup":
-        scrollToTarget("#rnode-probe-button") || scrollToTarget(".n2k-tech-panel");
+        afterView("settings",function(){
+          scrollToTarget("#rnode-probe-button") ||
+          scrollToTarget(".n2k-tech-panel");
+        });
         break;
       case "settings":
-        activateExistingTab("settings");
-        scrollToTarget("#msg-settings-view") || scrollToTarget(".n2k-tech-panel");
+        switchExistingView("settings");
         break;
       case "about":
-        scrollToTarget(".n2k-about-card");
+        afterView("settings",function(){
+          scrollToTarget(".n2k-about-card");
+        });
         break;
     }
   }
