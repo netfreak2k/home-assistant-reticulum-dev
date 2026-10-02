@@ -5311,3 +5311,153 @@
     boot();
   }
 })();
+
+
+/* N2K OS Showcase Dashboard 1.27.0-beta1 */
+(function(){
+  "use strict";
+
+  function byId(id){return document.getElementById(id);}
+  function upper(v){return String(v||"").trim().toUpperCase();}
+
+  function ensureShowcase(){
+    const overview=byId("n2k-os-overview");
+    if(!overview || byId("n2k-showcase-footer")) return;
+
+    const footer=document.createElement("div");
+    footer.id="n2k-showcase-footer";
+    footer.className="n2k-showcase-footer";
+    footer.innerHTML=
+      '<section class="n2k-showcase-system">'+
+        '<div class="n2k-showcase-head">'+
+          '<div><span class="n2k-showcase-head-icon">▣</span><strong>Systemstatus</strong></div>'+
+          '<button type="button" id="n2k-showcase-run-check">Systemcheck</button>'+
+        '</div>'+
+        '<div class="n2k-showcase-progress"><i id="n2k-showcase-progress-bar"></i><span id="n2k-showcase-progress-text">System wird geprüft…</span></div>'+
+        '<div id="n2k-showcase-checks" class="n2k-showcase-checks"></div>'+
+      '</section>'+
+      '<section class="n2k-showcase-quick">'+
+        '<div class="n2k-showcase-head"><div><span class="n2k-showcase-head-icon">⌁</span><strong>Schnellzugriff</strong></div></div>'+
+        '<div class="n2k-showcase-quick-grid">'+
+          '<button type="button" data-n2k-quick="chat"><b>✉</b><span>Neue Nachricht</span></button>'+
+          '<button type="button" data-n2k-quick="contacts"><b>◎</b><span>Kontakte</span></button>'+
+          '<button type="button" data-n2k-quick="mesh"><b>⌘</b><span>Living Mesh</span></button>'+
+          '<button type="button" data-n2k-quick="status"><b>◉</b><span>Systemcheck</span></button>'+
+        '</div>'+
+      '</section>';
+
+    overview.appendChild(footer);
+
+    footer.querySelectorAll("[data-n2k-quick]").forEach(function(btn){
+      btn.addEventListener("click",function(){
+        const target=btn.dataset.n2kQuick;
+        if(typeof window.n2kShowPage==="function"){
+          window.n2kShowPage(target);
+        }
+        if(target==="status"){
+          setTimeout(function(){
+            byId("n2k-selftest-button")?.click();
+          },260);
+        }
+      });
+    });
+
+    byId("n2k-showcase-run-check")?.addEventListener("click",function(){
+      if(typeof window.n2kShowPage==="function"){
+        window.n2kShowPage("status");
+      }
+      setTimeout(function(){
+        byId("n2k-selftest-button")?.click();
+      },260);
+    });
+  }
+
+  function collectChecks(){
+    const rows=Array.from(document.querySelectorAll("#n2k-selftest-results .n2k-selftest-row"));
+    return rows.map(function(row){
+      const label=String(row.querySelector("strong")?.textContent||"").trim();
+      const state=upper(row.querySelector(".n2k-selftest-state")?.textContent||"");
+      return {
+        label:label,
+        state:state,
+        ok:state==="PASS" || state==="OPTIONAL",
+        warn:state==="WARN"
+      };
+    }).filter(function(item){return item.label;});
+  }
+
+  function fallbackChecks(){
+    function state(label,id){
+      const v=upper(byId(id)?.textContent||"");
+      const ok=/UP|ONLINE|BEREIT|AKTIV|READY|PASS|CONNECTED/.test(v) &&
+               !/NICHT|FEHLER|FAIL|DOWN|OFFLINE|AUS/.test(v);
+      return {label:label,state:ok?"PASS":"—",ok:ok,warn:!ok};
+    }
+    return [
+      state("Reticulum","n2k-status-rns"),
+      state("LXMF","n2k-status-lxmf"),
+      state("RNode","n2k-status-rnode"),
+      state("Interfaces","n2k-status-ifaces")
+    ];
+  }
+
+  function updateShowcase(){
+    ensureShowcase();
+    const root=byId("n2k-showcase-checks");
+    const bar=byId("n2k-showcase-progress-bar");
+    const text=byId("n2k-showcase-progress-text");
+    if(!root || !bar || !text) return;
+
+    let checks=collectChecks();
+    const hasSelftest=checks.length>0;
+    if(!hasSelftest) checks=fallbackChecks();
+
+    const good=checks.filter(function(c){return c.ok;}).length;
+    const total=checks.length || 1;
+    const percent=Math.round((good/total)*100);
+
+    bar.style.width=percent+"%";
+
+    const summary=upper(byId("n2k-selftest-summary")?.textContent||"");
+    if(/PASS/.test(summary)){
+      text.textContent="ALLE SYSTEME BEREIT";
+      bar.classList.add("is-ok");
+    }else if(/FAIL/.test(summary)){
+      text.textContent="SYSTEMCHECK HAT HINWEISE";
+      bar.classList.remove("is-ok");
+    }else{
+      text.textContent=good+" / "+total+" Bereiche bereit";
+      bar.classList.toggle("is-ok",good===total);
+    }
+
+    root.innerHTML="";
+    checks.slice(0,8).forEach(function(check){
+      const item=document.createElement("div");
+      item.className="n2k-showcase-check "+(check.ok?"is-ok":check.warn?"is-warn":"");
+      const short=check.label
+        .replace("Persistente ","")
+        .replace("Messenger Feature Bundle","Messenger")
+        .replace("LXMF Store & Forward","Store & Forward")
+        .replace("RNode / Serial","RNode")
+        .replace("Reticulum Stack","Reticulum")
+        .replace("Kontaktspeicher","Kontakte")
+        .replace("LXMF ","");
+      item.innerHTML="<span></span><b></b><small></small>";
+      item.querySelector("b").textContent=short;
+      item.querySelector("small").textContent=check.ok?"PASS":check.warn?"WARN":check.state||"—";
+      root.appendChild(item);
+    });
+  }
+
+  function boot(){
+    ensureShowcase();
+    updateShowcase();
+    setInterval(updateShowcase,2500);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
