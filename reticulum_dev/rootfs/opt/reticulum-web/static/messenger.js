@@ -3729,11 +3729,11 @@
 })();
 
 
-/* N2K OS UI Layer 1.22.1-beta1 */
+/* N2K OS UI Layer 1.22.2-beta1 */
 (function(){
   "use strict";
 
-  const VERSION="1.22.1-beta1";
+  const VERSION="1.22.2-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3819,7 +3819,10 @@
         });
         break;
       case "settings":
-        switchExistingView("settings");
+        afterView("settings",function(){
+          scrollToTarget("#n2k-status-overview") ||
+          scrollToTarget("#msg-settings-view");
+        });
         break;
       case "about":
         afterView("settings",function(){
@@ -3919,6 +3922,14 @@
   }
 
   function init(){
+    const viewport=document.querySelector('meta[name="viewport"]');
+    if(viewport){
+      const current=viewport.getAttribute("content") || "width=device-width,initial-scale=1";
+      if(!/viewport-fit\s*=\s*cover/i.test(current)){
+        viewport.setAttribute("content",current+",viewport-fit=cover");
+      }
+    }
+
     addStylesheet();
     document.body.classList.add("n2k-os-ready");
     createDesktopNav();
