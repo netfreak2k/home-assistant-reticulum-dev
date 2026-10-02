@@ -3729,11 +3729,11 @@
 })();
 
 
-/* N2K OS UI Layer 1.24.2-beta1 */
+/* N2K OS UI Layer 1.24.3-beta1 */
 (function(){
   "use strict";
 
-  const VERSION="1.24.2-beta1";
+  const VERSION="1.24.3-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3964,7 +3964,7 @@
 })();
 
 
-/* N2K OS Overview Dashboard 1.24.2-beta1 */
+/* N2K OS Overview Dashboard 1.24.3-beta1 */
 (function(){
   "use strict";
 
@@ -4208,7 +4208,7 @@
 })();
 
 
-/* N2K OS Mobile Router 1.24.2-beta1 */
+/* N2K OS Mobile Router 1.24.3-beta1 */
 (function(){
   "use strict";
 
@@ -4470,7 +4470,7 @@
 })();
 
 
-/* N2K Unified App Router 1.24.2-beta1 */
+/* N2K Unified App Router 1.24.3-beta1 */
 (function(){
   "use strict";
 
@@ -4757,7 +4757,7 @@
 })();
 
 
-/* N2K Final UX Fixes 1.24.2-beta1 */
+/* N2K Final UX Fixes 1.24.3-beta1 */
 (function(){
   "use strict";
 
@@ -4915,7 +4915,7 @@
 })();
 
 
-/* N2K Chat + Mesh Route Fix 1.24.2-beta1 */
+/* N2K Chat + Mesh Route Fix 1.24.3-beta1 */
 (function(){
   "use strict";
 
@@ -5023,6 +5023,117 @@
         wrapShowPage();
         installDirectNavCapture();
       },delay);
+    });
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+
+
+/* N2K Chat + Contacts Refresh 1.24.3-beta1 */
+(function(){
+  "use strict";
+
+  function byId(id){return document.getElementById(id);}
+
+  function refreshChat(){
+    const page=byId("n2k-page-chat");
+    if(!page || !page.classList.contains("is-active")) return;
+
+    const search=page.querySelector(".messenger-search-wrap");
+    const list=byId("messenger-chat-list");
+    const conv=page.querySelector(".messenger-conversation");
+
+    if(search){
+      search.hidden=false;
+      search.style.setProperty("display","block","important");
+      search.style.setProperty("visibility","visible","important");
+    }
+
+    if(list){
+      list.hidden=false;
+      list.style.setProperty("display","block","important");
+      list.style.setProperty("visibility","visible","important");
+    }
+
+    if(conv){
+      conv.hidden=true;
+      conv.style.setProperty("display","none","important");
+    }
+
+    try{
+      if(window.reticulumMessengerChats097 &&
+         typeof window.reticulumMessengerChats097.refresh==="function"){
+        window.reticulumMessengerChats097.refresh();
+      }
+    }catch(error){
+      console.warn("[N2K] chat refresh",error);
+    }
+  }
+
+  function refreshContacts(){
+    const page=byId("n2k-page-contacts");
+    if(!page || !page.classList.contains("is-active")) return;
+
+    const view=byId("msg-contacts-view");
+    const head=page.querySelector(".m110-contact-head");
+    const tools=page.querySelector(".m110-contact-tools");
+    const list=byId("msg-contact-list");
+
+    [view,head,tools,list].forEach(function(el){
+      if(!el) return;
+      el.hidden=false;
+      el.style.setProperty("visibility","visible","important");
+      el.style.setProperty("opacity","1","important");
+    });
+
+    if(view) view.style.setProperty("display","block","important");
+    if(head) head.style.setProperty("display","flex","important");
+    if(tools) tools.style.setProperty("display","flex","important");
+    if(list) list.style.setProperty("display","block","important");
+
+    try{
+      const core=window.reticulumMessenger097;
+      if(core && typeof core.loadContacts==="function"){
+        core.loadContacts();
+      }
+    }catch(error){
+      console.warn("[N2K] contacts refresh",error);
+    }
+  }
+
+  function wrap(){
+    const original=window.n2kShowPage;
+    if(typeof original!=="function" || original.__n2k1243) return;
+
+    const wrapped=function(name){
+      const result=original(name);
+
+      if(name==="chat"){
+        setTimeout(refreshChat,0);
+        setTimeout(refreshChat,180);
+      }
+
+      if(name==="contacts"){
+        setTimeout(refreshContacts,0);
+        setTimeout(refreshContacts,180);
+      }
+
+      return result;
+    };
+
+    wrapped.__n2k1243=true;
+    window.n2kShowPage=wrapped;
+  }
+
+  function boot(){
+    wrap();
+    [250,1000,2200,3800].forEach(function(delay){
+      setTimeout(wrap,delay);
     });
   }
 
