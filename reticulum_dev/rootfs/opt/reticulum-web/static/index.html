@@ -7060,7 +7060,11 @@ async function runN2KSelftest() {
                   ? "OPTIONAL"
                   : "PASS"
               )
-            : "FAIL";
+            : (
+                optional
+                  ? "WARN"
+                  : "FAIL"
+              );
 
         const css =
           passed
@@ -7069,7 +7073,11 @@ async function runN2KSelftest() {
                   ? "optional"
                   : "pass"
               )
-            : "fail";
+            : (
+                optional
+                  ? "optional"
+                  : "fail"
+              );
 
         return `
           <div class="n2k-selftest-row">
