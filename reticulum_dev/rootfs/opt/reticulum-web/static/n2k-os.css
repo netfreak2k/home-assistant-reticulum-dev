@@ -3043,9 +3043,347 @@ body.n2k-os-ready .n2k-main-header{
 }
 
 
-/* 1.28.4-beta1 · MOBILE OVERVIEW CLEANUP */
+/* 1.29.0-beta1 · MOBILE OVERVIEW CLEANUP */
 @media (max-width:900px){
   #n2k-page-overview .n2k-showcase-quick{
     display:none !important;
   }
+}
+
+
+/* =========================================================
+   1.29.0-beta1 · FINAL CLEAN N2K OS DASHBOARD
+   Desktop + mobile. Presentation only.
+   ========================================================= */
+
+/* ---------- Desktop: reduce visual duplication ---------- */
+@media (pointer:fine) and (min-width:1101px){
+
+  /* Keep internal navigation, but make it slimmer so HA + N2K do not feel
+     like two equally heavy sidebars. */
+  body.n2k-os-ready{
+    --n2k-os-nav:132px;
+  }
+
+  .n2k-os-sidebar{
+    width:132px !important;
+    padding:10px 8px !important;
+    border-radius:14px !important;
+    background:
+      linear-gradient(180deg,rgba(5,22,37,.83),rgba(3,13,22,.88)) !important;
+  }
+
+  body.n2k-os-ready .wrap{
+    margin-left:148px !important;
+    max-width:none !important;
+  }
+
+  .n2k-os-nav-list{
+    gap:3px !important;
+  }
+
+  .n2k-os-nav-button{
+    min-height:38px !important;
+    padding:0 8px !important;
+    border-radius:9px !important;
+    font-size:9.5px !important;
+  }
+
+  .n2k-os-nav-icon{
+    width:18px !important;
+    min-width:18px !important;
+    font-size:12px !important;
+  }
+
+  /* Header is a single calm strip. */
+  body.n2k-os-ready .n2k-main-header{
+    min-height:54px !important;
+    padding:7px 11px !important;
+    margin-bottom:9px !important;
+    border-radius:14px !important;
+  }
+
+  body.n2k-os-ready .n2k-modern-title-orb{
+    width:30px !important;
+    height:30px !important;
+  }
+
+  body.n2k-os-ready .n2k-modern-title-text{
+    font-size:17px !important;
+  }
+
+  body.n2k-os-ready .n2k-modern-title-version{
+    font-size:8px !important;
+  }
+
+  /* Main dashboard fills the available canvas cleanly. */
+  #n2k-page-overview{
+    max-width:none !important;
+  }
+
+  #n2k-os-overview{
+    gap:10px !important;
+  }
+
+  .n2k-overview-grid{
+    gap:10px !important;
+  }
+
+  .n2k-overview-card{
+    min-height:104px !important;
+    padding:12px 13px !important;
+    border-radius:14px !important;
+  }
+
+  .n2k-overview-card-title{
+    font-size:11px !important;
+  }
+
+  .n2k-overview-icon{
+    width:34px !important;
+    height:34px !important;
+    font-size:15px !important;
+  }
+
+  .n2k-overview-main{
+    margin-top:9px !important;
+    font-size:13px !important;
+  }
+
+  .n2k-overview-sub{
+    font-size:9px !important;
+  }
+
+  /* Dominant layout: mesh + activity. */
+  .n2k-overview-lower{
+    grid-template-columns:minmax(0,1.7fr) minmax(300px,.72fr) !important;
+    gap:10px !important;
+  }
+
+  .n2k-overview-mesh-stage{
+    min-height:390px !important;
+  }
+
+  .n2k-overview-activity-list{
+    min-height:390px !important;
+  }
+
+  /* Bottom summaries stay compact. */
+  .n2k-showcase-footer{
+    grid-template-columns:minmax(0,1.55fr) minmax(300px,.72fr) !important;
+    gap:10px !important;
+  }
+
+  .n2k-showcase-system,
+  .n2k-showcase-quick{
+    border-radius:14px !important;
+  }
+
+  .n2k-showcase-head{
+    min-height:42px !important;
+    padding:7px 10px !important;
+  }
+
+  .n2k-showcase-head-icon{
+    width:24px !important;
+    height:24px !important;
+  }
+
+  .n2k-showcase-head strong{
+    font-size:11px !important;
+  }
+
+  .n2k-showcase-progress{
+    height:24px !important;
+    margin:8px 10px 7px !important;
+  }
+
+  .n2k-showcase-checks{
+    padding:0 10px 10px !important;
+  }
+
+  .n2k-showcase-check{
+    min-height:50px !important;
+    padding:7px !important;
+  }
+
+  .n2k-showcase-quick-grid{
+    padding:8px !important;
+    gap:6px !important;
+  }
+
+  .n2k-showcase-quick-grid button{
+    min-height:72px !important;
+    border-radius:10px !important;
+  }
+
+  .n2k-showcase-quick-grid b{
+    font-size:18px !important;
+  }
+
+  .n2k-showcase-quick-grid span{
+    font-size:8px !important;
+  }
+}
+
+/* ---------- Activity feed: quieter ---------- */
+.n2k-overview-event{
+  border-bottom-color:rgba(255,255,255,.038) !important;
+}
+
+.n2k-overview-event:last-child{
+  border-bottom:0 !important;
+}
+
+.n2k-overview-event time{
+  color:#657f92 !important;
+}
+
+.n2k-overview-event span{
+  color:#bfd0dc !important;
+}
+
+/* ---------- Mesh card: one status source only ---------- */
+.n2k-overview-mesh-stats,
+.n2k-overview-mesh-copy{
+  display:none !important;
+}
+
+.n2k-overview-live{
+  min-width:auto !important;
+  justify-content:center !important;
+}
+
+/* ---------- System summary: only 4 core services ---------- */
+.n2k-showcase-checks{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+
+.n2k-showcase-check{
+  text-align:left !important;
+}
+
+/* ---------- Mobile: no duplicate action areas ---------- */
+@media (max-width:900px){
+
+  /* Bottom nav already provides fast navigation. Remove duplicate quick access. */
+  #n2k-page-overview .n2k-showcase-quick{
+    display:none !important;
+  }
+
+  #n2k-page-overview .n2k-showcase-footer{
+    grid-template-columns:1fr !important;
+  }
+
+  /* 2x2 status overview */
+  .n2k-overview-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:7px !important;
+  }
+
+  .n2k-overview-card{
+    min-height:94px !important;
+    padding:9px !important;
+  }
+
+  .n2k-overview-icon{
+    width:30px !important;
+    height:30px !important;
+    font-size:13px !important;
+  }
+
+  .n2k-overview-card-title{
+    font-size:9.5px !important;
+  }
+
+  .n2k-overview-main{
+    margin-top:7px !important;
+    font-size:11.5px !important;
+  }
+
+  .n2k-overview-sub{
+    font-size:8px !important;
+  }
+
+  /* Main cards full width, easy to scan on phone. */
+  .n2k-overview-mesh-stage{
+    min-height:245px !important;
+  }
+
+  .n2k-overview-activity-list{
+    min-height:170px !important;
+  }
+
+  .n2k-overview-panel-head{
+    min-height:50px !important;
+    padding:9px 10px !important;
+  }
+
+  .n2k-overview-panel-head strong{
+    font-size:12px !important;
+  }
+
+  .n2k-overview-panel-head small{
+    font-size:8px !important;
+  }
+
+  /* System summary remains compact 2x2. */
+  .n2k-showcase-checks{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:6px !important;
+    padding:0 9px 9px !important;
+  }
+
+  .n2k-showcase-check{
+    min-height:48px !important;
+  }
+
+  .n2k-showcase-progress{
+    height:23px !important;
+    margin:8px 9px 7px !important;
+  }
+
+  /* Keep actual mobile navigation as the only action strip. */
+  #n2k-mobile-real-nav{
+    min-height:60px !important;
+  }
+}
+
+/* ---------- Small phones ---------- */
+@media (max-width:430px){
+
+  .n2k-overview-card{
+    min-height:90px !important;
+  }
+
+  .n2k-overview-mesh-stage{
+    min-height:225px !important;
+  }
+
+  .n2k-overview-activity-list{
+    min-height:150px !important;
+  }
+
+  .n2k-overview-event{
+    grid-template-columns:40px 8px minmax(0,1fr) !important;
+    padding:9px 1px !important;
+  }
+
+  .n2k-overview-event span{
+    font-size:9px !important;
+  }
+
+  .n2k-overview-event time{
+    font-size:8px !important;
+  }
+}
+
+/* ---------- Keep secondary pages consistent, but simple ---------- */
+body.n2k-pages-ready #n2k-page-chat #messenger-chat-list,
+body.n2k-pages-ready #n2k-page-contacts #msg-contacts-view,
+body.n2k-pages-ready #n2k-page-status > section,
+body.n2k-pages-ready #n2k-page-settings > section,
+body.n2k-pages-ready #n2k-page-setup > section,
+body.n2k-pages-ready #n2k-page-about > .n2k-about-card{
+  box-shadow:0 10px 28px rgba(0,0,0,.20) !important;
 }
