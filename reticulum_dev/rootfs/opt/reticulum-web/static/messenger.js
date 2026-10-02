@@ -3968,7 +3968,7 @@
 (function(){
   "use strict";
 
-  const MAX_EVENTS=8;
+  const MAX_EVENTS=5;
   const previous=new Map();
   const events=[];
 
@@ -4039,14 +4039,14 @@
           '<div id="n2k-ov-lxmf-sub" class="n2k-overview-sub">Messenger</div>'+
         '</article>'+
         '<article class="n2k-overview-card">'+
-          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">☁</span>Backbone</div><i id="n2k-ov-backbone-dot" class="n2k-overview-dot"></i></div>'+
+          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">☁</span>Store &amp; Forward</div><i id="n2k-ov-backbone-dot" class="n2k-overview-dot"></i></div>'+
           '<div id="n2k-ov-backbone-main" class="n2k-overview-main">Prüfe…</div>'+
-          '<div id="n2k-ov-backbone-sub" class="n2k-overview-sub">TCP / Internet</div>'+
+          '<div id="n2k-ov-backbone-sub" class="n2k-overview-sub">Propagation / Sync</div>'+
         '</article>'+
       '</div>'+
       '<div class="n2k-overview-lower">'+
         '<section class="n2k-overview-mesh">'+
-          '<div class="n2k-overview-panel-head"><div><strong>Living Mesh</strong><br><small>Echte bekannte Mesh-Daten</small></div><span class="n2k-overview-live">LIVE</span></div>'+
+          '<div class="n2k-overview-panel-head"><div><strong>Living Mesh</strong><br><small>Echtzeit-Ansicht des N2K Mesh-Netzwerks</small></div><span id="n2k-overview-live-badge" class="n2k-overview-live">LIVE</span></div>'+
           '<div id="n2k-overview-mesh-stage" class="n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen">'+
             '<svg class="n2k-overview-mesh-lines" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">'+
               '<line x1="140" y1="300" x2="285" y2="190"></line>'+
@@ -4109,8 +4109,14 @@
     const rns=textOf("hero-rns",textOf("n2k-status-rns","—"));
     const rnsSub=textOf("shared-name","Reticulum Network Stack");
     const lxmf=textOf("n2k-status-lxmf",textOf("messenger-status-text","—"));
-    const backbone=textOf("hero-internet",textOf("n2k-status-ifaces","—"));
-    const backboneSub=textOf("hero-internet-detail","TCP / Internet");
+    const propagation=textOf("n2k-propagation-runtime","—");
+    const propagationDetail=textOf("n2k-propagation-last-sync","Propagation / Sync");
+    const backbone=/aktiv|active|bereit|ready|requested|sync/i.test(propagation)
+      ? propagation
+      : textOf("hero-internet",textOf("n2k-status-ifaces","—"));
+    const backboneSub=/aktiv|active|bereit|ready|requested|sync/i.test(propagation)
+      ? propagationDetail
+      : "Store & Forward";
 
     const map={
       "n2k-ov-rnode-main":rnode,
@@ -4156,6 +4162,11 @@
        2 -> 3 -> 5 -> 6 change as an activity event. */
     if(String(liveValue||"").trim()){
       previous.set("live",String(liveValue||"").trim());
+      const badge=byId("n2k-overview-live-badge");
+      if(badge){
+        const num=String(liveValue||"").trim();
+        badge.textContent=(num && num!=="—") ? num+" KNOTEN ONLINE" : "LIVE";
+      }
     }
   }
 
@@ -5313,7 +5324,7 @@
 })();
 
 
-/* N2K OS Showcase Dashboard 1.27.0-beta1 */
+/* N2K OS Showcase Dashboard 1.28.0-beta1 */
 (function(){
   "use strict";
 
@@ -5374,7 +5385,7 @@
 
   function collectChecks(){
     const rows=Array.from(document.querySelectorAll("#n2k-selftest-results .n2k-selftest-row"));
-    return rows.map(function(row){
+    const all=rows.map(function(row){
       const label=String(row.querySelector("strong")?.textContent||"").trim();
       const state=upper(row.querySelector(".n2k-selftest-state")?.textContent||"");
       return {
@@ -5384,6 +5395,21 @@
         warn:state==="WARN"
       };
     }).filter(function(item){return item.label;});
+
+    function pick(name,patterns){
+      const found=all.find(function(item){
+        return patterns.some(function(pattern){return pattern.test(item.label);});
+      });
+      if(found) return {label:name,state:found.state,ok:found.ok,warn:found.warn};
+      return null;
+    }
+
+    return [
+      pick("RNode",[/RNode/i]),
+      pick("Reticulum",[/Reticulum Stack/i,/Reticulum/i]),
+      pick("LXMF",[/Messenger Feature Bundle/i,/LXMF Inbox/i,/LXMF/i]),
+      pick("Store & Forward",[/Store & Forward/i,/Propagation/i])
+    ].filter(Boolean);
   }
 
   function fallbackChecks(){
@@ -5394,10 +5420,10 @@
       return {label:label,state:ok?"PASS":"—",ok:ok,warn:!ok};
     }
     return [
+      state("RNode","n2k-status-rnode"),
       state("Reticulum","n2k-status-rns"),
       state("LXMF","n2k-status-lxmf"),
-      state("RNode","n2k-status-rnode"),
-      state("Interfaces","n2k-status-ifaces")
+      state("Store & Forward","n2k-propagation-runtime")
     ];
   }
 
@@ -5431,7 +5457,7 @@
     }
 
     root.innerHTML="";
-    checks.slice(0,8).forEach(function(check){
+    checks.slice(0,4).forEach(function(check){
       const item=document.createElement("div");
       item.className="n2k-showcase-check "+(check.ok?"is-ok":check.warn?"is-warn":"");
       const short=check.label
