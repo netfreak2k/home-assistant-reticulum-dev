@@ -3729,11 +3729,11 @@
 })();
 
 
-/* N2K OS UI Layer 1.23.0-beta1 */
+/* N2K OS UI Layer 1.23.1-beta1 */
 (function(){
   "use strict";
 
-  const VERSION="1.23.0-beta1";
+  const VERSION="1.23.1-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3857,11 +3857,11 @@
       '<div class="n2k-os-nav-list">'+
         '<button class="n2k-os-nav-button is-active" data-n2k-action="overview"><span class="n2k-os-nav-icon">⌂</span>Übersicht</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">✉</span>Chat</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">◎</span>Kontakte</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">⌘</span>Living Mesh</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">◉</span>Status</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">◎</span>Kontakte</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">⌁</span>Setup</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">⚙</span>Einstellungen</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">⌁</span>Setup</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="about"><span class="n2k-os-nav-icon">ⓘ</span>Über / Lizenz</button>'+
       '</div>'+
       '<div class="n2k-os-sidebar-foot">NETFREAK2K<br>OFFGRID · MESH · LOCAL INTELLIGENCE<br><span style="color:#20d8ff">KEIN NETZ KEIN PROBLEM</span></div>';
@@ -3902,6 +3902,10 @@
     overview.type="button";
     overview.innerHTML="<b>⌂</b><small>Übersicht</small>";
     overview.addEventListener("click",function(){
+      if(typeof window.n2kOsMobilePage==="function"){
+        window.n2kOsMobilePage("overview");
+        return;
+      }
       buttons.concat([overview,more]).forEach(function(b){b.classList.remove("active");});
       overview.classList.add("active");
       window.scrollTo({top:0,behavior:"smooth"});
@@ -3955,7 +3959,7 @@
 })();
 
 
-/* N2K OS Overview Dashboard 1.23.0-beta1 */
+/* N2K OS Overview Dashboard 1.23.1-beta1 */
 (function(){
   "use strict";
 
@@ -4181,4 +4185,266 @@
   }else{
     boot();
   }
+})();
+
+
+/* N2K OS Mobile Router 1.23.1-beta1 */
+(function(){
+  "use strict";
+
+  const PAGE_CLASSES=[
+    "n2k-os-mobile-page-overview",
+    "n2k-os-mobile-page-chat",
+    "n2k-os-mobile-page-mesh",
+    "n2k-os-mobile-page-status",
+    "n2k-os-mobile-page-contacts",
+    "n2k-os-mobile-page-more",
+    "n2k-os-mobile-chat-open"
+  ];
+
+  function isMobile(){
+    return window.matchMedia("(max-width:900px)").matches;
+  }
+
+  function byId(id){return document.getElementById(id);}
+
+  function stage(){
+    return byId("n2k-mobile-real-content");
+  }
+
+  function ensureMore(){
+    let more=byId("n2k-os-more");
+    if(more) return more;
+    const root=stage();
+    if(!root) return null;
+
+    more=document.createElement("section");
+    more.id="n2k-os-more";
+    more.setAttribute("aria-label","Mehr");
+    more.innerHTML=
+      '<div class="n2k-overview-panel-head"><div><strong>Mehr</strong><br><small>Weitere Bereiche des Gateways</small></div></div>'+
+      '<div class="n2k-os-more-grid">'+
+        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="contacts"><b>Kontakte</b><span>Kontakte verwalten, QR, Import und Export</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="settings"><b>Einstellungen</b><span>Gateway, Identity und Netzwerk konfigurieren</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="setup"><b>Setup</b><span>RNode und Gateway Schritt für Schritt einrichten</span></button>'+
+        '<button class="n2k-os-more-card" type="button" data-n2k-mobile-target="about"><b>Über / Lizenz</b><span>Version, Projekt- und Lizenzinformationen</span></button>'+
+      '</div>';
+
+    root.prepend(more);
+
+    more.addEventListener("click",function(event){
+      const button=event.target.closest("[data-n2k-mobile-target]");
+      if(!button) return;
+      const target=button.dataset.n2kMobileTarget;
+      if(target==="contacts"){
+        showPage("contacts");
+      }else if(target==="settings"){
+        showPage("status");
+        setTimeout(function(){
+          document.getElementById("n2k-status-overview")?.scrollIntoView({behavior:"smooth",block:"start"});
+        },80);
+      }else if(target==="setup"){
+        showPage("status");
+        setTimeout(function(){
+          (document.getElementById("n2k-setup-assistant") ||
+           document.getElementById("n2k-hardware-usb-card"))?.scrollIntoView({behavior:"smooth",block:"start"});
+        },80);
+      }else if(target==="about"){
+        showPage("status");
+        setTimeout(function(){
+          document.querySelector(".n2k-about-card")?.scrollIntoView({behavior:"smooth",block:"start"});
+        },80);
+      }
+    });
+
+    return more;
+  }
+
+  function clearPageClasses(){
+    PAGE_CLASSES.forEach(function(name){document.body.classList.remove(name);});
+    document.body.classList.remove("n2k-overview-active");
+  }
+
+  function forceHidden(el,hidden,display){
+    if(!el) return;
+    el.hidden=!!hidden;
+    el.style.setProperty("display",hidden ? "none" : (display || "block"),"important");
+  }
+
+  function resetViews(){
+    const root=stage();
+    if(!root) return;
+
+    forceHidden(byId("n2k-os-overview"),true);
+    forceHidden(byId("n2k-os-more"),true);
+    forceHidden(root.querySelector(".messenger-search-wrap"),true);
+    forceHidden(byId("messenger-chat-list"),true);
+    forceHidden(byId("msg-contacts-view"),true);
+    forceHidden(byId("msg-settings-view"),true);
+    forceHidden(byId("msg-mesh-view"),true);
+    forceHidden(root.querySelector(".messenger-conversation"),true);
+  }
+
+  function setActive(tab){
+    const nav=byId("n2k-mobile-real-nav");
+    if(!nav) return;
+    nav.querySelectorAll("button").forEach(function(button){
+      button.classList.toggle("active",button.dataset.n2kOsTab===tab);
+    });
+  }
+
+  function showPage(page){
+    if(!isMobile()) return false;
+
+    ensureMore();
+    resetViews();
+    clearPageClasses();
+
+    const root=stage();
+    if(!root) return false;
+
+    window.scrollTo({top:0,behavior:"smooth"});
+
+    if(page==="overview"){
+      const overview=byId("n2k-os-overview");
+      forceHidden(overview,false,"block");
+      document.body.classList.add("n2k-os-mobile-page-overview");
+      setActive("overview");
+      return false;
+    }
+
+    if(page==="chat"){
+      forceHidden(root.querySelector(".messenger-search-wrap"),false,"block");
+      forceHidden(byId("messenger-chat-list"),false,"block");
+      document.body.classList.add("n2k-os-mobile-page-chat");
+      setActive("chat");
+      try{
+        const core=window.reticulumMessenger097;
+        if(core && typeof core.loadContacts==="function") core.loadContacts();
+      }catch(_){}
+      return false;
+    }
+
+    if(page==="mesh"){
+      forceHidden(byId("msg-mesh-view"),false,"block");
+      document.body.classList.add("n2k-os-mobile-page-mesh");
+      setActive("mesh");
+      return false;
+    }
+
+    if(page==="status"){
+      forceHidden(byId("msg-settings-view"),false,"block");
+      document.body.classList.add("n2k-os-mobile-page-status");
+      setActive("status");
+      try{
+        if(window.reticulumProfile099 &&
+           typeof window.reticulumProfile099.loadIdentity==="function"){
+          window.reticulumProfile099.loadIdentity();
+        }
+      }catch(_){}
+      return false;
+    }
+
+    if(page==="contacts"){
+      forceHidden(byId("msg-contacts-view"),false,"block");
+      document.body.classList.add("n2k-os-mobile-page-contacts");
+      setActive("more");
+      try{
+        const core=window.reticulumMessenger097;
+        if(core && typeof core.loadContacts==="function") core.loadContacts();
+      }catch(_){}
+      return false;
+    }
+
+    if(page==="more"){
+      forceHidden(byId("n2k-os-more"),false,"block");
+      document.body.classList.add("n2k-os-mobile-page-more");
+      setActive("more");
+      return false;
+    }
+
+    return false;
+  }
+
+  function rebuildBottomNav(){
+    if(!isMobile()) return;
+    const nav=byId("n2k-mobile-real-nav");
+    if(!nav) return;
+
+    nav.innerHTML=
+      '<button type="button" data-n2k-os-tab="overview"><b>⌂</b><small>Übersicht</small></button>'+
+      '<button type="button" data-n2k-os-tab="chat"><b>✉</b><small>Chat</small></button>'+
+      '<button type="button" data-n2k-os-tab="mesh"><b>⌘</b><small>Mesh</small></button>'+
+      '<button type="button" data-n2k-os-tab="status"><b>◉</b><small>Status</small></button>'+
+      '<button type="button" data-n2k-os-tab="more"><b>•••</b><small>Mehr</small></button>';
+
+    nav.onclick=function(event){
+      const button=event.target.closest("[data-n2k-os-tab]");
+      if(!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      showPage(button.dataset.n2kOsTab);
+    };
+
+    nav.addEventListener("click",function(event){
+      if(event.target.closest("[data-n2k-os-tab]")){
+        event.stopImmediatePropagation();
+      }
+    },true);
+  }
+
+  function wrapConversation(){
+    if(!isMobile()) return;
+
+    const oldOpen=window.openMessengerConversation;
+    if(typeof oldOpen==="function" && !oldOpen.__n2kOs1231){
+      const wrapped=function(peer){
+        oldOpen(peer);
+        setTimeout(function(){
+          resetViews();
+          clearPageClasses();
+          const conversation=stage()?.querySelector(".messenger-conversation");
+          forceHidden(conversation,false,"flex");
+          document.body.classList.add("n2k-os-mobile-chat-open");
+          setActive("chat");
+          window.scrollTo({top:0,behavior:"smooth"});
+        },0);
+      };
+      wrapped.__n2kOs1231=true;
+      window.openMessengerConversation=wrapped;
+    }
+
+    const back=byId("messenger-back");
+    if(back){
+      back.onclick=function(event){
+        if(event){event.preventDefault();event.stopPropagation();}
+        return showPage("chat");
+      };
+    }
+  }
+
+  function boot(){
+    if(!isMobile()) return;
+    ensureMore();
+    rebuildBottomNav();
+
+    /* Older shell scripts re-bind the same controls after load. Re-assert
+       the final router after their delayed binds have finished. */
+    [0,350,1300,2200].forEach(function(delay){
+      setTimeout(function(){
+        rebuildBottomNav();
+        wrapConversation();
+      },delay);
+    });
+
+    setTimeout(function(){showPage("overview");},150);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot,{once:true});
+  }else{
+    boot();
+  }
+
+  window.n2kOsMobilePage=showPage;
 })();
