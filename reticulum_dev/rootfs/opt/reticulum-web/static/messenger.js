@@ -3727,3 +3727,183 @@
     decorateContacts
   };
 })();
+
+
+/* N2K OS UI Layer 1.22.0-beta1 */
+(function(){
+  "use strict";
+
+  const VERSION="1.22.0-beta1";
+
+  function addStylesheet(){
+    if(document.getElementById("n2k-os-css")) return;
+    const link=document.createElement("link");
+    link.id="n2k-os-css";
+    link.rel="stylesheet";
+    link.href="static/n2k-os.css?v="+encodeURIComponent(VERSION);
+    document.head.appendChild(link);
+  }
+
+  function activateExistingTab(tab){
+    const button=document.querySelector('#n2k-mobile-real-nav [data-real-tab="'+tab+'"]');
+    if(button) button.click();
+  }
+
+  function openNearestDetails(el){
+    if(!el) return;
+    const details=el.closest("details");
+    if(details) details.open=true;
+  }
+
+  function scrollToTarget(selector){
+    const el=document.querySelector(selector);
+    if(!el) return false;
+    openNearestDetails(el);
+    window.setTimeout(function(){
+      el.scrollIntoView({behavior:"smooth",block:"start"});
+    },40);
+    return true;
+  }
+
+  function navigate(action){
+    document.querySelectorAll(".n2k-os-nav-button").forEach(function(btn){
+      btn.classList.toggle("is-active",btn.dataset.n2kAction===action);
+    });
+
+    switch(action){
+      case "overview":
+        window.scrollTo({top:0,behavior:"smooth"});
+        break;
+      case "chat":
+        activateExistingTab("chats");
+        scrollToTarget(".messenger-search-wrap") || scrollToTarget("#messenger-app");
+        break;
+      case "mesh":
+        activateExistingTab("mesh");
+        scrollToTarget("#msg-mesh-view");
+        break;
+      case "status":
+        activateExistingTab("settings");
+        scrollToTarget(".node-hero");
+        break;
+      case "contacts":
+        activateExistingTab("chats");
+        scrollToTarget("#msg-contacts-view") || scrollToTarget("#msg-contact-list");
+        break;
+      case "setup":
+        scrollToTarget("#rnode-probe-button") || scrollToTarget(".n2k-tech-panel");
+        break;
+      case "settings":
+        activateExistingTab("settings");
+        scrollToTarget("#msg-settings-view") || scrollToTarget(".n2k-tech-panel");
+        break;
+      case "about":
+        scrollToTarget(".n2k-about-card");
+        break;
+    }
+  }
+
+  function createDesktopNav(){
+    if(document.getElementById("n2k-os-sidebar")) return;
+
+    const nav=document.createElement("aside");
+    nav.id="n2k-os-sidebar";
+    nav.className="n2k-os-sidebar";
+    nav.setAttribute("aria-label","N2K Navigation");
+
+    nav.innerHTML=
+      '<div class="n2k-os-sidebar-brand">'+
+        '<div class="n2k-os-sidebar-logo" aria-hidden="true">⌁</div>'+
+        '<div><strong>N2K RNS Gateway</strong><small>Reticulum · LXMF NODE</small></div>'+
+      '</div>'+
+      '<div class="n2k-os-nav-list">'+
+        '<button class="n2k-os-nav-button is-active" data-n2k-action="overview"><span class="n2k-os-nav-icon">⌂</span>Übersicht</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">✉</span>Chat</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">⌘</span>Living Mesh</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">◉</span>Status</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">◎</span>Kontakte</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">⌁</span>Setup</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">⚙</span>Einstellungen</button>'+
+        '<button class="n2k-os-nav-button" data-n2k-action="about"><span class="n2k-os-nav-icon">ⓘ</span>Über / Lizenz</button>'+
+      '</div>'+
+      '<div class="n2k-os-sidebar-foot">NETFREAK2K<br>OFFGRID · MESH · LOCAL INTELLIGENCE<br><span style="color:#20d8ff">KEIN NETZ KEIN PROBLEM</span></div>';
+
+    nav.addEventListener("click",function(event){
+      const button=event.target.closest("[data-n2k-action]");
+      if(!button) return;
+      navigate(button.dataset.n2kAction);
+    });
+
+    document.body.prepend(nav);
+  }
+
+  function upgradeMobileNav(){
+    const nav=document.getElementById("n2k-mobile-real-nav");
+    if(!nav || nav.dataset.n2kOsUpgraded==="1") return;
+    nav.dataset.n2kOsUpgraded="1";
+
+    const buttons=Array.from(nav.querySelectorAll("button"));
+    const chats=buttons.find(function(b){return b.dataset.realTab==="chats";});
+    const status=buttons.find(function(b){return b.dataset.realTab==="settings";});
+    const mesh=buttons.find(function(b){return b.dataset.realTab==="mesh";});
+
+    if(chats){
+      const s=chats.querySelector("small"); if(s) s.textContent="Chat";
+      const b=chats.querySelector("b"); if(b) b.textContent="✉";
+    }
+    if(mesh){
+      const s=mesh.querySelector("small"); if(s) s.textContent="Mesh";
+      const b=mesh.querySelector("b"); if(b) b.textContent="⌘";
+    }
+    if(status){
+      const s=status.querySelector("small"); if(s) s.textContent="Status";
+      const b=status.querySelector("b"); if(b) b.textContent="◉";
+    }
+
+    const overview=document.createElement("button");
+    overview.type="button";
+    overview.innerHTML="<b>⌂</b><small>Übersicht</small>";
+    overview.addEventListener("click",function(){
+      buttons.concat([overview,more]).forEach(function(b){b.classList.remove("active");});
+      overview.classList.add("active");
+      window.scrollTo({top:0,behavior:"smooth"});
+    });
+    nav.prepend(overview);
+
+    const more=document.createElement("button");
+    more.type="button";
+    more.innerHTML="<b>•••</b><small>Mehr</small>";
+    more.addEventListener("click",function(){
+      buttons.concat([overview,more]).forEach(function(b){b.classList.remove("active");});
+      more.classList.add("active");
+      scrollToTarget(".n2k-about-card") || scrollToTarget(".n2k-tech-panel");
+    });
+    nav.appendChild(more);
+  }
+
+  function updateVersionLabels(){
+    const version=document.getElementById("n2k-modern-title-version");
+    if(version) version.textContent=VERSION;
+
+    document.querySelectorAll(".n2k-about-row strong").forEach(function(el){
+      if(el.textContent.includes("N2K RNS Gateway")) {
+        el.textContent="N2K RNS Gateway · "+VERSION;
+      }
+    });
+  }
+
+  function init(){
+    addStylesheet();
+    document.body.classList.add("n2k-os-ready");
+    createDesktopNav();
+    upgradeMobileNav();
+    updateVersionLabels();
+    console.info("[N2K OS] UI layer "+VERSION+" ready");
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",init,{once:true});
+  }else{
+    init();
+  }
+})();
