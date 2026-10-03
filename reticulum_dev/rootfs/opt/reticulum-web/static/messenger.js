@@ -3829,7 +3829,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.18-beta1";
+  const VERSION="1.30.19-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4151,15 +4151,28 @@ function n2kIcon(name){
           '<div class="n2k-overview-panel-head"><div><strong>Living Mesh</strong><br><small>Echtzeit-Ansicht des N2K Mesh-Netzwerks</small></div><span id="n2k-overview-live-badge" class="n2k-overview-live">LIVE</span></div>'+
           '<div id="n2k-overview-mesh-stage" class="n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen">'+
             '<svg id="n2k-overview-live-svg" class="n2k-overview-mesh-lines" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>'+
+            '<div id="n2k-overview-mesh-empty" class="n2k-overview-mesh-empty" hidden>Warte auf erste Announce oder bekannte RNS-Pfade</div>'+
             '<div class="n2k-overview-mesh-stats">'+
               '<div class="n2k-overview-mesh-stat"><small>Live</small><strong id="n2k-ov-live">—</strong></div>'+
-              '<div class="n2k-overview-mesh-stat"><small>Seen</small><strong id="n2k-ov-seen">—</strong></div>'+
-              '<div class="n2k-overview-mesh-stat"><small>Paths</small><strong id="n2k-ov-paths">—</strong></div>'+
-              '<div class="n2k-overview-mesh-stat"><small>Relays</small><strong id="n2k-ov-relays">—</strong></div>'+
+              '<div class="n2k-overview-mesh-stat"><small>Bekannt</small><strong id="n2k-ov-seen">—</strong></div>'+
+              '<div class="n2k-overview-mesh-stat"><small>Pfade</small><strong id="n2k-ov-paths">—</strong></div>'+
+              '<div class="n2k-overview-mesh-stat"><small>Relais</small><strong id="n2k-ov-relays">—</strong></div>'+
             '</div>'+
           '</div>'+
         '</section>'+
-      '</div>';
+      '</div>'+
+      '<section class="n2k-overview-telemetry" aria-label="Live Netzwerk- und Funkwerte">'+
+        '<div class="n2k-telemetry-head"><strong>Netzwerk · Livewerte</strong><small>Verlauf seit Öffnen</small></div>'+
+        '<div class="n2k-telemetry-grid">'+
+          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">◉</span><div><small>Nodes online</small><strong id="n2k-telemetry-live">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-live" points=""></polyline></svg></article>'+
+          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">⌘</span><div><small>RNS-Pfade</small><strong id="n2k-telemetry-paths">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-paths" points=""></polyline></svg></article>'+
+          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">◌</span><div><small>Noise Floor</small><strong id="n2k-telemetry-noise">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-noise" points=""></polyline></svg></article>'+
+          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">⌁</span><div><small>Airtime</small><strong id="n2k-telemetry-airtime">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-airtime" points=""></polyline></svg></article>'+
+          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">↓</span><div><small>RX</small><strong id="n2k-telemetry-rx">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-rx" points=""></polyline></svg></article>'+
+          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">↑</span><div><small>TX</small><strong id="n2k-telemetry-tx">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-tx" points=""></polyline></svg></article>'+
+        '</div>'+
+      '</section>'+
+      '<section class="n2k-overview-events" aria-label="Letzte Netzereignisse"><div class="n2k-telemetry-head"><strong>Letzte Signale</strong><small>Announces · Pfade · Synchronisation</small></div><div id="n2k-live-event-list" class="n2k-live-event-list"><span class="n2k-event-empty">Warte auf Status- oder Announce-Ereignisse</span></div></section>';
 
     stage.prepend(overview);
 
@@ -4201,8 +4214,80 @@ function n2kIcon(name){
     if(next && target.innerHTML!==next) target.innerHTML=next;
   }
 
+  const metricHistory=new Map();
+  let lastMetricSample=0;
+  function metricNumber(value){
+    const match=String(value||"").match(/-?\d+(?:[.,]\d+)?/);
+    if(!match) return null;
+    const number=Number(match[0].replace(",","."));
+    return Number.isFinite(number)?number:null;
+  }
+  function sparkline(id,value){
+    const line=byId("n2k-spark-"+id);
+    if(!line) return;
+    const now=Date.now();
+    if(now-lastMetricSample>=8000){
+      const numeric=metricNumber(value);
+      if(numeric!==null){
+        const samples=metricHistory.get(id)||[];
+        samples.push(numeric);
+        if(samples.length>18) samples.shift();
+        metricHistory.set(id,samples);
+      }
+    }
+    const samples=metricHistory.get(id)||[];
+    if(!samples.length){line.setAttribute("points","");return;}
+    const min=Math.min(...samples),max=Math.max(...samples),span=max-min;
+    const points=samples.map((sample,index)=>{
+      const x=samples.length===1?50:4+(index*92/(samples.length-1));
+      const y=span===0?12:20-((sample-min)/span)*16;
+      return x.toFixed(1)+","+y.toFixed(1);
+    }).join(" ");
+    line.setAttribute("points",points);
+  }
+  function updateTelemetry(){
+    const values={
+      live:textOf("n2k-map-live","—"),
+      paths:textOf("n2k-map-paths","—"),
+      noise:textOf("n2k-radio-noise",textOf("rnode-live-noise","—")),
+      airtime:textOf("n2k-radio-airtime-text",textOf("rnode-live-airtime","—")),
+      rx:textOf("n2k-radio-rx",textOf("rnode-live-rx","—")),
+      tx:textOf("n2k-radio-tx",textOf("rnode-live-tx","—"))
+    };
+    Object.keys(values).forEach(key=>{
+      const target=byId("n2k-telemetry-"+key);
+      if(target) target.textContent=values[key];
+      sparkline(key,values[key]);
+    });
+    if(Date.now()-lastMetricSample>=8000) lastMetricSample=Date.now();
+  }
+  function watchNodeAnnounces(){
+    const contacts=window.n2kMeshLeaderboardContacts;
+    if(!Array.isArray(contacts)) return;
+    const key="announce_seen";
+    const seen=previous.get(key)||new Map();
+    const currentSeconds=Date.now()/1000;
+    const updates=[];
+    contacts.forEach(item=>{
+      const peer=String(item&&item.destination_hash||"").toLowerCase();
+      let lastSeen=Number(item&&item.last_seen||0);
+      if(lastSeen>1e12) lastSeen/=1000;
+      if(!/^[0-9a-f]{32}$/.test(peer)||!Number.isFinite(lastSeen)||lastSeen<=0) return;
+      const before=seen.get(peer);
+      if(before!==undefined&&lastSeen>before&&currentSeconds-lastSeen<180){
+        const name=String(item.display_name||item.announced_name||peer.slice(0,8)+"…").trim();
+        updates.push({lastSeen,name});
+      }
+      seen.set(peer,lastSeen);
+    });
+    previous.set(key,seen);
+    updates.sort((a,b)=>b.lastSeen-a.lastSeen).slice(0,2).forEach(item=>addEvent("Announce · "+item.name,"ok"));
+  }
+
   function update(){
     if(!ensureOverview()) return;
+    updateTelemetry();
+    watchNodeAnnounces();
     syncOverviewMesh();
 
     const rnode=textOf("hero-lora",textOf("n2k-status-rnode","—"));
@@ -4212,8 +4297,17 @@ function n2kIcon(name){
     const lxmf=textOf("n2k-status-lxmf",textOf("messenger-status-text","—"));
     const propagation=textOf("n2k-propagation-runtime","—");
     const propagationDetail=textOf("n2k-propagation-last-sync","Propagation / Sync");
-    const backbone=propagation!=="—" ? propagation : "Status wird geprüft";
-    const backboneSub=propagationDetail;
+    const selectedNode=textOf("n2k-propagation-selected","");
+    const selectedHash=(selectedNode.match(/[0-9a-f]{8,}/i)||[])[0]||"";
+    let backbone=propagation!=="—" ? propagation : "Status wird geprüft";
+    let backboneSub=propagationDetail;
+    if(/warte auf serverantwort/i.test(propagation)){backbone="Antwort ausstehend";backboneSub="Server verbunden"+(selectedHash?" · "+selectedHash.slice(0,8)+"…":"");}
+    else if(/suche serverpfad/i.test(propagation)){backbone="Serverpfad wird gesucht";backboneSub=textOf("n2k-propagation-candidate-count","Discovery aktiv");}
+    else if(/kein serverpfad/i.test(propagation)){backbone="Kein Serverpfad";backboneSub=textOf("n2k-propagation-candidate-count","Noch kein erreichbarer Server");}
+    else if(/abruf erfolgreich/i.test(propagation)){backbone="Sync erfolgreich";backboneSub=textOf("n2k-propagation-last-success",propagationDetail);}
+    else if(/empfange nachrichten/i.test(propagation)){backbone="Empfängt Nachrichten";backboneSub=selectedHash?"Server · "+selectedHash.slice(0,8)+"…":"Übertragung läuft";}
+    const backboneCard=byId("n2k-ov-backbone-main");
+    if(backboneCard) backboneCard.title=propagation;
 
     const map={
       "n2k-ov-rnode-main":rnode,
@@ -4251,6 +4345,8 @@ function n2kIcon(name){
 
     const pathsValue=map["n2k-ov-paths"];
     const liveValue=map["n2k-ov-live"];
+    const meshEmpty=byId("n2k-overview-mesh-empty");
+    if(meshEmpty) meshEmpty.hidden=Number(map["n2k-ov-seen"]||0)>0;
 
     if(previous.has("paths") && previous.get("paths")!==String(pathsValue||"").trim()){
       previous.set("paths",String(pathsValue||"").trim());
@@ -4273,34 +4369,23 @@ function n2kIcon(name){
   }
 
   function renderEvents(){
-    const root=byId("n2k-overview-activity-list");
+    const root=byId("n2k-live-event-list")||byId("n2k-overview-activity-list");
     if(!root) return;
     if(!events.length){
-      root.innerHTML='<div class="n2k-overview-empty">Noch keine Statusänderung seit Öffnen der Übersicht.</div>';
+      root.innerHTML='<span class="n2k-event-empty">Warte auf Status- oder Announce-Ereignisse</span>';
       return;
     }
 
     root.innerHTML="";
-    const compact=window.matchMedia("(max-width:900px)").matches;
-    const visibleEvents=compact && !showAllEvents ? events.slice(0,3) : events;
-    visibleEvents.forEach(function(event){
+    events.slice(0,5).forEach(function(event){
       const row=document.createElement("div");
-      row.className="n2k-overview-event "+(event.kind||"");
+      row.className="n2k-live-event-chip "+(event.kind||"");
       const hh=String(event.time.getHours()).padStart(2,"0");
       const mm=String(event.time.getMinutes()).padStart(2,"0");
-      row.innerHTML="<time>"+hh+":"+mm+"</time><i></i><span></span>";
+      row.innerHTML="<i></i><time>"+hh+":"+mm+"</time><span></span>";
       row.querySelector("span").textContent=event.label;
       root.appendChild(row);
     });
-    if(compact && events.length>3){
-      const toggle=document.createElement("button");
-      toggle.type="button";
-      toggle.className="n2k-overview-all-events";
-      toggle.textContent=showAllEvents ? "Weniger anzeigen" : "Alle anzeigen ("+events.length+")";
-      toggle.setAttribute("aria-expanded",String(showAllEvents));
-      toggle.addEventListener("click",function(){showAllEvents=!showAllEvents;renderEvents();});
-      root.appendChild(toggle);
-    }
   }
 
   function openOverview(){

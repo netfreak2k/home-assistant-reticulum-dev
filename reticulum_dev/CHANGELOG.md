@@ -1,3 +1,6 @@
+## 1.30.19-beta1
+- Expand the live mesh overview with real telemetry sparklines, concise propagation details and recent announce events.
+
 ## 1.30.18-beta1
 - Keep the chat composer fully visible by fitting its page container to the visible viewport.
 - Remove the overview activity rail, shorten the mesh preview and show active nodes in a compact animated ticker.

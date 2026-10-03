@@ -3776,3 +3776,100 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
   #n2k-os-overview .n2k-showcase-quick-grid button{min-height:28px !important;padding:3px 6px !important;}
   #n2k-os-overview .n2k-rank-card{flex-basis:190px !important;width:190px !important;}
 }
+
+/* 1.30.19-beta1 · fullscreen dashboard: live topology, measured telemetry and events. */
+#n2k-os-overview{
+  min-height:calc(100vh - 138px) !important;
+  align-content:start !important;
+  gap:10px !important;
+}
+#n2k-os-overview .n2k-overview-grid{margin-bottom:0 !important;}
+#n2k-os-overview .n2k-overview-card{min-height:76px !important;padding:10px 13px !important;}
+#n2k-os-overview .n2k-overview-main{margin-top:7px !important;font-size:12px !important;}
+#n2k-os-overview #n2k-ov-backbone-main{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#n2k-os-overview #n2k-ov-backbone-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#n2k-os-overview .n2k-overview-lower{margin:0 !important;}
+#n2k-os-overview .n2k-overview-mesh{overflow:hidden !important;border-radius:16px !important;}
+#n2k-os-overview .n2k-overview-panel-head{min-height:42px !important;padding:7px 13px !important;}
+#n2k-os-overview .n2k-overview-panel-head strong{font-size:13px !important;}
+#n2k-os-overview .n2k-overview-panel-head small{font-size:8px !important;}
+#n2k-os-overview .n2k-overview-mesh-stage{
+  height:clamp(280px,42vh,430px) !important;
+  min-height:280px !important;
+  cursor:pointer;
+  background:
+    radial-gradient(ellipse at 50% 55%,rgba(9,145,224,.12),transparent 49%),
+    linear-gradient(180deg,rgba(2,13,23,.15),rgba(2,13,23,.28)) !important;
+}
+#n2k-os-overview .n2k-overview-mesh-stage::after{opacity:.16 !important;}
+#n2k-os-overview .n2k-overview-mesh-lines{opacity:.9 !important;filter:drop-shadow(0 0 7px rgba(26,197,255,.4)) !important;}
+#n2k-os-overview .n2k-overview-mesh-stats{
+  display:flex !important;position:absolute !important;left:12px !important;bottom:10px !important;z-index:5 !important;
+  flex-wrap:wrap !important;gap:5px !important;padding:0 !important;background:none !important;border:0 !important;
+}
+#n2k-os-overview .n2k-overview-mesh-stat{
+  display:flex !important;align-items:center !important;gap:5px !important;min-width:0 !important;
+  padding:5px 8px !important;border-radius:8px !important;background:rgba(2,13,23,.84) !important;
+  border:1px solid rgba(70,193,255,.2) !important;backdrop-filter:blur(8px);
+}
+#n2k-os-overview .n2k-overview-mesh-stat small{font-size:8px !important;color:#9ab2c3 !important;}
+#n2k-os-overview .n2k-overview-mesh-stat strong{font-size:10px !important;color:#e6f7ff !important;font-variant-numeric:tabular-nums;}
+#n2k-os-overview .n2k-overview-mesh-empty{
+  position:absolute;inset:0;z-index:3;display:grid;place-items:center;padding:24px;
+  color:#9eb5c6;text-align:center;font-size:12px;pointer-events:none;
+  background:radial-gradient(ellipse at center,rgba(2,13,23,.08),rgba(2,13,23,.38));
+}
+#n2k-os-overview .n2k-overview-mesh-empty[hidden]{display:none !important;}
+
+#n2k-os-overview .n2k-overview-telemetry,
+#n2k-os-overview .n2k-overview-events{
+  min-width:0;padding:8px 10px;border:1px solid rgba(70,193,255,.14);border-radius:13px;
+  background:linear-gradient(105deg,rgba(5,20,35,.92),rgba(3,14,23,.9));
+}
+#n2k-os-overview .n2k-telemetry-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 6px;}
+#n2k-os-overview .n2k-telemetry-head strong{color:#d9edf6;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+#n2k-os-overview .n2k-telemetry-head small{color:#708fa2;font-size:8px;}
+#n2k-os-overview .n2k-telemetry-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;}
+#n2k-os-overview .n2k-telemetry-cell{
+  display:grid;grid-template-columns:21px minmax(0,1fr) 48px;align-items:center;gap:6px;min-width:0;
+  min-height:42px;padding:5px 7px;border:1px solid rgba(117,171,201,.12);border-radius:9px;
+  background:rgba(11,32,46,.56);
+}
+#n2k-os-overview .n2k-telemetry-icon{display:grid;place-items:center;width:20px;height:20px;border-radius:7px;background:rgba(28,163,220,.12);color:#5dd8ff;font-size:13px;font-weight:800;}
+#n2k-os-overview .n2k-telemetry-cell div{display:grid;gap:2px;min-width:0;}
+#n2k-os-overview .n2k-telemetry-cell small{overflow:hidden;color:#7994a5;font-size:7px;text-overflow:ellipsis;white-space:nowrap;}
+#n2k-os-overview .n2k-telemetry-cell strong{overflow:hidden;color:#e7f3f8;font-size:10px;font-variant-numeric:tabular-nums;text-overflow:ellipsis;white-space:nowrap;}
+#n2k-os-overview .n2k-telemetry-cell svg{width:48px;height:22px;overflow:visible;}
+#n2k-os-overview .n2k-telemetry-cell polyline{fill:none;stroke:#48d5ff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px rgba(72,213,255,.5));}
+#n2k-os-overview .n2k-telemetry-cell:nth-child(4) polyline{stroke:#76e8bd;}
+#n2k-os-overview .n2k-telemetry-cell:nth-child(5) polyline{stroke:#7fbaff;}
+#n2k-os-overview .n2k-telemetry-cell:nth-child(6) polyline{stroke:#e7b967;}
+
+#n2k-os-overview .n2k-overview-events{padding:6px 10px;}
+#n2k-os-overview .n2k-overview-events .n2k-telemetry-head{margin-bottom:4px;}
+#n2k-os-overview .n2k-live-event-list{display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:thin;}
+#n2k-os-overview .n2k-live-event-chip{
+  display:flex;align-items:center;gap:6px;flex:0 0 auto;max-width:min(280px,35vw);min-height:25px;
+  padding:4px 8px;border:1px solid rgba(96,172,204,.16);border-radius:99px;background:rgba(12,34,48,.65);
+  color:#bcd0dc;font-size:8px;
+}
+#n2k-os-overview .n2k-live-event-chip i{width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:#4ddab0;box-shadow:0 0 8px rgba(77,218,176,.55);}
+#n2k-os-overview .n2k-live-event-chip.bad i{background:#ff7777;box-shadow:0 0 8px rgba(255,119,119,.48);}
+#n2k-os-overview .n2k-live-event-chip time{color:#7894a5;font-size:7px;font-variant-numeric:tabular-nums;}
+#n2k-os-overview .n2k-live-event-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#n2k-os-overview .n2k-event-empty{color:#738b9b;font-size:8px;padding:3px 2px;}
+
+@media (max-width:1100px){
+  #n2k-os-overview .n2k-overview-mesh-stage{height:clamp(260px,38vh,380px) !important;min-height:260px !important;}
+  #n2k-os-overview .n2k-telemetry-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+@media (max-width:700px){
+  #n2k-os-overview{min-height:0 !important;}
+  #n2k-os-overview .n2k-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+  #n2k-os-overview .n2k-overview-card{min-height:70px !important;padding:8px !important;}
+  #n2k-os-overview .n2k-overview-mesh-stage{height:250px !important;min-height:250px !important;}
+  #n2k-os-overview .n2k-telemetry-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #n2k-os-overview .n2k-telemetry-cell{grid-template-columns:20px minmax(0,1fr) 42px;}
+  #n2k-os-overview .n2k-telemetry-cell svg{width:42px;}
+  #n2k-os-overview .n2k-live-event-chip{max-width:78vw;}
+}
