@@ -1,3 +1,9 @@
+## 1.30.13-beta1
+
+- Batch LXMF contact-cache writes during announce bursts, skip unchanged contacts and cap last-seen persistence to one update per peer every 30 seconds.
+- Serialize contact/debug file updates and replace shared temporary filenames to prevent concurrent announce handlers from losing writes.
+- Replace one log line per contact with a periodic announce summary.
+
 ## 1.30.12-beta1
 
 - Prevent simultaneous web requests from launching duplicate status and network diagnostics when the cached snapshot expires.
