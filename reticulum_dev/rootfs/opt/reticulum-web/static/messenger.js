@@ -3806,7 +3806,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.6-beta1";
+  const VERSION="1.30.7-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5579,4 +5579,51 @@ function n2kIcon(name){
   }else{
     boot();
   }
+})();
+
+/* Current running node identity in the global header. */
+(() => {
+  "use strict";
+  let loading = false;
+  let lastName = "";
+  async function refreshNodeName() {
+    const button = document.getElementById("n2k-current-node");
+    const label = document.getElementById("n2k-current-node-name");
+    if (!button || !label || loading || document.hidden) return;
+    loading = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    try {
+      const response = await fetch("api/node/identity?ts=" + Date.now(), {
+        cache: "no-store", signal: controller.signal
+      });
+      const data = await response.json();
+      const name = String(data?.lxmf_display_name || "").trim();
+      if (!response.ok || !name) throw new Error("Node identity unavailable");
+      lastName = name;
+      label.textContent = name;
+      button.title = "Aktueller Node: " + name + " · Namen in den Einstellungen ändern";
+      button.setAttribute("aria-label", "Aktueller Node: " + name + ". Einstellungen öffnen");
+    } catch (_) {
+      if (!lastName) label.textContent = "Name nicht verfügbar";
+      button.title = lastName ? "Zuletzt gelesener Node-Name: " + lastName : "Node-Name noch nicht verfügbar";
+    } finally {
+      clearTimeout(timeout);
+      loading = false;
+    }
+  }
+  function init() {
+    const button = document.getElementById("n2k-current-node");
+    if (button) button.onclick = () => {
+      if (typeof window.n2kShowPage === "function") window.n2kShowPage("settings");
+    };
+    refreshNodeName();
+    setInterval(refreshNodeName, 30000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) refreshNodeName();
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, {once: true});
+  } else { init(); }
 })();

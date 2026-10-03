@@ -1,3 +1,9 @@
+## 1.30.7-beta1
+
+- Show the running node's LXMF display name in the global status header on desktop and mobile.
+- Clicking the name opens Settings. Refresh the name from node identity on load, every 30 seconds and when returning to the app.
+- Keep the active name until restart; do not present an unsaved or pending configuration name as the running identity.
+
 ## 1.30.6-beta1
 
 - Fix the hidden own-name form: load and mount the messenger profile on the unified Settings page on desktop and mobile.

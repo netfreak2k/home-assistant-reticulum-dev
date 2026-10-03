@@ -161,3 +161,10 @@ body.n2k-os-ready :is(.n2k-os-more-card b,.n2k-hardware-usb-title,.n2k-propagati
 .n2k-contact-saved{display:inline-block;font-size:10px;color:#9bcab0;font-weight:500;margin-left:5px}
 .n2k-contact-announce-row span,#n2k-contact-count,#n2k-contact-announce-status{font-size:12px;color:#a9bab0;overflow-wrap:anywhere}
 .n2k-contact-controls :is(button,input):focus-visible,.n2k-contact-star:focus-visible{outline:2px solid #f1bf5b;outline-offset:2px}
+
+/* Running node name: compact second line in the global status header. */
+body.n2k-os-ready .n2k-current-node{display:inline-flex;align-items:center;gap:6px;max-width:100%;box-sizing:border-box;min-width:0;min-height:26px;margin:5px 0 0;padding:3px 8px;border:1px solid rgba(155,202,176,.25);border-radius:8px;background:rgba(155,202,176,.05);color:#d7e4dc;font:inherit;font-size:12px;line-height:1.3;cursor:pointer;text-align:left}
+.n2k-current-node-label{flex:none;color:#9bcab0;font-size:10px;font-weight:600}
+#n2k-current-node-name{min-width:0;overflow-wrap:anywhere}
+body.n2k-os-ready .n2k-current-node:focus-visible{outline:2px solid #f1bf5b;outline-offset:2px}
+@media(max-width:900px){body.n2k-os-ready .n2k-current-node{font-size:11px;min-height:28px;margin-top:4px;padding:3px 7px}.n2k-current-node-label{font-size:9px}}
