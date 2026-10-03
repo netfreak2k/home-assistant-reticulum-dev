@@ -1,3 +1,7 @@
+## 1.30.20-beta1
+- Modern responsive overview with readable service cards, compact mesh counters and larger telemetry.
+- Fix overlapping full-height mesh counters caused by conflicting top and bottom positions.
+
 ## 1.30.13-beta1
 
 - Batch LXMF contact-cache writes during announce bursts, skip unchanged contacts and cap last-seen persistence to one update per peer every 30 seconds.

@@ -1,3 +1,7 @@
+## 1.30.20-beta1
+- Modern responsive overview with readable service cards, compact mesh counters and larger telemetry.
+- Fix overlapping full-height mesh counters caused by conflicting top and bottom positions.
+
 ## 1.30.19-beta1
 - Expand the live mesh overview with real telemetry sparklines, concise propagation details and recent announce events.
 
