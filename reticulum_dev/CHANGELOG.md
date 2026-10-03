@@ -1,3 +1,6 @@
+## 1.30.15-beta1
+- Replace the overview Systemstatus/Systemcheck footer with a live, real-data node leaderboard and signal-XP ranking.
+
 ## 1.30.14-beta1
 - Keep the chat composer visible in short browser windows; only the message history scrolls while chatting.
 

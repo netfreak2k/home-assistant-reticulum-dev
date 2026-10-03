@@ -3484,3 +3484,92 @@ body.n2k-pages-ready #n2k-page-about > .n2k-about-card{
     max-height:calc(100dvh - 190px) !important;
   }
 }
+
+/* 1.30.15-beta1 · game-style ranking, sourced from real LXMF/Reticulum contacts. */
+#n2k-page-overview .n2k-showcase-footer,
+#n2k-os-overview .n2k-showcase-footer{
+  display:block !important;
+  width:100%;
+  min-width:0;
+  overflow:hidden;
+  border:1px solid rgba(62,205,255,.22);
+  border-radius:18px;
+  background:
+    radial-gradient(ellipse at 16% 0%,rgba(16,161,255,.12),transparent 44%),
+    linear-gradient(120deg,rgba(5,20,35,.96),rgba(2,12,22,.94));
+  box-shadow:0 15px 36px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035);
+}
+
+.n2k-rank-head{
+  min-height:56px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  padding:9px 15px;
+  border-bottom:1px solid rgba(85,193,241,.11);
+}
+
+.n2k-rank-brand,
+.n2k-rank-meta{display:flex;align-items:center;gap:11px;min-width:0;}
+.n2k-rank-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;color:#7fe8ff;font-size:23px;background:linear-gradient(145deg,rgba(19,154,224,.26),rgba(46,73,175,.18));border:1px solid rgba(87,211,255,.27);text-shadow:0 0 13px rgba(42,204,255,.55);}
+.n2k-rank-brand div{display:grid;gap:2px;}
+.n2k-rank-brand small{color:#72a8c2;font-size:8px;font-weight:800;letter-spacing:.18em;}
+.n2k-rank-brand strong{color:#f2f9ff;font-size:14px;letter-spacing:.015em;}
+.n2k-rank-meta{flex-direction:column;align-items:flex-end;gap:4px;}
+.n2k-rank-meta>small{color:#829aaa;font-size:8px;letter-spacing:.1em;text-transform:uppercase;}
+.n2k-rank-live{display:flex;align-items:center;gap:6px;color:#8decc8;font-size:8px;font-weight:850;letter-spacing:.14em;}
+.n2k-rank-live i{width:6px;height:6px;border-radius:50%;background:#35e7a4;box-shadow:0 0 9px rgba(53,231,164,.85);animation:n2kRankPulse 1.5s ease-in-out infinite;}
+
+.n2k-node-leaderboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;padding:11px 12px 8px;}
+.n2k-rank-card{position:relative;display:grid;grid-template-columns:27px 36px minmax(0,1fr) auto;grid-template-areas:"place avatar info score" "meter meter meter meter";align-items:center;gap:4px 8px;min-width:0;min-height:76px;padding:9px 10px 11px;overflow:hidden;border:1px solid rgba(71,171,220,.15);border-radius:13px;background:linear-gradient(150deg,rgba(11,34,53,.88),rgba(3,16,28,.92));}
+.n2k-rank-card::before{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:linear-gradient(180deg,rgba(50,198,255,.04),rgba(50,198,255,.65),rgba(50,198,255,.04));opacity:.55;}
+.n2k-rank-1{border-color:rgba(255,202,99,.43);background:radial-gradient(ellipse at 0 0,rgba(255,185,61,.18),transparent 65%),linear-gradient(150deg,rgba(47,35,25,.92),rgba(14,20,31,.95));box-shadow:inset 0 0 25px rgba(255,178,55,.07),0 0 17px rgba(255,181,64,.06);}
+.n2k-rank-1::before{background:linear-gradient(180deg,rgba(255,211,116,.05),#ffd16d,rgba(255,211,116,.05));opacity:.9;}
+.n2k-rank-2{border-color:rgba(193,220,241,.27);}
+.n2k-rank-3{border-color:rgba(208,139,94,.28);}
+.n2k-rank-place{grid-area:place;display:grid;justify-items:center;gap:2px;}
+.n2k-rank-place span{color:#91b6ca;font-size:14px;font-weight:900;line-height:1;}
+.n2k-rank-place small{color:#68869a;font-size:6px;font-weight:850;letter-spacing:.08em;}
+.n2k-rank-1 .n2k-rank-place span{color:#ffd16d;font-size:18px;text-shadow:0 0 10px rgba(255,196,85,.5);}
+.n2k-rank-1 .n2k-rank-place small{color:#ffd88c;}
+.n2k-rank-2 .n2k-rank-place span{color:#d5e8f4;}
+.n2k-rank-3 .n2k-rank-place span{color:#e7a274;}
+.n2k-rank-avatar{grid-area:avatar;display:grid;place-items:center;width:34px;height:34px;overflow:hidden;border:1px solid rgba(84,211,255,.3);border-radius:11px;background:linear-gradient(145deg,rgba(25,175,235,.24),rgba(76,95,192,.19));color:#b9efff;font-size:11px;font-weight:900;letter-spacing:.03em;}
+.n2k-rank-1 .n2k-rank-avatar{border-color:rgba(255,206,105,.48);background:linear-gradient(145deg,rgba(255,191,70,.28),rgba(148,92,41,.2));color:#ffe2a2;}
+.n2k-rank-info{grid-area:info;display:grid;gap:4px;min-width:0;}
+.n2k-rank-info strong{overflow:hidden;color:#edf8ff;font-size:10px;font-weight:800;text-overflow:ellipsis;white-space:nowrap;}
+.n2k-rank-info small{overflow:hidden;color:#819bad;font-size:7px;letter-spacing:.035em;text-overflow:ellipsis;white-space:nowrap;}
+.n2k-rank-score{grid-area:score;display:grid;justify-items:end;gap:2px;}
+.n2k-rank-score b{color:#68dfff;font-size:13px;font-variant-numeric:tabular-nums;font-weight:900;}
+.n2k-rank-score small{color:#68889b;font-size:6px;font-weight:800;letter-spacing:.1em;}
+.n2k-rank-1 .n2k-rank-score b{color:#ffd16d;text-shadow:0 0 12px rgba(255,194,79,.32);}
+.n2k-rank-meter{grid-area:meter;height:3px;overflow:hidden;border-radius:99px;background:rgba(105,156,187,.12);}
+.n2k-rank-meter i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#21b8ff,#72f2df);box-shadow:0 0 9px rgba(47,205,255,.55);}
+.n2k-rank-1 .n2k-rank-meter i{background:linear-gradient(90deg,#ffad46,#ffe28b);box-shadow:0 0 10px rgba(255,197,89,.55);}
+.n2k-rank-empty{grid-column:1/-1;display:grid;place-items:center;min-height:54px;border:1px dashed rgba(85,173,213,.19);border-radius:12px;color:#91aabd;font-size:10px;text-align:center;}
+.n2k-rank-footnote{padding:0 13px 10px;color:#688598;font-size:7px;letter-spacing:.035em;}
+@keyframes n2kRankPulse{50%{opacity:.42;transform:scale(.78);}}
+
+@media (max-width:900px){
+  .n2k-rank-head{min-height:52px;padding:8px 11px;}
+  .n2k-rank-brand strong{font-size:12px;}
+  .n2k-rank-mark{width:30px;height:30px;}
+  .n2k-node-leaderboard{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px;}
+  .n2k-rank-1{grid-column:1/-1;}
+  .n2k-rank-card{min-height:72px;padding:8px;}
+  .n2k-rank-info strong{font-size:9px;}
+  .n2k-rank-meta>small{font-size:7px;}
+  .n2k-rank-footnote{padding:0 10px 9px;line-height:1.4;}
+}
+
+@media (max-width:430px){
+  .n2k-rank-head{align-items:flex-start;}
+  .n2k-rank-meta{padding-top:3px;}
+  .n2k-rank-live{font-size:7px;}
+  .n2k-node-leaderboard{gap:6px;padding:8px;}
+  .n2k-rank-card{grid-template-columns:22px 30px minmax(0,1fr) auto;gap:4px 6px;padding:7px;}
+  .n2k-rank-avatar{width:28px;height:28px;font-size:9px;border-radius:9px;}
+  .n2k-rank-score b{font-size:11px;}
+  .n2k-rank-info small{font-size:6px;}
+}

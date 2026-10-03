@@ -11553,6 +11553,7 @@ if (
 
   function render(data){
     latestData=data;
+    window.n2kMeshLeaderboardContacts=Array.isArray(data&&data.contacts)?data.contacts:[];
     var svg=el("n2k-constellation-svg");
     var empty=el("n2k-constellation-empty");
     if(!svg) return;
@@ -12269,7 +12270,7 @@ if (
 })();
 </script>
 
-<script src="static/messenger.js?v=1.30.13-beta1"></script>
+<script src="static/messenger.js?v=1.30.15-beta1"></script>
 
 
 <script id="n2k-mobile-real-js-1181">
