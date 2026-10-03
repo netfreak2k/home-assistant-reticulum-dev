@@ -3829,7 +3829,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.16-beta1";
+  const VERSION="1.30.17-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5629,4 +5629,65 @@ function n2kIcon(name){
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init, {once: true});
   } else { init(); }
+})();
+
+/* Keep the active chat fitted to the actual visible window, including mobile navigation and keyboard resize. */
+(function(){
+  "use strict";
+  const openClasses=".messenger-conversation:is(.n2k-unified-chat-open,.n2k-real-chat-open,.n2k-desktop-chat-open)";
+  let resizeFrame=0;
+  function activeConversation(){
+    return document.querySelector("#n2k-page-chat "+openClasses)||
+      document.querySelector("#n2k-mobile-real-content "+openClasses)||
+      document.querySelector(openClasses);
+  }
+  function fit(){
+    const conversation=activeConversation();
+    if(!conversation||conversation.hidden||getComputedStyle(conversation).display==="none") return;
+    const visual=window.visualViewport;
+    const viewportHeight=Math.floor(visual?visual.height:window.innerHeight);
+    const viewportTop=visual?visual.offsetTop:0;
+    const rect=conversation.getBoundingClientRect();
+    const top=Math.max(0,Math.floor(rect.top-viewportTop));
+    let bottom=8;
+    const nav=document.getElementById("n2k-mobile-real-nav");
+    if(nav&&getComputedStyle(nav).display!=="none"){
+      const navRect=nav.getBoundingClientRect();
+      if(navRect.height>0&&navRect.top<viewportHeight+viewportTop&&navRect.bottom>viewportTop){
+        bottom=Math.max(bottom,Math.ceil(viewportHeight-(navRect.top-viewportTop)+8));
+      }
+    }
+    const height=Math.max(150,viewportHeight-top-bottom-4);
+    conversation.style.setProperty("display","flex","important");
+    conversation.style.setProperty("flex-direction","column","important");
+    conversation.style.setProperty("height",height+"px","important");
+    conversation.style.setProperty("min-height","0","important");
+    conversation.style.setProperty("max-height",height+"px","important");
+    conversation.style.setProperty("margin","0","important");
+    conversation.style.setProperty("overflow","hidden","important");
+    const inbox=document.getElementById("lxmf-inbox");
+    if(inbox){
+      inbox.style.setProperty("flex","1 1 auto","important");
+      inbox.style.setProperty("height","auto","important");
+      inbox.style.setProperty("min-height","0","important");
+      inbox.style.setProperty("max-height","none","important");
+      inbox.style.setProperty("overflow-y","auto","important");
+    }
+    const composer=conversation.querySelector(".lxmf-chat-compose");
+    if(composer){
+      composer.style.setProperty("position","sticky","important");
+      composer.style.setProperty("bottom","0","important");
+      composer.style.setProperty("flex","0 0 auto","important");
+      composer.style.setProperty("z-index","30","important");
+    }
+  }
+  function schedule(){
+    if(resizeFrame) cancelAnimationFrame(resizeFrame);
+    resizeFrame=requestAnimationFrame(function(){resizeFrame=0;fit();});
+  }
+  window.addEventListener("resize",schedule,{passive:true});
+  if(window.visualViewport) window.visualViewport.addEventListener("resize",schedule,{passive:true});
+  new MutationObserver(schedule).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class","hidden","style"]});
+  window.setInterval(fit,900);
+  [0,120,360,900].forEach(delay=>window.setTimeout(fit,delay));
 })();

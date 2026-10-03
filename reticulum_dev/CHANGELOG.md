@@ -1,3 +1,6 @@
+## 1.30.17-beta1
+- Fit the open chat to the visible viewport and align overview panels consistently across desktop and mobile widths.
+
 ## 1.30.16-beta1
 - Keep chat, contacts and Living Mesh shortcuts beside the new live node leaderboard.
 
