@@ -4,6 +4,7 @@ import json
 import os
 import signal
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -659,9 +660,17 @@ def probe_known_propagation_nodes():
 
 CONTACTS_FILE = STATE_DIR / "contacts.json"
 CONTACTS_LIMIT = 500
+CONTACTS_LOCK = threading.RLock()
+CONTACTS_CACHE = None
+CONTACTS_CACHE_MTIME_NS = None
+CONTACTS_DIRTY = False
+CONTACTS_LAST_FLUSH = 0.0
+CONTACTS_FLUSH_INTERVAL = 5.0
+CONTACT_LAST_SEEN_WRITE_INTERVAL = 30
 
 ANNOUNCE_DEBUG_FILE = STATE_DIR / "announce-debug.json"
 ANNOUNCE_DEBUG_LIMIT = 100
+ANNOUNCE_DEBUG_LOCK = threading.Lock()
 CONTACT_CACHE_SCAN_INTERVAL = 60
 
 CONTACT_DISCOVERY_DIAGNOSTICS = {
@@ -721,38 +730,40 @@ def record_announce_debug(
             "app_data_text": app_text[:512],
         }
 
-        try:
-            if ANNOUNCE_DEBUG_FILE.exists():
-                data = json.loads(
-                    ANNOUNCE_DEBUG_FILE.read_text(
-                        encoding="utf-8"
+        with ANNOUNCE_DEBUG_LOCK:
+            try:
+                if ANNOUNCE_DEBUG_FILE.exists():
+                    data = json.loads(
+                        ANNOUNCE_DEBUG_FILE.read_text(
+                            encoding="utf-8"
+                        )
                     )
-                )
-            else:
+                else:
+                    data = []
+            except Exception:
                 data = []
-        except Exception:
-            data = []
 
-        if not isinstance(data, list):
-            data = []
+            if not isinstance(data, list):
+                data = []
 
-        data.append(entry)
-        data = data[-ANNOUNCE_DEBUG_LIMIT:]
+            data.append(entry)
+            data = data[-ANNOUNCE_DEBUG_LIMIT:]
 
-        tmp = Path(
-            str(ANNOUNCE_DEBUG_FILE) + ".tmp"
-        )
+            tmp = Path(
+                str(ANNOUNCE_DEBUG_FILE)
+                + f".{os.getpid()}.{threading.get_ident()}.tmp"
+            )
 
-        tmp.write_text(
-            json.dumps(
-                data,
-                indent=2,
-                ensure_ascii=False,
-            ),
-            encoding="utf-8",
-        )
+            tmp.write_text(
+                json.dumps(
+                    data,
+                    indent=2,
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
 
-        tmp.replace(ANNOUNCE_DEBUG_FILE)
+            tmp.replace(ANNOUNCE_DEBUG_FILE)
 
         print(
             "RNS ANNOUNCE RX:",
@@ -775,24 +786,54 @@ def record_announce_debug(
 
 
 def _read_contacts():
-    try:
-        if not CONTACTS_FILE.exists():
-            return []
+    global CONTACTS_CACHE, CONTACTS_CACHE_MTIME_NS
 
-        data = json.loads(
-            CONTACTS_FILE.read_text(encoding="utf-8")
-        )
+    with CONTACTS_LOCK:
+        try:
+            current_mtime = (
+                CONTACTS_FILE.stat().st_mtime_ns
+                if CONTACTS_FILE.exists()
+                else None
+            )
 
-        return data if isinstance(data, list) else []
+            # Reload if another process (for example a backup restore) changed
+            # the file while this process had no pending contact updates.
+            if (
+                CONTACTS_CACHE is None
+                or (
+                    not CONTACTS_DIRTY
+                    and current_mtime != CONTACTS_CACHE_MTIME_NS
+                )
+            ):
+                if current_mtime is None:
+                    data = []
+                else:
+                    data = json.loads(
+                        CONTACTS_FILE.read_text(encoding="utf-8")
+                    )
+                CONTACTS_CACHE = (
+                    data[-CONTACTS_LIMIT:]
+                    if isinstance(data, list)
+                    else []
+                )
+                CONTACTS_CACHE_MTIME_NS = current_mtime
 
-    except Exception:
-        return []
+            return [dict(item) for item in CONTACTS_CACHE if isinstance(item, dict)]
+        except Exception:
+            if CONTACTS_CACHE is None:
+                CONTACTS_CACHE = []
+            return [dict(item) for item in CONTACTS_CACHE if isinstance(item, dict)]
 
 
 def _write_contacts(contacts):
+    global CONTACTS_CACHE_MTIME_NS
+
     STATE_DIR.mkdir(parents=True, exist_ok=True)
 
-    tmp = Path(str(CONTACTS_FILE) + ".tmp")
+    tmp = Path(
+        str(CONTACTS_FILE)
+        + f".{os.getpid()}.{threading.get_ident()}.tmp"
+    )
 
     tmp.write_text(
         json.dumps(
@@ -804,6 +845,32 @@ def _write_contacts(contacts):
     )
 
     tmp.replace(CONTACTS_FILE)
+    CONTACTS_CACHE_MTIME_NS = CONTACTS_FILE.stat().st_mtime_ns
+
+
+def flush_pending_contacts(force=False):
+    global CONTACTS_DIRTY, CONTACTS_LAST_FLUSH
+
+    with CONTACTS_LOCK:
+        if not CONTACTS_DIRTY:
+            return False
+
+        now = time.monotonic()
+        if (
+            not force
+            and now - CONTACTS_LAST_FLUSH < CONTACTS_FLUSH_INTERVAL
+        ):
+            return False
+
+        try:
+            _write_contacts(CONTACTS_CACHE or [])
+        except Exception as exc:
+            print("LXMF CONTACT FLUSH ERROR:", str(exc))
+            return False
+
+        CONTACTS_DIRTY = False
+        CONTACTS_LAST_FLUSH = now
+        return True
 
 
 def _announce_text(app_data):
@@ -843,6 +910,8 @@ def remember_lxmf_contact(
     seen_at=None,
     discovery_source="announce",
 ):
+    global CONTACTS_DIRTY
+
     try:
         if isinstance(destination_hash, bytes):
             peer = destination_hash.hex()
@@ -877,73 +946,66 @@ def remember_lxmf_contact(
         except Exception:
             now = int(time.time())
 
-        contacts = _read_contacts()
+        with CONTACTS_LOCK:
+            contacts = _read_contacts()
+            existing = next(
+                (
+                    item for item in contacts
+                    if str(item.get("destination_hash")) == peer
+                ),
+                None,
+            )
 
-        existing = None
+            is_new = existing is None
+            if is_new:
+                existing = {
+                    "destination_hash": peer,
+                    "first_seen": now,
+                }
+                contacts.append(existing)
 
-        for item in contacts:
-            if str(item.get("destination_hash")) == peer:
-                existing = item
-                break
+            before = dict(existing)
 
-        if existing is None:
-            existing = {
-                "destination_hash": peer,
-                "first_seen": now,
-            }
-            contacts.append(existing)
+            # Keep names current, but persist last_seen at most every 30s per
+            # peer. Announce storms otherwise rewrite the whole JSON file.
+            existing["announced_name"] = display_name
+            if not bool(existing.get("manual_alias")):
+                existing["display_name"] = display_name
+            else:
+                alias = str(
+                    existing.get("alias")
+                    or existing.get("display_name")
+                    or ""
+                ).strip()
+                if alias:
+                    existing["display_name"] = alias
 
-        # Always remember the name announced by the remote peer,
-        # but never overwrite a user-defined local alias.
-        existing["announced_name"] = display_name
+            previous_seen = int(existing.get("last_seen") or 0)
+            if is_new or now - previous_seen >= CONTACT_LAST_SEEN_WRITE_INTERVAL:
+                existing["last_seen"] = max(previous_seen, now)
+            existing["source"] = "lxmf_announce"
+            existing["discovery_source"] = str(
+                discovery_source or "announce"
+            )
 
-        if not bool(existing.get("manual_alias")):
-            existing["display_name"] = display_name
-        else:
-            alias = str(
-                existing.get("alias")
-                or existing.get("display_name")
-                or ""
-            ).strip()
+            if announced_identity is not None:
+                try:
+                    ih = getattr(announced_identity, "hash", None)
+                    if isinstance(ih, bytes):
+                        existing["identity_hash"] = ih.hex()
+                except Exception:
+                    pass
 
-            if alias:
-                existing["display_name"] = alias
+            if len(contacts) > CONTACTS_LIMIT:
+                contacts = contacts[-CONTACTS_LIMIT:]
+            CONTACTS_CACHE[:] = contacts
 
-        existing["last_seen"] = max(
-            int(existing.get("last_seen") or 0),
-            now,
-        )
-        existing["source"] = "lxmf_announce"
-        existing["discovery_source"] = str(
-            discovery_source or "announce"
-        )
-
-        if announced_identity is not None:
-            try:
-                ih = getattr(
-                    announced_identity,
-                    "hash",
-                    None,
-                )
-
-                if isinstance(ih, bytes):
-                    existing["identity_hash"] = ih.hex()
-
-            except Exception:
-                pass
-
-        _write_contacts(contacts)
-
-        print(
-            "LXMF CONTACT:",
-            display_name,
-            peer[:16],
-        )
+            if is_new or existing != before:
+                CONTACTS_DIRTY = True
 
     except Exception as exc:
         print(
-            "LXMF CONTACT ERROR:",
-            str(exc),
+            "LXMF CONTACT UPDATE ERROR:", str(exc),
         )
 
 
@@ -1909,6 +1971,10 @@ last_propagation_selection = 0
 last_propagation_probe = 0
 last_propagation_cache_scan = 0
 last_contact_cache_scan = 0
+last_contact_announce_summary = int(time.time())
+last_logged_live_announces = int(
+    CONTACT_DISCOVERY_DIAGNOSTICS.get("live_announces") or 0
+)
 
 # Recover valid LXMF peers that Reticulum already knew before this
 # process registered its announce handler.
@@ -2402,10 +2468,28 @@ while running:
                 state["announce_requested_at"] = requested_at
 
     update_propagation_runtime(now)
+    flush_pending_contacts()
+
+    if now - last_contact_announce_summary >= 60:
+        announce_total = int(
+            CONTACT_DISCOVERY_DIAGNOSTICS.get("live_announces") or 0
+        )
+        received = max(0, announce_total - last_logged_live_announces)
+        if received:
+            print(
+                "LXMF ANNOUNCE SUMMARY:",
+                received,
+                "in the last minute; contacts stored:",
+                len(_read_contacts()),
+            )
+        last_logged_live_announces = announce_total
+        last_contact_announce_summary = now
+
     state["updated"] = now
     write_state(state)
     time.sleep(2)
 
+flush_pending_contacts(force=True)
 state["ok"] = False
 state["updated"] = int(time.time())
 write_state(state)
