@@ -3829,7 +3829,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.17-beta1";
+  const VERSION="1.30.18-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4158,10 +4158,6 @@ function n2kIcon(name){
               '<div class="n2k-overview-mesh-stat"><small>Relays</small><strong id="n2k-ov-relays">—</strong></div>'+
             '</div>'+
           '</div>'+
-        '</section>'+
-        '<section class="n2k-overview-activity">'+
-          '<div class="n2k-overview-panel-head"><div><strong>Live Aktivitäten</strong><br><small>Änderungen aus laufenden Diensten</small></div></div>'+
-          '<div id="n2k-overview-activity-list" class="n2k-overview-activity-list"><div class="n2k-overview-empty">Noch keine Statusänderung seit Öffnen der Übersicht.</div></div>'+
         '</section>'+
       '</div>';
 
@@ -5486,18 +5482,14 @@ function n2kIcon(name){
       '<section class="n2k-rank-panel">'+
         '<div class="n2k-rank-head">'+
           '<div class="n2k-rank-brand"><span class="n2k-rank-mark">✦</span><div><small>N2K MESH · HIGH SCORE</small><strong>Aktivste Nodes</strong></div></div>'+
-          '<div class="n2k-rank-meta"><span class="n2k-rank-live"><i></i>LIVE RANKING</span><small>Rollierende 24 Stunden</small></div>'+
+          '<div class="n2k-rank-meta"><span class="n2k-rank-live"><i></i>LIVE RANKING</span><small>24 Stunden</small></div>'+
+          '<div class="n2k-showcase-quick-grid" aria-label="Schnellzugriff">'+
+            '<button type="button" data-n2k-quick="chat" aria-label="Neue Nachricht">'+n2kIcon("chat")+'<span>Nachricht</span></button>'+
+            '<button type="button" data-n2k-quick="contacts" aria-label="Kontakte">'+n2kIcon("contacts")+'<span>Kontakte</span></button>'+
+            '<button type="button" data-n2k-quick="mesh" aria-label="Living Mesh">'+n2kIcon("mesh")+'<span>Mesh</span></button>'+
+          '</div>'+
         '</div>'+
-        '<div id="n2k-node-leaderboard" class="n2k-node-leaderboard" aria-live="polite"><div class="n2k-rank-empty">Live-Signale werden geladen …</div></div>'+
-        '<div class="n2k-rank-footnote">Signal-XP aus letztem Announce, Live-Sichtung und bekannter Route · keine Paket- oder Nutzerstatistik</div>'+
-      '</section>'+
-      '<section class="n2k-showcase-quick">'+
-        '<div class="n2k-showcase-head"><div><span class="n2k-showcase-head-icon">'+n2kIcon("radio")+'</span><strong>Schnellzugriff</strong></div></div>'+
-        '<div class="n2k-showcase-quick-grid">'+
-          '<button type="button" data-n2k-quick="chat"><b>'+n2kIcon("chat")+'</b><span>Neue Nachricht</span></button>'+
-          '<button type="button" data-n2k-quick="contacts"><b>'+n2kIcon("contacts")+'</b><span>Kontakte</span></button>'+
-          '<button type="button" data-n2k-quick="mesh"><b>'+n2kIcon("mesh")+'</b><span>Living Mesh</span></button>'+
-        '</div>'+
+        '<div class="n2k-node-ticker" aria-label="Live-Rangliste der aktivsten Nodes"><div id="n2k-node-leaderboard" class="n2k-node-leaderboard" aria-live="polite"><div class="n2k-rank-empty">Live-Signale werden geladen …</div></div></div>'+
       '</section>';
     overview.appendChild(footer);
     footer.querySelectorAll("[data-n2k-quick]").forEach(function(button){
@@ -5529,6 +5521,7 @@ function n2kIcon(name){
     if(!root) return;
     const source=window.n2kMeshLeaderboardContacts;
     if(!Array.isArray(source)){
+      root.dataset.signature="";
       root.innerHTML='<div class="n2k-rank-empty">Live-Signale werden geladen …</div>';
       return;
     }
@@ -5544,9 +5537,26 @@ function n2kIcon(name){
       .slice(0,5);
 
     if(!ranked.length){
+      root.dataset.signature="";
       root.innerHTML='<div class="n2k-rank-empty">Noch keine Nodes mit Announce in den letzten 24 Stunden.</div>';
       return;
     }
+    const signature=ranked.map(item=>item.destination_hash+":"+String(item.display_name||item.announced_name||"")).join("|");
+    if(root.dataset.signature===signature){
+      ranked.forEach((item,index)=>{
+        [root.children[index],root.children[index+ranked.length]].forEach(card=>{
+          if(!card) return;
+          const score=card.querySelector(".n2k-rank-score b");
+          const meta=card.querySelector(".n2k-rank-info small");
+          const meter=card.querySelector(".n2k-rank-meter i");
+          if(score) score.textContent=String(item.signal_xp);
+          if(meta) meta.textContent=item.destination_hash.slice(0,6)+"…"+item.destination_hash.slice(-4)+" · "+ageLabel(item.age_seconds);
+          if(meter) meter.style.width=item.signal_xp/10+"%";
+        });
+      });
+      return;
+    }
+    root.dataset.signature=signature;
     root.innerHTML="";
     ranked.forEach((item,index)=>{
       const rank=index+1;
@@ -5554,7 +5564,7 @@ function n2kIcon(name){
       card.className="n2k-rank-card n2k-rank-"+rank;
       const name=String(item.display_name||item.announced_name||"").trim()||item.destination_hash.slice(0,8)+"…";
       const initials=name.replace(/[^\p{L}\p{N} ]/gu,"").trim().split(/\s+/).slice(0,2).map(part=>part[0]||"").join("").toUpperCase()||"N";
-      card.innerHTML='<div class="n2k-rank-place"><span></span><small></small></div><div class="n2k-rank-avatar"></div><div class="n2k-rank-info"><strong></strong><small></small></div><div class="n2k-rank-score"><b></b><small>SIGNAL XP</small></div><div class="n2k-rank-meter"><i></i></div>';
+      card.innerHTML='<div class="n2k-rank-place"><span></span><small></small></div><div class="n2k-rank-avatar"></div><div class="n2k-rank-info"><strong></strong><small></small></div><div class="n2k-rank-score"><b></b><small>XP</small></div><div class="n2k-rank-meter"><i></i></div>';
       card.querySelector(".n2k-rank-place span").textContent=rank===1?"♛":String(rank).padStart(2,"0");
       card.querySelector(".n2k-rank-place small").textContent=rank===1?"MVP":rank===2?"ELITE":rank===3?"PRO":"RANK";
       card.querySelector(".n2k-rank-avatar").textContent=initials;
@@ -5563,6 +5573,12 @@ function n2kIcon(name){
       card.querySelector(".n2k-rank-score b").textContent=String(item.signal_xp);
       card.querySelector(".n2k-rank-meter i").style.width=item.signal_xp/10+"%";
       root.appendChild(card);
+    });
+    Array.from(root.children).forEach(card=>{
+      const copy=card.cloneNode(true);
+      copy.classList.add("n2k-rank-duplicate");
+      copy.setAttribute("aria-hidden","true");
+      root.appendChild(copy);
     });
   }
 
@@ -5647,8 +5663,9 @@ function n2kIcon(name){
     const visual=window.visualViewport;
     const viewportHeight=Math.floor(visual?visual.height:window.innerHeight);
     const viewportTop=visual?visual.offsetTop:0;
-    const rect=conversation.getBoundingClientRect();
-    const top=Math.max(0,Math.floor(rect.top-viewportTop));
+    const page=conversation.closest("#n2k-page-chat");
+    const shell=page||conversation.closest("#n2k-mobile-real-content");
+    const shellRect=(shell||conversation).getBoundingClientRect();
     let bottom=8;
     const nav=document.getElementById("n2k-mobile-real-nav");
     if(nav&&getComputedStyle(nav).display!=="none"){
@@ -5657,28 +5674,56 @@ function n2kIcon(name){
         bottom=Math.max(bottom,Math.ceil(viewportHeight-(navRect.top-viewportTop)+8));
       }
     }
-    const height=Math.max(150,viewportHeight-top-bottom-4);
+    const top=Math.max(0,Math.floor(shellRect.top-viewportTop));
+    const height=Math.max(180,viewportHeight-top-bottom-8);
+    if(shell){
+      shell.style.setProperty("display","flex","important");
+      shell.style.setProperty("flex-direction","column","important");
+      shell.style.setProperty("height",height+"px","important");
+      shell.style.setProperty("min-height","0","important");
+      shell.style.setProperty("max-height",height+"px","important");
+      shell.style.setProperty("overflow","hidden","important");
+      shell.style.setProperty("box-sizing","border-box","important");
+    }
     conversation.style.setProperty("display","flex","important");
+    conversation.style.setProperty("flex","1 1 auto","important");
     conversation.style.setProperty("flex-direction","column","important");
-    conversation.style.setProperty("height",height+"px","important");
+    conversation.style.setProperty("width","100%","important");
+    conversation.style.setProperty("height","100%","important");
     conversation.style.setProperty("min-height","0","important");
-    conversation.style.setProperty("max-height",height+"px","important");
+    conversation.style.setProperty("max-height","100%","important");
     conversation.style.setProperty("margin","0","important");
     conversation.style.setProperty("overflow","hidden","important");
-    const inbox=document.getElementById("lxmf-inbox");
+    conversation.style.setProperty("box-sizing","border-box","important");
+    const inbox=conversation.querySelector("#lxmf-inbox")||document.getElementById("lxmf-inbox");
     if(inbox){
-      inbox.style.setProperty("flex","1 1 auto","important");
-      inbox.style.setProperty("height","auto","important");
+      inbox.style.setProperty("flex","1 1 0%","important");
+      inbox.style.setProperty("height","0","important");
       inbox.style.setProperty("min-height","0","important");
       inbox.style.setProperty("max-height","none","important");
       inbox.style.setProperty("overflow-y","auto","important");
     }
     const composer=conversation.querySelector(".lxmf-chat-compose");
     if(composer){
-      composer.style.setProperty("position","sticky","important");
-      composer.style.setProperty("bottom","0","important");
+      composer.style.setProperty("position","relative","important");
+      composer.style.setProperty("inset","auto","important");
+      composer.style.setProperty("display","grid","important");
+      composer.style.setProperty("grid-template-columns","auto auto minmax(0,1fr) auto","important");
+      composer.style.setProperty("align-items","center","important");
       composer.style.setProperty("flex","0 0 auto","important");
+      composer.style.setProperty("width","100%","important");
+      composer.style.setProperty("height","auto","important");
+      composer.style.setProperty("min-height","68px","important");
+      composer.style.setProperty("max-height","none","important");
+      composer.style.setProperty("padding","8px 10px max(10px,env(safe-area-inset-bottom,0px))","important");
       composer.style.setProperty("z-index","30","important");
+      composer.style.setProperty("box-sizing","border-box","important");
+      const input=composer.querySelector("#lxmf-chat-content");
+      if(input){input.style.setProperty("height","46px","important");input.style.setProperty("min-height","46px","important");}
+      composer.querySelectorAll("#n2k-photo-pick,#n2k-emoji-toggle,#lxmf-chat-send").forEach(button=>{
+        button.style.setProperty("height","40px","important");
+        button.style.setProperty("min-height","40px","important");
+      });
     }
   }
   function schedule(){

@@ -1,3 +1,7 @@
+## 1.30.18-beta1
+- Keep the chat composer fully visible by fitting its page container to the visible viewport.
+- Remove the overview activity rail, shorten the mesh preview and show active nodes in a compact animated ticker.
+
 ## 1.30.17-beta1
 - Fit the open chat to the visible viewport and align overview panels consistently across desktop and mobile widths.
 
