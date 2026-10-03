@@ -1,3 +1,6 @@
+## 1.30.16-beta1
+- Keep chat, contacts and Living Mesh shortcuts beside the new live node leaderboard.
+
 ## 1.30.15-beta1
 - Replace the overview Systemstatus/Systemcheck footer with a live, real-data node leaderboard and signal-XP ranking.
 

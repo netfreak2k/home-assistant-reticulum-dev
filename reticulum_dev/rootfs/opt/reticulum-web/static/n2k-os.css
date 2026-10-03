@@ -3485,11 +3485,22 @@ body.n2k-pages-ready #n2k-page-about > .n2k-about-card{
   }
 }
 
-/* 1.30.15-beta1 · game-style ranking, sourced from real LXMF/Reticulum contacts. */
+/* 1.30.16-beta1 · game-style ranking, sourced from real LXMF/Reticulum contacts. */
 #n2k-page-overview .n2k-showcase-footer,
 #n2k-os-overview .n2k-showcase-footer{
-  display:block !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1.65fr) minmax(300px,.75fr) !important;
+  gap:12px !important;
   width:100%;
+  min-width:0;
+  overflow:visible;
+  border:0;
+  border-radius:0;
+  background:none;
+  box-shadow:none;
+}
+
+.n2k-rank-panel{
   min-width:0;
   overflow:hidden;
   border:1px solid rgba(62,205,255,.22);
@@ -3499,6 +3510,8 @@ body.n2k-pages-ready #n2k-page-about > .n2k-about-card{
     linear-gradient(120deg,rgba(5,20,35,.96),rgba(2,12,22,.94));
   box-shadow:0 15px 36px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035);
 }
+
+.n2k-showcase-quick-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}
 
 .n2k-rank-head{
   min-height:56px;
@@ -3521,7 +3534,9 @@ body.n2k-pages-ready #n2k-page-about > .n2k-about-card{
 .n2k-rank-live{display:flex;align-items:center;gap:6px;color:#8decc8;font-size:8px;font-weight:850;letter-spacing:.14em;}
 .n2k-rank-live i{width:6px;height:6px;border-radius:50%;background:#35e7a4;box-shadow:0 0 9px rgba(53,231,164,.85);animation:n2kRankPulse 1.5s ease-in-out infinite;}
 
-.n2k-node-leaderboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;padding:11px 12px 8px;}
+.n2k-node-leaderboard{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;padding:11px 12px 8px;}
+.n2k-rank-1,.n2k-rank-2,.n2k-rank-3{grid-column:span 2;}
+.n2k-rank-4,.n2k-rank-5{grid-column:span 3;min-height:58px;}
 .n2k-rank-card{position:relative;display:grid;grid-template-columns:27px 36px minmax(0,1fr) auto;grid-template-areas:"place avatar info score" "meter meter meter meter";align-items:center;gap:4px 8px;min-width:0;min-height:76px;padding:9px 10px 11px;overflow:hidden;border:1px solid rgba(71,171,220,.15);border-radius:13px;background:linear-gradient(150deg,rgba(11,34,53,.88),rgba(3,16,28,.92));}
 .n2k-rank-card::before{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:linear-gradient(180deg,rgba(50,198,255,.04),rgba(50,198,255,.65),rgba(50,198,255,.04));opacity:.55;}
 .n2k-rank-1{border-color:rgba(255,202,99,.43);background:radial-gradient(ellipse at 0 0,rgba(255,185,61,.18),transparent 65%),linear-gradient(150deg,rgba(47,35,25,.92),rgba(14,20,31,.95));box-shadow:inset 0 0 25px rgba(255,178,55,.07),0 0 17px rgba(255,181,64,.06);}
@@ -3555,12 +3570,16 @@ body.n2k-pages-ready #n2k-page-about > .n2k-about-card{
   .n2k-rank-head{min-height:52px;padding:8px 11px;}
   .n2k-rank-brand strong{font-size:12px;}
   .n2k-rank-mark{width:30px;height:30px;}
+  #n2k-page-overview .n2k-showcase-footer,
+  #n2k-os-overview .n2k-showcase-footer{grid-template-columns:1fr !important;gap:8px !important;}
   .n2k-node-leaderboard{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px;}
+  .n2k-rank-1,.n2k-rank-2,.n2k-rank-3,.n2k-rank-4,.n2k-rank-5{grid-column:span 1;}
   .n2k-rank-1{grid-column:1/-1;}
   .n2k-rank-card{min-height:72px;padding:8px;}
   .n2k-rank-info strong{font-size:9px;}
   .n2k-rank-meta>small{font-size:7px;}
   .n2k-rank-footnote{padding:0 10px 9px;line-height:1.4;}
+  .n2k-showcase-quick-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}
 }
 
 @media (max-width:430px){
@@ -3572,4 +3591,5 @@ body.n2k-pages-ready #n2k-page-about > .n2k-about-card{
   .n2k-rank-avatar{width:28px;height:28px;font-size:9px;border-radius:9px;}
   .n2k-rank-score b{font-size:11px;}
   .n2k-rank-info small{font-size:6px;}
+  .n2k-rank-meta>small{max-width:110px;text-align:right;line-height:1.3;}
 }

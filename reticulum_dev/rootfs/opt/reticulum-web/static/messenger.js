@@ -3829,7 +3829,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.15-beta1";
+  const VERSION="1.30.16-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5483,13 +5483,28 @@ function n2kIcon(name){
     footer.className="n2k-showcase-footer";
     footer.setAttribute("aria-label","Aktivste Reticulum-Nodes");
     footer.innerHTML=
-      '<div class="n2k-rank-head">'+
-        '<div class="n2k-rank-brand"><span class="n2k-rank-mark">✦</span><div><small>N2K MESH · HIGH SCORE</small><strong>Aktivste Nodes</strong></div></div>'+
-        '<div class="n2k-rank-meta"><span class="n2k-rank-live"><i></i>LIVE RANKING</span><small>Rollierende 24 Stunden</small></div>'+
-      '</div>'+
-      '<div id="n2k-node-leaderboard" class="n2k-node-leaderboard" aria-live="polite"><div class="n2k-rank-empty">Live-Signale werden geladen …</div></div>'+
-      '<div class="n2k-rank-footnote">Signal-XP aus letztem Announce, Live-Sichtung und bekannter Route · keine Paket- oder Nutzerstatistik</div>';
+      '<section class="n2k-rank-panel">'+
+        '<div class="n2k-rank-head">'+
+          '<div class="n2k-rank-brand"><span class="n2k-rank-mark">✦</span><div><small>N2K MESH · HIGH SCORE</small><strong>Aktivste Nodes</strong></div></div>'+
+          '<div class="n2k-rank-meta"><span class="n2k-rank-live"><i></i>LIVE RANKING</span><small>Rollierende 24 Stunden</small></div>'+
+        '</div>'+
+        '<div id="n2k-node-leaderboard" class="n2k-node-leaderboard" aria-live="polite"><div class="n2k-rank-empty">Live-Signale werden geladen …</div></div>'+
+        '<div class="n2k-rank-footnote">Signal-XP aus letztem Announce, Live-Sichtung und bekannter Route · keine Paket- oder Nutzerstatistik</div>'+
+      '</section>'+
+      '<section class="n2k-showcase-quick">'+
+        '<div class="n2k-showcase-head"><div><span class="n2k-showcase-head-icon">'+n2kIcon("radio")+'</span><strong>Schnellzugriff</strong></div></div>'+
+        '<div class="n2k-showcase-quick-grid">'+
+          '<button type="button" data-n2k-quick="chat"><b>'+n2kIcon("chat")+'</b><span>Neue Nachricht</span></button>'+
+          '<button type="button" data-n2k-quick="contacts"><b>'+n2kIcon("contacts")+'</b><span>Kontakte</span></button>'+
+          '<button type="button" data-n2k-quick="mesh"><b>'+n2kIcon("mesh")+'</b><span>Living Mesh</span></button>'+
+        '</div>'+
+      '</section>';
     overview.appendChild(footer);
+    footer.querySelectorAll("[data-n2k-quick]").forEach(function(button){
+      button.addEventListener("click",function(){
+        if(typeof window.n2kShowPage==="function") window.n2kShowPage(button.dataset.n2kQuick);
+      });
+    });
   }
 
   function signalScore(item){
