@@ -3428,3 +3428,59 @@ body.n2k-pages-ready #n2k-page-about > .n2k-about-card{
   .n2k-first-run-steps-toggle > summary{display:none;}
   .n2k-first-run-steps-toggle:not([open]) > .n2k-first-run-steps{display:grid;}
 }
+/* 1.30.14-beta1 · keep the LXMF composer in view on short screens. */
+#n2k-page-chat.is-active:has(.lxmf-chat.messenger-conversation.n2k-unified-chat-open){
+  display:flex !important;
+  flex-direction:column !important;
+  height:calc(100dvh - 132px) !important;
+  min-height:0 !important;
+  max-height:calc(100dvh - 132px) !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+
+#n2k-page-chat .lxmf-chat.messenger-conversation.n2k-unified-chat-open{
+  display:flex !important;
+  flex:1 1 auto !important;
+  flex-direction:column !important;
+  width:100% !important;
+  height:100% !important;
+  min-height:0 !important;
+  max-height:100% !important;
+  margin:0 !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+
+#n2k-page-chat .lxmf-chat.messenger-conversation.n2k-unified-chat-open .lxmf-chat-header,
+#n2k-page-chat .lxmf-chat.messenger-conversation.n2k-unified-chat-open .lxmf-chat-compose,
+#n2k-page-chat .lxmf-chat.messenger-conversation.n2k-unified-chat-open .lxmf-chat-status{
+  flex:0 0 auto !important;
+}
+
+#n2k-page-chat .lxmf-chat.messenger-conversation.n2k-unified-chat-open #lxmf-inbox{
+  flex:1 1 auto !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+#n2k-page-chat .lxmf-chat.messenger-conversation.n2k-unified-chat-open .lxmf-chat-compose{
+  position:sticky !important;
+  bottom:0 !important;
+  z-index:30 !important;
+  margin-top:auto !important;
+  background:rgba(5,16,25,.96) !important;
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+}
+
+@media (max-width:900px){
+  #n2k-page-chat.is-active:has(.lxmf-chat.messenger-conversation.n2k-unified-chat-open){
+    height:calc(100dvh - 190px) !important;
+    max-height:calc(100dvh - 190px) !important;
+  }
+}

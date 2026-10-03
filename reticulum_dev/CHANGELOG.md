@@ -1,3 +1,6 @@
+## 1.30.14-beta1
+- Keep the chat composer visible in short browser windows; only the message history scrolls while chatting.
+
 ## 1.30.13-beta1
 
 - Batch LXMF contact-cache writes during announce bursts, skip unchanged contacts and cap last-seen persistence to one update per peer every 30 seconds.
