@@ -1,3 +1,10 @@
+## 1.30.8-beta1
+
+- Verify that the own-name change is persisted in Supervisor options before confirming success.
+- Apply the saved name to the running LXMF destination and state without an add-on restart; retain the identity and destination address.
+- Announce the updated name automatically while respecting the announce cooldown, and refresh the header after applying it.
+- Prevent profile refreshes from replacing an edited or saving name field; report save and apply outcomes separately.
+
 ## 1.30.7-beta1
 
 - Show the running node's LXMF display name in the global status header on desktop and mobile.

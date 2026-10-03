@@ -16,6 +16,7 @@ IDENTITY_FILE = STATE_DIR / "identity"
 STATE_FILE = STATE_DIR / "state.json"
 ANNOUNCE_REQUEST = STATE_DIR / "announce.request"
 LXMF_ANNOUNCE_REQUEST = STATE_DIR / "lxmf-announce.request"
+PROFILE_REQUEST = STATE_DIR / "messenger-profile.request"
 NEARBY_SCAN_REQUEST = STATE_DIR / "nearby-scan.request"
 ANNOUNCE_COOLDOWN = 60
 
@@ -1913,8 +1914,37 @@ last_contact_cache_scan = 0
 # process registered its announce handler.
 scan_cached_lxmf_contacts()
 
+def apply_messenger_profile_request(state, delivery_destination):
+    """Apply a persisted profile change without replacing the LXMF identity."""
+    global LXMF_DISPLAY_NAME
+    if not PROFILE_REQUEST.exists():
+        return False
+    try:
+        request = json.loads(PROFILE_REQUEST.read_text(encoding="utf-8"))
+        name = str(request.get("name") or "").strip()
+        if not name or len(name) > 40:
+            raise ValueError("Ungültiger Messenger-Name")
+        delivery_destination.display_name = name
+        LXMF_DISPLAY_NAME = name
+        state["lxmf_display_name"] = name
+        state["lxmf_profile_error"] = None
+        state["updated"] = int(time.time())
+        write_state(state)
+        PROFILE_REQUEST.unlink(missing_ok=True)
+        return True
+    except Exception as exc:
+        state["lxmf_profile_error"] = str(exc)
+        state["updated"] = int(time.time())
+        write_state(state)
+        return False
+
+
 while running:
     now = int(time.time())
+    if apply_messenger_profile_request(state, lxmf_destination):
+        # Announce the new name while retaining the existing cooldown.
+        next_auto_announce = max(now, int(state.get("lxmf_last_announce") or 0) + ANNOUNCE_COOLDOWN)
+        state["lxmf_next_auto_announce"] = next_auto_announce
 
     if NEARBY_SCAN_REQUEST.exists():
         try:

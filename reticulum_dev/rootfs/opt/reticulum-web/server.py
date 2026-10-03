@@ -1273,10 +1273,26 @@ def update_messenger_profile(name):
                     or "Option konnte nicht gespeichert werden",
             }
 
+        # Confirm persistence instead of trusting only the save response.
+        if str(get_addon_options().get("messenger_name") or "").strip() != name:
+            return {"ok": False, "error": "Der gespeicherte Name konnte nicht bestätigt werden."}
+
+        state_dir = Path("/config/reticulum/homeassistant-node")
+        request_file = state_dir / "messenger-profile.request"
+        try:
+            state_dir.mkdir(parents=True, exist_ok=True)
+            tmp = request_file.with_suffix(".tmp")
+            tmp.write_text(json.dumps({"name": name, "requested_at": time.time()}), encoding="utf-8")
+            tmp.replace(request_file)
+        except Exception:
+            # The option is durable even if the running service cannot apply it.
+            return {"ok": True, "messenger_name": name, "restart_required": True}
+
         return {
             "ok": True,
             "messenger_name": name,
-            "restart_required": True,
+            "restart_required": False,
+            "apply_pending": True,
         }
 
     except urllib.error.HTTPError as exc:

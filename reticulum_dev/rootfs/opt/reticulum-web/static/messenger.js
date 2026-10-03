@@ -1795,8 +1795,8 @@ function n2kIcon(name){
 
     if (!root) return;
 
-    let panel =
-      $("m99-profile-panel");
+    let panel = $("m99-profile-panel");
+    if (panel && (panel.dataset.saving === "1" || panel.contains(document.activeElement))) return;
 
     if (!panel) {
       panel =
@@ -2016,6 +2016,11 @@ function n2kIcon(name){
         "Wird gespeichert…";
     }
 
+    const button = $("m99-save");
+    const panel = $("m99-profile-panel");
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+    if (panel) panel.dataset.saving = "1";
     try {
       const response =
         await fetch(
@@ -2044,8 +2049,23 @@ function n2kIcon(name){
       }
 
       if (status) {
-        status.textContent =
-          "Gespeichert. Add-on neu starten, damit der neue Name aktiv wird.";
+        status.textContent = data.restart_required
+          ? "Name gespeichert. Add-on neu starten, damit er aktiv wird."
+          : "Name gespeichert. Wird im laufenden Node übernommen…";
+      }
+      if (!data.restart_required) {
+        setTimeout(async () => {
+          try {
+            const response = await fetch("api/node/identity?ts=" + Date.now(), {cache: "no-store"});
+            const identity = await response.json();
+            if (status && identity.lxmf_display_name === name) {
+              status.textContent = "Name gespeichert und aktiv. Announce wird automatisch gesendet.";
+            } else if (status && identity.lxmf_profile_error) {
+              status.textContent = "Name gespeichert. Übernahme fehlgeschlagen: " + identity.lxmf_profile_error;
+            }
+            window.reticulumNodeHeader?.refresh();
+          } catch (_) { /* Keep the confirmed save feedback. */ }
+        }, 3500);
       }
 
     } catch (error) {
@@ -2054,6 +2074,9 @@ function n2kIcon(name){
           "Speichern fehlgeschlagen: " +
           error.message;
       }
+    } finally {
+      if (button) button.disabled = false;
+      if (panel) panel.dataset.saving = "0";
     }
   }
 
@@ -3806,7 +3829,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.7-beta1";
+  const VERSION="1.30.8-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5612,6 +5635,7 @@ function n2kIcon(name){
       loading = false;
     }
   }
+  window.reticulumNodeHeader = {refresh: refreshNodeName};
   function init() {
     const button = document.getElementById("n2k-current-node");
     if (button) button.onclick = () => {
