@@ -3873,3 +3873,7 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
   #n2k-os-overview .n2k-telemetry-cell svg{width:42px;}
   #n2k-os-overview .n2k-live-event-chip{max-width:78vw;}
 }
+
+
+/* 1.30.21-beta1 · keep core service status in the header only. */
+#n2k-os-overview > .n2k-overview-grid{display:none !important;}

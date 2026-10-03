@@ -1,3 +1,8 @@
+## 1.30.21-beta1
+
+- Remove the four repeated status cards from the overview; keep RNS, LXMF and NODE in the header and detailed status on the Status page.
+- Align visible app version labels and cache key with the DEV add-on version.
+
 ## 1.30.20-beta1
 - Modern responsive overview with readable service cards, compact mesh counters and larger telemetry.
 - Fix overlapping full-height mesh counters caused by conflicting top and bottom positions.
