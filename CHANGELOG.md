@@ -1,3 +1,10 @@
+## 1.30.10-beta1
+
+- Store manually saved contacts independently from the node's announce cache so network discovery cannot overwrite them.
+- Migrate existing manual contacts and merge their aliases into contact and chat API responses.
+- Route contact refreshes through one renderer so search, Saved and Favorites filters remain consistent after adding or importing contacts.
+- After adding a contact, show it directly in Saved using its address as the search term.
+
 ## 1.30.9-beta1
 
 - Integrate the active node name into the existing colored status indicator in the top header; remove the extra name row.

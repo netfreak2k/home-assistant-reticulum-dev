@@ -3186,21 +3186,10 @@ def get_n2k_backup():
         if not identity_raw:
             raise ValueError("Identity-Datei ist leer")
 
-        contacts = []
-
-        if contacts_file.exists():
-            try:
-                value = json.loads(
-                    contacts_file.read_text(
-                        encoding="utf-8"
-                    )
-                )
-
-                if isinstance(value, list):
-                    contacts = value
-
-            except Exception:
-                contacts = []
+        contact_data = get_messenger_contacts()
+        if not contact_data["ok"]:
+            raise ValueError(contact_data.get("error"))
+        contacts = sorted(contact_data["contacts"], key=lambda item: not bool(item.get("saved_contact")))
 
         try:
             current_options = get_addon_options()
@@ -3358,6 +3347,9 @@ def restore_n2k_backup(payload):
         encoding="utf-8",
     )
     os.replace(contacts_tmp, contacts_file)
+    with CONTACT_STORE_LOCK:
+        _write_saved_contacts([dict(item, saved_contact=True) for item in clean_contacts
+                               if item.get("saved_contact") or item.get("manual_alias") or item.get("alias")])
 
     options_restored = 0
 
@@ -3431,49 +3423,67 @@ def restore_n2k_backup(payload):
     }
 
 
+CONTACT_STORE_LOCK = threading.RLock()
+
+
+def _load_saved_contacts():
+    """Only the web contact manager writes this durable address book."""
+    base = Path("/config/reticulum/homeassistant-node")
+    saved_file = base / "saved-contacts.json"
+    with CONTACT_STORE_LOCK:
+        if saved_file.exists():
+            records = json.loads(saved_file.read_text(encoding="utf-8"))
+            if not isinstance(records, list):
+                raise ValueError("Ungültiges gespeichertes Kontaktverzeichnis")
+            return records
+        # Preserve contacts saved by earlier versions before splitting the stores.
+        cache_file = base / "contacts.json"
+        cache = json.loads(cache_file.read_text(encoding="utf-8")) if cache_file.exists() else []
+        records = [dict(item, saved_contact=True) for item in cache
+                   if isinstance(item, dict) and (item.get("saved_contact") or item.get("manual_alias") or item.get("alias"))]
+        if records:
+            _write_saved_contacts(records)
+        return records
+
+
+def _write_saved_contacts(records):
+    path = Path("/config/reticulum/homeassistant-node/saved-contacts.json")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(path)
+
+
 def get_messenger_contacts():
-    path = Path(
-        "/config/reticulum/homeassistant-node/"
-        "contacts.json"
-    )
-
+    path = Path("/config/reticulum/homeassistant-node/contacts.json")
     try:
-        if not path.exists():
-            contacts = []
-        else:
-            contacts = json.loads(
-                path.read_text(encoding="utf-8")
-            )
-
-        if not isinstance(contacts, list):
-            contacts = []
-
-        contacts = [
-            item for item in contacts
-            if isinstance(item, dict)
-            and item.get("destination_hash")
-        ]
-
-        contacts.sort(
-            key=lambda item: int(
-                item.get("last_seen") or 0
-            ),
-            reverse=True,
-        )
-
-        return {
-            "ok": True,
-            "count": len(contacts),
-            "contacts": contacts,
-        }
-
+        discovered = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+        if not isinstance(discovered, list): discovered = []
+        contacts = {}
+        for item in discovered:
+            if not isinstance(item, dict): continue
+            peer = str(item.get("destination_hash") or "").strip().lower()
+            if re.fullmatch(r"[0-9a-f]{32}", peer):
+                contacts[peer] = dict(item, destination_hash=peer)
+        for saved in _load_saved_contacts():
+            if not isinstance(saved, dict): continue
+            peer = str(saved.get("destination_hash") or "").strip().lower()
+            if not re.fullmatch(r"[0-9a-f]{32}", peer): continue
+            current = contacts.get(peer, {})
+            merged = dict(saved, **current)
+            merged.update({"destination_hash": peer, "saved_contact": True,
+                           "saved_at": saved.get("saved_at", 0),
+                           "manual_alias": bool(saved.get("manual_alias")),
+                           "alias": saved.get("alias", "")})
+            if merged["manual_alias"]:
+                merged["display_name"] = saved.get("alias") or saved.get("display_name") or ""
+            else:
+                merged["display_name"] = current.get("announced_name") or current.get("display_name") or saved.get("announced_name") or ""
+            contacts[peer] = merged
+        records = sorted(contacts.values(), key=lambda item: int(item.get("last_seen") or 0), reverse=True)
+        return {"ok": True, "count": len(records), "contacts": records}
     except Exception as exc:
-        return {
-            "ok": False,
-            "count": 0,
-            "contacts": [],
-            "error": str(exc),
-        }
+        return {"ok": False, "count": 0, "contacts": [], "error": str(exc)}
 
 
 
@@ -3751,119 +3761,29 @@ def get_messenger_nearby(since=0, probe=False):
 def set_messenger_contact_alias(peer_hash, name):
     peer_hash = str(peer_hash or "").strip().lower()
     name = str(name or "").strip()
-
     if not re.fullmatch(r"[0-9a-f]{32}", peer_hash):
-        return {
-            "ok": False,
-            "error": "Ungültiger Peer Hash",
-        }
-
+        return {"ok": False, "error": "Ungültiger Peer Hash"}
     if len(name) > 40:
-        return {
-            "ok": False,
-            "error": "Alias maximal 40 Zeichen",
-        }
-
-    path = Path(
-        "/config/reticulum/homeassistant-node/contacts.json"
-    )
-
+        return {"ok": False, "error": "Alias maximal 40 Zeichen"}
     try:
-        if path.exists():
-            contacts = json.loads(
-                path.read_text(encoding="utf-8")
-            )
-        else:
-            contacts = []
-
-        if not isinstance(contacts, list):
-            contacts = []
-
-        found = False
-
-        for item in contacts:
-            if not isinstance(item, dict):
-                continue
-
-            item_peer = str(
-                item.get("destination_hash") or ""
-            ).strip().lower()
-
-            if item_peer != peer_hash:
-                continue
-
-            # Keep the network-announced name separately. A manually
-            # assigned alias must never be overwritten by later announces.
-            current_name = str(
-                item.get("display_name") or ""
-            ).strip()
-
-            if (
-                current_name
-                and not item.get("manual_alias")
-                and not item.get("announced_name")
-            ):
-                item["announced_name"] = current_name
-
-            if name:
-                item["display_name"] = name
-                item["manual_alias"] = True
-                item["alias"] = name
-            else:
-                # Empty name removes the manual alias and falls back to
-                # the last announced name if one is available.
-                item["manual_alias"] = False
-                item.pop("alias", None)
-                item["display_name"] = str(
-                    item.get("announced_name") or ""
-                ).strip()
-
-            item["saved_contact"] = True
-            found = True
-            break
-
-        if not found:
-            contacts.append({
-                "destination_hash": peer_hash,
-                "display_name": name,
-                "alias": name if name else "",
-                "manual_alias": bool(name),
-                "saved_contact": True,
-                "announced_name": "",
-                "last_seen": 0,
-            })
-
-        tmp = path.with_suffix(".json.tmp")
-
-        tmp.write_text(
-            json.dumps(
-                contacts,
-                ensure_ascii=False,
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
-
-        tmp.replace(path)
-
-        return {
-            "ok": True,
-            "peer_hash": peer_hash,
-            "display_name": name,
-            "manual_alias": bool(name),
-        }
-
+        with CONTACT_STORE_LOCK:
+            data = get_messenger_contacts()
+            if not data["ok"]: raise ValueError(data.get("error"))
+            current = next((item for item in data["contacts"] if item.get("destination_hash") == peer_hash), {})
+            records = _load_saved_contacts()
+            record = dict(current, destination_hash=peer_hash, saved_contact=True,
+                          saved_at=int(time.time()), manual_alias=bool(name), alias=name)
+            if not current.get("manual_alias"):
+                record["announced_name"] = current.get("announced_name") or current.get("display_name") or ""
+            record["display_name"] = name or record.get("announced_name") or ""
+            records = [item for item in records if str(item.get("destination_hash") or "").lower() != peer_hash]
+            records.append(record)
+            _write_saved_contacts(records)
+        return {"ok": True, "peer_hash": peer_hash, "display_name": record["display_name"],
+                "manual_alias": bool(name), "saved_contact": True}
     except Exception as exc:
-        return {
-            "ok": False,
-            "error": str(exc),
-        }
+        return {"ok": False, "error": str(exc)}
 
-
-
-MESSENGER_READ_STATE = Path(
-    "/config/reticulum/homeassistant-node/read-state.json"
-)
 
 
 def load_messenger_read_state():
@@ -4000,7 +3920,7 @@ def get_messenger_data():
 
     inbox = load_list(inbox_file)
     outbox = load_list(outbox_file)
-    contacts = load_list(contacts_file)
+    contacts = get_messenger_contacts().get("contacts", [])
     read_state = load_messenger_read_state()
 
     contact_names = {}
