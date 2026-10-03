@@ -1,3 +1,9 @@
+## 1.30.9-beta1
+
+- Integrate the active node name into the existing colored status indicator in the top header; remove the extra name row.
+- Preserve the original status text and color updates while displaying the name beside the status dot.
+- Keep full names in the tooltip; constrain long names on phones and support keyboard access to Settings.
+
 ## 1.30.8-beta1
 
 - Verify that the own-name change is persisted in Supervisor options before confirming success.

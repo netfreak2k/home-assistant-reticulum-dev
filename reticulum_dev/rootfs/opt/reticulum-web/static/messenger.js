@@ -3829,7 +3829,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.8-beta1";
+  const VERSION="1.30.9-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5610,8 +5610,8 @@ function n2kIcon(name){
   let loading = false;
   let lastName = "";
   async function refreshNodeName() {
-    const button = document.getElementById("n2k-current-node");
-    const label = document.getElementById("n2k-current-node-name");
+    const button = document.getElementById("node-status");
+    const label = button;
     if (!button || !label || loading || document.hidden) return;
     loading = true;
     const controller = new AbortController();
@@ -5624,11 +5624,11 @@ function n2kIcon(name){
       const name = String(data?.lxmf_display_name || "").trim();
       if (!response.ok || !name) throw new Error("Node identity unavailable");
       lastName = name;
-      label.textContent = name;
+      label.dataset.nodeName = name;
       button.title = "Aktueller Node: " + name + " · Namen in den Einstellungen ändern";
       button.setAttribute("aria-label", "Aktueller Node: " + name + ". Einstellungen öffnen");
     } catch (_) {
-      if (!lastName) label.textContent = "Name nicht verfügbar";
+      if (!lastName) label.dataset.nodeName = "Name nicht verfügbar";
       button.title = lastName ? "Zuletzt gelesener Node-Name: " + lastName : "Node-Name noch nicht verfügbar";
     } finally {
       clearTimeout(timeout);
@@ -5637,10 +5637,18 @@ function n2kIcon(name){
   }
   window.reticulumNodeHeader = {refresh: refreshNodeName};
   function init() {
-    const button = document.getElementById("n2k-current-node");
-    if (button) button.onclick = () => {
-      if (typeof window.n2kShowPage === "function") window.n2kShowPage("settings");
-    };
+    const button = document.getElementById("node-status");
+    if (button) {
+      button.onclick = () => {
+        if (typeof window.n2kShowPage === "function") window.n2kShowPage("settings");
+      };
+      button.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          button.click();
+        }
+      });
+    }
     refreshNodeName();
     setInterval(refreshNodeName, 30000);
     document.addEventListener("visibilitychange", () => {
