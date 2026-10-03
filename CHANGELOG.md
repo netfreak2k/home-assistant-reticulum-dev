@@ -1,3 +1,9 @@
+## 1.30.6-beta1
+
+- Fix the hidden own-name form: load and mount the messenger profile on the unified Settings page on desktop and mobile.
+- Label the field Own display name and associate its input with the label.
+- Keep the existing profile save and announce APIs; saving reports the required add-on restart.
+
 ## 1.30.5-beta1
 
 - Search all contacts by name, alias or LXMF address before paginating the results.

@@ -1791,8 +1791,7 @@ function n2kIcon(name){
   }
 
   async function loadIdentity() {
-    const root =
-      $("msg-settings-view");
+    const root = $("n2k-page-settings") || $("msg-settings-view");
 
     if (!root) return;
 
@@ -1811,6 +1810,10 @@ function n2kIcon(name){
 
       root.appendChild(panel);
     }
+    // The unified router hides the legacy settings container. Keep the
+    // existing profile form on the actual Settings page after reparenting.
+    if (panel.parentElement !== root) root.appendChild(panel);
+    panel.hidden = false;
 
     panel.innerHTML = `
       <div class="m99-loading">
@@ -1876,11 +1879,11 @@ function n2kIcon(name){
         <div class="m99-card">
 
           <div class="m99-title">
-            Mein Messenger
+            Mein Name im Reticulum-Netz
           </div>
 
-          <label class="m99-label">
-            Anzeigename
+          <label class="m99-label" for="m99-name">
+            Eigener Anzeigename
           </label>
 
           <div class="m99-name-row">
@@ -3803,7 +3806,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.5-beta1";
+  const VERSION="1.30.6-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4648,6 +4651,7 @@ function n2kIcon(name){
 
     /* Settings = actual configuration surfaces */
     [
+      "#m99-profile-panel",
       "#reticulum-network",
       "#reticulum-identity",
       "#n2k-propagation-card"
@@ -4730,7 +4734,7 @@ function n2kIcon(name){
       }catch(_){}
     }
 
-    if(name==="settings" || name==="status"){
+    if(name==="settings"){
       try{
         if(window.reticulumProfile099 &&
            typeof window.reticulumProfile099.loadIdentity==="function"){
