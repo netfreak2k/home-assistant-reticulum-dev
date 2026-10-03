@@ -1,3 +1,7 @@
+## 1.30.12-beta1
+
+- Prevent simultaneous web requests from launching duplicate status and network diagnostics when the cached snapshot expires.
+
 ## 1.30.11-beta1
 
 - Open saved contacts directly in the Chat conversation and synchronize the selected recipient across both chat implementations.
