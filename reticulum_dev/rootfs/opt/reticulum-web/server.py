@@ -3802,6 +3802,7 @@ def set_messenger_contact_alias(peer_hash, name):
                     item.get("announced_name") or ""
                 ).strip()
 
+            item["saved_contact"] = True
             found = True
             break
 
@@ -3811,6 +3812,7 @@ def set_messenger_contact_alias(peer_hash, name):
                 "display_name": name,
                 "alias": name if name else "",
                 "manual_alias": bool(name),
+                "saved_contact": True,
                 "announced_name": "",
                 "last_seen": 0,
             })

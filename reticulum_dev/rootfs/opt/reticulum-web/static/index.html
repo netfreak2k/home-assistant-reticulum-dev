@@ -2840,6 +2840,21 @@ code {
 
     
 
+    <div class="n2k-contact-controls">
+      <label for="n2k-contact-search">Kontakte durchsuchen</label>
+      <input id="n2k-contact-search" type="search" placeholder="Name oder LXMF-Adresse suchen…" autocomplete="off">
+      <div class="n2k-contact-filters" role="group" aria-label="Kontaktliste filtern">
+        <button type="button" data-n2k-contact-filter="all" aria-pressed="true">Alle</button>
+        <button type="button" data-n2k-contact-filter="saved" aria-pressed="false">Gespeichert</button>
+        <button type="button" data-n2k-contact-filter="favorites" aria-pressed="false">★ Favoriten</button>
+      </div>
+      <div class="n2k-contact-announce-row">
+        <button type="button" id="n2k-contact-announce" class="m110-tool-button">Announce senden</button>
+        <span>Eigene LXMF-Adresse im Netz bekanntgeben</span>
+      </div>
+      <div id="n2k-contact-announce-status" role="status" aria-live="polite"></div>
+      <div id="n2k-contact-count" role="status" aria-live="polite"></div>
+    </div>
     <div id="msg-contact-list"></div>
 
   </div>
@@ -12246,7 +12261,7 @@ if (
 })();
 </script>
 
-<script src="static/messenger.js"></script>
+<script src="static/messenger.js?v=1.30.5-beta1"></script>
 
 
 <script id="n2k-mobile-real-js-1181">

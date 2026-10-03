@@ -1,3 +1,10 @@
+## 1.30.5-beta1
+
+- Search all contacts by name, alias or LXMF address before paginating the results.
+- Add All, Saved and Favorites filters; display saved contacts and accessible favorite buttons in separate rows.
+- Preserve saved-contact metadata across incoming announces. Favorites use the existing browser storage.
+- Add a visible LXMF Announce action to Contacts, with queue feedback, error handling and cooldown.
+
 ## 1.30.4-beta1
 
 - Add original CC0 SVG line icons for radio, mesh, chat, contacts, status, setup and navigation.

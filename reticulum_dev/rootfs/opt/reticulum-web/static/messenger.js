@@ -17,7 +17,9 @@ function n2kIcon(name){
 
   const state = {
     contacts: [],
-    activeTab: "chats"
+    activeTab: "chats",
+    contactQuery: "",
+    contactFilter: "all"
   };
 
   function esc(v) {
@@ -135,45 +137,55 @@ function n2kIcon(name){
 
     removeContactMoreButton();
 
-    if (!state.contacts.length) {
-      root.innerHTML =
-        '<div class="m97-empty">Keine Kontakte gefunden.</div>';
+    const favorites = readContactFavorites();
+    const query = state.contactQuery.trim().toLocaleLowerCase("de");
+    const contacts = state.contacts.filter(contact => {
+      const peer = String(contact.destination_hash || "").toLowerCase();
+      const saved = Boolean(contact.saved_contact || contact.manual_alias || contact.alias);
+      const matchesGroup = state.contactFilter === "all" ||
+        (state.contactFilter === "saved" && saved) ||
+        (state.contactFilter === "favorites" && favorites.has(peer));
+      return matchesGroup && (!query ||
+        [cleanName(contact), contact.alias, contact.announced_name, peer]
+          .some(value => String(value || "").toLocaleLowerCase("de").includes(query)));
+    }).sort((a, b) => Number(favorites.has(String(b.destination_hash).toLowerCase())) -
+      Number(favorites.has(String(a.destination_hash).toLowerCase())));
+
+    const count = $("n2k-contact-count");
+    if (count) count.textContent = contacts.length + " von " + state.contacts.length + " Kontakten";
+    document.querySelectorAll("[data-n2k-contact-filter]").forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset.n2kContactFilter === state.contactFilter));
+    });
+    if (!contacts.length) {
+      root.innerHTML = '<div class="m97-empty">' +
+        (query ? "Keine passenden Kontakte." : state.contactFilter === "favorites" ?
+          "Noch keine Favoriten. Markiere einen Kontakt mit dem Stern." :
+          state.contactFilter === "saved" ? "Noch keine gespeicherten Kontakte. Nutze + Kontakt oder benenne einen Kontakt im Chat." :
+          "Keine Kontakte gefunden.") + '</div>';
       return;
     }
 
-    const visibleContacts =
-      state.contacts.slice(0, visibleContactCount);
-
-    root.innerHTML =
-      visibleContacts.map(contact => {
-        const peer =
-          String(contact.destination_hash || "");
-
-        const name =
-          cleanName(contact);
-
-        return `
-          <button
-            type="button"
-            class="messenger-contact m97-contact"
-            data-m97-peer="${esc(peer)}"
-          >
-            <span class="messenger-contact-avatar">
-              ${esc(name[0] || "?")}
-            </span>
-
-            <span class="messenger-contact-body">
-              <span class="messenger-contact-name">
-                ${esc(name)}
-              </span>
-
-              <span class="messenger-contact-preview">
-                ${esc(contactMeta(contact, peer))}
-              </span>
-            </span>
-          </button>
-        `;
-      }).join("");
+    const visibleContacts = contacts.slice(0, visibleContactCount);
+    root.innerHTML = visibleContacts.map(contact => {
+      const peer = String(contact.destination_hash || "").toLowerCase();
+      const name = cleanName(contact);
+      const favorite = favorites.has(peer);
+      const saved = Boolean(contact.saved_contact || contact.manual_alias || contact.alias);
+      return `<div class="n2k-contact-entry" data-n2k-contact-entry>
+        <button type="button" class="messenger-contact m97-contact" data-m97-peer="${esc(peer)}">
+          <span class="messenger-contact-avatar">${esc(name[0] || "?")}</span>
+          <span class="messenger-contact-body">
+            <span class="messenger-contact-name">${esc(name)}${saved ? ' <small class="n2k-contact-saved">Gespeichert</small>' : ""}</span>
+            <span class="messenger-contact-preview">${esc(contactMeta(contact, peer))}</span>
+          </span>
+        </button>
+        <button type="button" class="n2k-contact-star" data-n2k-favorite="${esc(peer)}"
+          aria-pressed="${favorite}" aria-label="${favorite ? "Favorit entfernen" : "Als Favorit markieren"}: ${esc(name)}">${favorite ? "★" : "☆"}</button>
+      </div>`;
+    }).join("");
+    root.querySelectorAll("[data-n2k-favorite]").forEach(button => {
+      button.onclick = () => window.reticulumContacts104?.toggleFavorite(button.dataset.n2kFavorite);
+    });
 
     root.querySelectorAll("[data-m97-peer]")
       .forEach(button => {
@@ -195,7 +207,7 @@ function n2kIcon(name){
       });
 
     const remaining =
-      state.contacts.length - visibleContacts.length;
+      contacts.length - visibleContacts.length;
 
     if (remaining > 0) {
       const more =
@@ -228,6 +240,55 @@ function n2kIcon(name){
       root.insertAdjacentElement("afterend", more);
     }
   }
+
+  function readContactFavorites() {
+    try {
+      const data = JSON.parse(localStorage.getItem("reticulum-messenger-favorites") || "[]");
+      return new Set(Array.isArray(data) ? data.map(peer => String(peer).toLowerCase()) : []);
+    } catch (_) { return new Set(); }
+  }
+
+  function bindContactControls() {
+    const input = $("n2k-contact-search");
+    if (input) input.addEventListener("input", () => {
+      state.contactQuery = input.value;
+      renderContacts(true);
+    });
+    document.querySelectorAll("[data-n2k-contact-filter]").forEach(button => {
+      button.onclick = () => {
+        state.contactFilter = button.dataset.n2kContactFilter;
+        renderContacts(true);
+      };
+    });
+    const announce = $("n2k-contact-announce");
+    let cooldownUntil = 0;
+    if (announce) announce.onclick = async () => {
+      if (announce.disabled) return;
+      const status = $("n2k-contact-announce-status");
+      announce.disabled = true;
+      status.textContent = "Announce wird angefordert…";
+      try {
+        const response = await fetch("api/node/lxmf/announce", {method: "POST", cache: "no-store"});
+        const data = await response.json();
+        if (!data.ok && !Number(data.retry_after)) throw new Error(data.error || "Announce fehlgeschlagen");
+        status.textContent = data.ok ? "Announce angefordert. Deine LXMF-Adresse wird im Netz bekanntgegeben." : "Bitte bis zum nächsten Announce warten.";
+        cooldownUntil = Date.now() + (data.ok ? 60 : Number(data.retry_after)) * 1000;
+        const tick = () => {
+          const seconds = Math.ceil((cooldownUntil - Date.now()) / 1000);
+          announce.textContent = seconds > 0 ? "Announce · " + seconds + " s" : "Announce senden";
+          announce.disabled = seconds > 0;
+          if (seconds > 0) setTimeout(tick, 1000);
+        };
+        tick();
+      } catch (error) {
+        status.textContent = "Announce fehlgeschlagen: " + error.message;
+        announce.disabled = false;
+      }
+    };
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindContactControls, {once: true});
+  } else { bindContactControls(); }
 
   async function loadContacts() {
     try {
@@ -401,6 +462,7 @@ function n2kIcon(name){
 
   window.reticulumMessenger097 = {
     state,
+    renderContacts,
     loadContacts,
     selectTab
   };
@@ -3503,6 +3565,7 @@ function n2kIcon(name){
 
     saveFavorites(favorites);
 
+    window.reticulumMessenger097?.renderContacts(true);
     decorateContacts();
   }
 
@@ -3512,7 +3575,7 @@ function n2kIcon(name){
         "msg-contact-list"
       );
 
-    if (!root) return;
+    if (!root || root.querySelector("[data-n2k-contact-entry]")) return;
 
     const favorites =
       loadFavorites();
@@ -3740,7 +3803,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.4-beta1";
+  const VERSION="1.30.5-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
