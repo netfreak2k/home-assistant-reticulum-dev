@@ -3829,7 +3829,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.10-beta1";
+  const VERSION="1.30.11-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4748,6 +4748,14 @@ function n2kIcon(name){
     );
 
     activateNav(name);
+    if (name === "chat") {
+      const conversation = page.querySelector(".messenger-conversation");
+      if (conversation) {
+        conversation.classList.remove("n2k-unified-chat-open", "n2k-real-chat-open", "n2k-desktop-chat-open");
+        conversation.hidden = true;
+        conversation.style.setProperty("display", "none", "important");
+      }
+    }
     window.scrollTo({top:0,behavior:"smooth"});
 
     if(name==="contacts"){
@@ -4816,9 +4824,18 @@ function n2kIcon(name){
     const old=window.openMessengerConversation;
     if(typeof old==="function" && !old.__n2kUnified1240){
       const wrapped=function(peer){
+        peer = String(peer || "").trim().toLowerCase();
+        if (!/^[0-9a-f]{32}$/.test(peer)) return;
         showPage("chat");
         old(peer);
-        setTimeout(function(){
+        // The legacy inbox/status and external conversation renderer must
+        // target the same peer, including contacts without message history.
+        if (typeof window.openLXMFChat === "function") window.openLXMFChat(peer);
+        const selected = window.reticulumMessenger097?.state.contacts.find(contact =>
+          String(contact.destination_hash || "").toLowerCase() === peer);
+        const title = byId("lxmf-chat-name");
+        if (title && selected?.display_name) title.textContent = selected.display_name;
+        function revealConversation(){
           const page=byId("n2k-page-chat");
           const conv=page?.querySelector(".messenger-conversation");
           const search=page?.querySelector(".messenger-search-wrap");
@@ -4826,10 +4843,16 @@ function n2kIcon(name){
           if(search) search.style.setProperty("display","none","important");
           if(list) list.style.setProperty("display","none","important");
           if(conv){
+            conv.classList.add("n2k-unified-chat-open", "n2k-real-chat-open", "n2k-desktop-chat-open");
             conv.hidden=false;
             conv.style.setProperty("display","flex","important");
+            conv.style.setProperty("visibility","visible","important");
+            const composer = byId("lxmf-chat-content");
+            if (composer) composer.focus();
           }
-        },0);
+        }
+        revealConversation();
+        setTimeout(revealConversation,0);
       };
       wrapped.__n2kUnified1240=true;
       window.openMessengerConversation=wrapped;
@@ -4844,7 +4867,11 @@ function n2kIcon(name){
         const conv=page?.querySelector(".messenger-conversation");
         const search=page?.querySelector(".messenger-search-wrap");
         const list=page?.querySelector("#messenger-chat-list");
-        if(conv) conv.style.setProperty("display","none","important");
+        if(conv){
+          conv.classList.remove("n2k-unified-chat-open", "n2k-real-chat-open", "n2k-desktop-chat-open");
+          conv.hidden=true;
+          conv.style.setProperty("display","none","important");
+        }
         if(search) search.style.setProperty("display","block","important");
         if(list) list.style.setProperty("display","block","important");
         return false;
@@ -5173,6 +5200,7 @@ function n2kIcon(name){
     const search=page.querySelector(".messenger-search-wrap");
     const list=byId("messenger-chat-list");
     const conv=page.querySelector(".messenger-conversation");
+    if (conv?.classList.contains("n2k-unified-chat-open")) return;
 
     if(search){
       search.hidden=false;

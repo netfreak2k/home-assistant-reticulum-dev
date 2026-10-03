@@ -1,3 +1,9 @@
+## 1.30.11-beta1
+
+- Open saved contacts directly in the Chat conversation and synchronize the selected recipient across both chat implementations.
+- Keep the conversation and composer visible during delayed page refreshes and layout repairs, including contacts without message history.
+- Return to the chat list when using Back or selecting Chat navigation.
+
 ## 1.30.10-beta1
 
 - Store manually saved contacts independently from the node's announce cache so network discovery cannot overwrite them.
