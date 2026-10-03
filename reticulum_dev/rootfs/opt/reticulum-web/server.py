@@ -2321,6 +2321,7 @@ STATUS_CACHE = {
 }
 
 STATUS_CACHE_TTL = 8.0
+STATUS_REFRESH_LOCK = threading.Lock()
 
 
 def build_status_snapshot():
@@ -2378,6 +2379,13 @@ def build_status_snapshot():
 
 
 def get_status():
+    # Serialize cache misses: ThreadingHTTPServer can otherwise start multiple
+    # identical CLI and network diagnostics when the snapshot expires.
+    with STATUS_REFRESH_LOCK:
+        return _get_status_locked()
+
+
+def _get_status_locked():
     now = time.time()
 
     cached = STATUS_CACHE["data"]
