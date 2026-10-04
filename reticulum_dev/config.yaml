@@ -1,5 +1,5 @@
 name: "N2K RNS Gateway DEV"
-version: "1.30.39-beta1"
+version: "1.30.40-beta1"
 slug: "reticulum_dev"
 description: "Connect Home Assistant to the Reticulum Network Stack and LXMF messaging."
 startup: "application"
