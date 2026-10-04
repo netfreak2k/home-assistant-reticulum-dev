@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.30.52-beta1 — Speech-synchronized Demo Mode
+
+### Demo Mode
+
+- Enable the German speaker by default.
+- Disable subtitles by default.
+- Stop using scene duration as a hard cut-off for narration.
+- Wait until the browser speech engine finishes before advancing to the next scene.
+- Add a 0.9 second visual tail after narration before the cinematic transition.
+- Slow narration slightly from 0.94 to 0.92 for more natural delivery.
+- Show the scripted runtime as a minimum (≥ 03:18), since actual browser voices can vary in duration.
+
 ## 1.30.51-beta1 — Narrator-safe Demo Timing
 
 ### Demo Mode
