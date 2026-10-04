@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.30.53-beta1 — Brighter Stream Demo
+
+### Demo Mode
+
+- Brighten the entire Demo stage for Twitch, YouTube and live-stream capture.
+- Add stronger blue, teal and warm ambient light without washing out text.
+- Increase mesh route glow and particle visibility.
+- Add moving ambient light orbs for a more lively stream presentation.
+- Lift card surfaces and borders so UI elements survive video compression better.
+- Keep narration synchronization, default speaker/subtitle state and privacy behavior unchanged.
+
 ## 1.30.52-beta1 — Speech-synchronized Demo Mode
 
 ### Demo Mode
