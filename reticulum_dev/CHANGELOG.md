@@ -1,3 +1,8 @@
+## 1.30.51-beta1
+- Extend Demo Mode scene timing to 198 seconds so German narration can finish before scene changes.
+- Replace the fixed 02:30 runtime label with the calculated total scene duration.
+- Keep all 15 scenes, social formats, capture controls and privacy-safe synthetic content unchanged.
+
 ## 1.30.50-beta1
 - Improve Demo Mode readability and contrast for social-media capture, especially muted feeds and 9:16 portrait output.
 - Increase secondary text, badge, control, card and subtitle legibility while preserving the 150-second story timing.
