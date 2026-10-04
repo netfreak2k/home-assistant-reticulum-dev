@@ -94,6 +94,21 @@ The production pass uses:
 
 For public posts, keep subtitles enabled because many social feeds autoplay without audio.
 
+## 1.30.50 production readability pass
+
+The social capture UI now deliberately prioritizes legibility over decorative density:
+
+- secondary text uses brighter neutral tones instead of low-opacity grey
+- small labels and card copy are larger
+- subtitles use a darker, more opaque panel and larger type
+- animated scenes use stronger text shadows and dark content surfaces
+- 9:16 mode receives dedicated portrait typography overrides
+- high-contrast OS/browser preferences receive an additional contrast boost
+
+The story controller, 15-scene order and exact 150-second runtime are unchanged.
+This means existing recording workflows remain compatible while compressed TikTok,
+Reels and Shorts playback is easier to read.
+
 ## Community / how to participate
 
 Useful contributions include:
