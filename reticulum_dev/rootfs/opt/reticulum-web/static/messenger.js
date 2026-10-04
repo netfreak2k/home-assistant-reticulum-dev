@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.48-beta1";
+  const VERSION="1.30.49-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5052,6 +5052,9 @@ function n2kIcon(name){
           '<button type="button" data-demo-action="toggle">▶ Start</button>'+
           '<button type="button" data-demo-action="next">Nächste Szene</button>'+
           '<button type="button" data-demo-action="restart">↺ Neustart</button>'+
+          '<button type="button" data-demo-action="voice">🔊 Voice-over: Aus</button>'+
+          '<button type="button" data-demo-action="captions" class="active">CC Untertitel: An</button>'+
+          '<button type="button" data-demo-action="capture">● Capture Mode</button>'+
           '<button type="button" data-demo-action="fullscreen">⛶ Vollbild</button>'+
         '</div>'+
         '<div class="n2k-demo-runtime" id="n2k-demo-runtime">00:00 / 02:30</div>'+
@@ -5068,8 +5071,9 @@ function n2kIcon(name){
           '<div class="n2k-demo-glow g2" aria-hidden="true"></div>'+
 
           '<section class="n2k-demo-scene n2k-demo-scene-intro is-active" data-demo-scene="0">'+
+            '<div class="n2k-demo-hook"><b>NETZ WEG?</b><span>Kommunikation muss nicht enden.</span></div>'+
             '<div class="n2k-demo-intro-core"><i></i><i></i><i></i><b>N2K</b></div>'+
-            '<div class="n2k-demo-intro-copy"><span>N2K RNS GATEWAY</span><h3>Was passiert,<br>wenn das Netz weg ist?</h3><p>Reticulum · LXMF · Home Assistant · Offgrid</p></div>'+
+            '<div class="n2k-demo-intro-copy"><span>N2K RNS GATEWAY</span><h3>KEIN NETZ.<br>KEIN PROBLEM.</h3><p>Reticulum · LXMF · Home Assistant · Offgrid</p></div>'+
           '</section>'+
 
           '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-problem" data-demo-scene="1">'+
@@ -5156,6 +5160,8 @@ function n2kIcon(name){
             '<div class="n2k-demo-claim">KEIN NETZ · KEIN PROBLEM</div>'+
           '</section>'+
 
+          '<div class="n2k-demo-transition" aria-hidden="true"><i></i></div>'+
+          '<div id="n2k-demo-subtitle" class="n2k-demo-subtitle" aria-live="polite"></div>'+
           '<div class="n2k-demo-watermark">N2K RNS GATEWAY · DEMO MODE · PRIVACY SAFE</div>'+
         '</div>'+
       '</div>'+
@@ -5471,7 +5477,7 @@ function n2kIcon(name){
 
 
 /* =========================================================
-   N2K Demo Mode 1.30.48-beta1
+   N2K Demo Mode 1.30.49-beta1
    2:30 social story · 15 chapters · 10 seconds each.
    Privacy rule: synthetic-only. The demo controller makes no
    network requests and never reads chat/contact content.
@@ -5480,21 +5486,96 @@ function n2kIcon(name){
   "use strict";
 
   const SCENES=[
-    {title:"Was passiert, wenn das Netz weg ist?",description:"Intro: Warum lokale, unabhängige Kommunikation überhaupt interessant ist."},
-    {title:"Warum Local First?",description:"Cloud und Mobilfunk sind nützlich – aber sie sollten nicht der einzige mögliche Kommunikationsweg sein."},
-    {title:"Wie das Gateway entstanden ist",description:"Vom Home-Assistant-Reticulum-Node zum Messenger, Living Mesh und Monitoring."},
-    {title:"Reticulum erklärt · Netzwerk",description:"Reticulum stellt Identitäten, Pfade und Transport bereit. Anwendungen bauen darauf auf."},
-    {title:"Reticulum erklärt · Transport",description:"LoRa, LAN und Internet können unterschiedliche Wege innerhalb desselben logischen Netzes sein."},
-    {title:"LXMF erklärt",description:"LXMF bringt Nachrichten und Zustellung auf Reticulum – inklusive Store-&-Forward-Konzepten."},
-    {title:"N2K RNS Gateway",description:"Messenger, Mesh, Funkstatus und Diagnose werden in Home Assistant zusammengeführt."},
-    {title:"Living Mesh",description:"Unsichtbare Reticulum-Pfade werden als Nodes, Relays, Routen und Aktivität sichtbar."},
-    {title:"RNode & LoRa",description:"Funkhardware wird direkt Teil des Gateways und lässt sich verständlich überwachen."},
-    {title:"Privacy Messenger",description:"Die Social-Demo zeigt ausschließlich synthetische Texte und keinerlei echte Kontakt- oder Nachrichtendaten."},
-    {title:"Store & Forward",description:"Wenn ein Ziel nicht direkt erreichbar ist, kann LXMF Propagation Nodes zur späteren Zustellung nutzen."},
-    {title:"Monitoring",description:"Verfügbarkeit, Pfade, Dynamik und Funkwerte werden als Verlauf statt nur als Momentaufnahme gezeigt."},
-    {title:"Entwicklung",description:"Build, testen, korrigieren, wieder testen – die App wächst iterativ auf echter Hardware."},
-    {title:"Ziele",description:"Einfacher Einstieg, lokale Kontrolle, robuste Kommunikation und ein verständliches Interface."},
-    {title:"Mach mit",description:"Teste, melde Bugs, bring Ideen, probiere Hardware aus oder entwickle direkt auf GitHub mit."}
+    {
+      title:"Was passiert, wenn das Netz weg ist?",
+      description:"Intro: Warum lokale, unabhängige Kommunikation überhaupt interessant ist.",
+      caption:"Mobilfunk weg? Internet weg? Kommunikation muss trotzdem nicht enden.",
+      narration:"Was passiert, wenn Mobilfunk oder Internet weg sind? Kommunikation muss nicht einfach enden. Genau hier setzt das N2K RNS Gateway mit Reticulum und LXMF an."
+    },
+    {
+      title:"Warum Local First?",
+      description:"Cloud und Mobilfunk sind nützlich – aber sie sollten nicht der einzige mögliche Kommunikationsweg sein.",
+      caption:"Local First: eigene Hardware, eigene Wege, mehr Kontrolle.",
+      narration:"Cloud und Mobilfunk sind praktisch. Aber sie sollten nicht der einzige mögliche Weg sein. Local First bedeutet: eigene Hardware, lokale Verbindungen und mehr Kontrolle über die Kommunikation."
+    },
+    {
+      title:"Wie das Gateway entstanden ist",
+      description:"Vom Home-Assistant-Reticulum-Node zum Messenger, Living Mesh und Monitoring.",
+      caption:"Aus einem Reticulum-Node wurde Schritt für Schritt ein komplettes Gateway.",
+      narration:"Angefangen hat es mit einem Reticulum Node in Home Assistant. Dann kamen LXMF Messenger, Delivery Status, RNode Unterstützung, Living Mesh und Monitoring dazu."
+    },
+    {
+      title:"Reticulum erklärt · Netzwerk",
+      description:"Reticulum stellt Identitäten, Pfade und Transport bereit. Anwendungen bauen darauf auf.",
+      caption:"Reticulum ist das Netzwerk darunter – nicht der Messenger selbst.",
+      narration:"Reticulum ist nicht der Messenger. Reticulum ist der Netzwerk-Stack darunter. Er arbeitet mit kryptografischen Identitäten, lernt Pfade und verbindet Ziele über unterschiedliche Transportwege."
+    },
+    {
+      title:"Reticulum erklärt · Transport",
+      description:"LoRa, LAN und Internet können unterschiedliche Wege innerhalb desselben logischen Netzes sein.",
+      caption:"LoRa, LAN und Internet können im selben logischen Netz zusammenarbeiten.",
+      narration:"Für Reticulum können LoRa, ein lokales LAN oder ein Internet Backbone unterschiedliche Transportwege sein. Die Anwendung darüber muss den konkreten Weg nicht selbst verwalten."
+    },
+    {
+      title:"LXMF erklärt",
+      description:"LXMF bringt Nachrichten und Zustellung auf Reticulum – inklusive Store-&-Forward-Konzepten.",
+      caption:"LXMF bringt Nachrichten, Zustellung und Store & Forward auf Reticulum.",
+      narration:"Auf Reticulum setzt LXMF auf. LXMF kümmert sich um Nachrichten, Zustellstatus und kann Propagation Nodes für Store und Forward verwenden, wenn ein Ziel später erreichbar wird."
+    },
+    {
+      title:"N2K RNS Gateway",
+      description:"Messenger, Mesh, Funkstatus und Diagnose werden in Home Assistant zusammengeführt.",
+      caption:"Eine Oberfläche für Messenger, Mesh, Funkhardware und Diagnose.",
+      narration:"Das N2K RNS Gateway bringt diese Bausteine in eine Oberfläche. Messenger, Living Mesh, RNode, Funkstatus, Netzpfade und Diagnose landen direkt in Home Assistant."
+    },
+    {
+      title:"Living Mesh",
+      description:"Unsichtbare Reticulum-Pfade werden als Nodes, Relays, Routen und Aktivität sichtbar.",
+      caption:"Living Mesh macht unsichtbare Pfade sichtbar.",
+      narration:"Living Mesh macht das unsichtbare Netz sichtbar. Nodes, Relays und bekannte Pfade werden animiert dargestellt, damit man Aktivität und Transportwege auf einen Blick versteht."
+    },
+    {
+      title:"RNode & LoRa",
+      description:"Funkhardware wird direkt Teil des Gateways und lässt sich verständlich überwachen.",
+      caption:"Mit RNode wird LoRa zum direkten Funkweg für Reticulum.",
+      narration:"Mit einem RNode kommt LoRa ins Spiel. Funkhardware wird zum Reticulum Interface, und die App zeigt Verbindung, Status und Funkmetriken direkt im Gateway."
+    },
+    {
+      title:"Privacy Messenger",
+      description:"Die Social-Demo zeigt ausschließlich synthetische Texte und keinerlei echte Kontakt- oder Nachrichtendaten.",
+      caption:"Demo Mode zeigt niemals echte Nachrichten, Namen oder Destination Hashes.",
+      narration:"Auch beim Vorführen gilt Datenschutz. Im Demo Mode werden keine echten Nachrichten, Kontaktnamen oder Destination Hashes verwendet. Alles, was hier zu sehen ist, ist synthetisch."
+    },
+    {
+      title:"Store & Forward",
+      description:"Wenn ein Ziel nicht direkt erreichbar ist, kann LXMF Propagation Nodes zur späteren Zustellung nutzen.",
+      caption:"Offline ist nicht automatisch verloren: Propagation Nodes können Nachrichten puffern.",
+      narration:"Ist ein Ziel gerade nicht direkt erreichbar, kann LXMF über Propagation Nodes arbeiten. Nachrichten können zwischengespeichert und später abgeholt oder zugestellt werden."
+    },
+    {
+      title:"Monitoring",
+      description:"Verfügbarkeit, Pfade, Dynamik und Funkwerte werden als Verlauf statt nur als Momentaufnahme gezeigt.",
+      caption:"Monitoring zeigt Trends: Verfügbarkeit, Pfade, Dynamik und Funk.",
+      narration:"Monitoring zeigt nicht nur einen Momentwert. Verfügbarkeit, Reticulum Pfade, Pfad-Dynamik und Funkwerte werden als Verlauf sichtbar und machen Veränderungen schneller verständlich."
+    },
+    {
+      title:"Entwicklung",
+      description:"Build, testen, korrigieren, wieder testen – die App wächst iterativ auf echter Hardware.",
+      caption:"Build. Test. Fix. Push. Wiederholen.",
+      narration:"Die Entwicklung passiert iterativ auf echter Hardware. Ein Feature bauen, testen, Fehler finden, korrigieren und wieder testen. So ist aus vielen kleinen Schritten diese Beta entstanden."
+    },
+    {
+      title:"Ziele",
+      description:"Einfacher Einstieg, lokale Kontrolle, robuste Kommunikation und ein verständliches Interface.",
+      caption:"Ziel: Reticulum einfacher, sichtbarer und alltagstauglicher machen.",
+      narration:"Das Ziel ist nicht nur mehr Technik. Reticulum soll einfacher zugänglich, grafisch verständlich und im Alltag nutzbar werden – besonders dort, wo lokale und robuste Kommunikation zählt."
+    },
+    {
+      title:"Mach mit",
+      description:"Teste, melde Bugs, bring Ideen, probiere Hardware aus oder entwickle direkt auf GitHub mit.",
+      caption:"Du hast einen Raspberry Pi, RNode oder einfach eine Idee? Bau mit.",
+      narration:"Jetzt bist du dran. Teste die App, melde Bugs, bring Ideen ein, probiere neue Hardware aus, hilf bei Übersetzungen oder entwickle direkt auf GitHub mit."
+    }
   ];
 
   const SCENE_MS=10000;
@@ -5506,6 +5587,10 @@ function n2kIcon(name){
   let sceneStartedAt=0;
   let pausedElapsed=0;
   let bound=false;
+  let voiceEnabled=false;
+  let captionsEnabled=true;
+  let captureEnabled=false;
+  let transitionTimer=null;
 
   function byId(id){
     return document.getElementById(id);
@@ -5560,6 +5645,88 @@ function n2kIcon(name){
     }
   }
 
+  function updateProductionButtons(){
+    const voice=document.querySelector('[data-demo-action="voice"]');
+    const captions=document.querySelector('[data-demo-action="captions"]');
+    const capture=document.querySelector('[data-demo-action="capture"]');
+
+    if(voice){
+      voice.textContent=voiceEnabled ? "🔊 Voice-over: An" : "🔊 Voice-over: Aus";
+      voice.classList.toggle("active",voiceEnabled);
+      voice.disabled=!("speechSynthesis" in window);
+      voice.title=voice.disabled ? "Browser unterstützt kein Speech Synthesis" : "";
+    }
+
+    if(captions){
+      captions.textContent=captionsEnabled ? "CC Untertitel: An" : "CC Untertitel: Aus";
+      captions.classList.toggle("active",captionsEnabled);
+    }
+
+    if(capture){
+      capture.textContent=captureEnabled ? "■ Capture beenden" : "● Capture Mode";
+      capture.classList.toggle("active",captureEnabled);
+    }
+
+    const subtitle=byId("n2k-demo-subtitle");
+    if(subtitle) subtitle.hidden=!captionsEnabled;
+  }
+
+  function stopVoice(){
+    if("speechSynthesis" in window){
+      try{ window.speechSynthesis.cancel(); }catch(_ignore){}
+    }
+  }
+
+  function speakScene(meta){
+    if(!voiceEnabled || !meta || !meta.narration || !("speechSynthesis" in window)) return;
+
+    stopVoice();
+
+    try{
+      const utterance=new SpeechSynthesisUtterance(meta.narration);
+      utterance.lang="de-DE";
+      utterance.rate=.96;
+      utterance.pitch=.96;
+      utterance.volume=.92;
+
+      const voices=window.speechSynthesis.getVoices?.()||[];
+      const german=voices.find(function(v){
+        return /^de(-|_)/i.test(String(v.lang||""));
+      });
+      if(german) utterance.voice=german;
+
+      window.speechSynthesis.speak(utterance);
+    }catch(_ignore){}
+  }
+
+  function triggerTransition(){
+    const root=stage();
+    if(!root) return;
+
+    clearTimeout(transitionTimer);
+    root.classList.remove("n2k-demo-transitioning");
+    void root.offsetWidth;
+    root.classList.add("n2k-demo-transitioning");
+
+    transitionTimer=setTimeout(function(){
+      root.classList.remove("n2k-demo-transitioning");
+    },720);
+  }
+
+  function setCapture(enabled){
+    captureEnabled=!!enabled;
+    document.body.classList.toggle("n2k-demo-capture",captureEnabled);
+
+    const root=stage();
+    if(root && captureEnabled){
+      window.setTimeout(function(){
+        root.scrollIntoView({block:"center",behavior:"smooth"});
+      },30);
+    }
+
+    updateProductionButtons();
+  }
+
   function updateToggle(){
     const button=document.querySelector('[data-demo-action="toggle"]');
     if(!button) return;
@@ -5595,6 +5762,15 @@ function n2kIcon(name){
     }
     if(title) title.textContent=meta.title;
     if(description) description.textContent=meta.description;
+
+    const subtitle=byId("n2k-demo-subtitle");
+    if(subtitle){
+      subtitle.textContent=meta.caption||meta.description||"";
+      subtitle.hidden=!captionsEnabled;
+    }
+
+    triggerTransition();
+    if(running) speakScene(meta);
 
     document.querySelectorAll(".n2k-demo-timeline i").forEach(function(dot,i){
       dot.classList.toggle("active",i===sceneIndex);
@@ -5639,6 +5815,7 @@ function n2kIcon(name){
     running=true;
     renderScene(sceneIndex);
     updateToggle();
+    updateProductionButtons();
     schedule(SCENE_MS);
     startTicker();
     document.body.classList.add("n2k-demo-running");
@@ -5666,6 +5843,7 @@ function n2kIcon(name){
     running=false;
     clearTimer();
     stopTicker();
+    stopVoice();
     updateRuntime();
     updateToggle();
     document.body.classList.remove("n2k-demo-running");
@@ -5738,6 +5916,16 @@ function n2kIcon(name){
           next();
         }else if(name==="restart"){
           restart();
+        }else if(name==="voice"){
+          voiceEnabled=!voiceEnabled;
+          updateProductionButtons();
+          if(voiceEnabled && running) speakScene(SCENES[sceneIndex]);
+          else stopVoice();
+        }else if(name==="captions"){
+          captionsEnabled=!captionsEnabled;
+          updateProductionButtons();
+        }else if(name==="capture"){
+          setCapture(!captureEnabled);
         }else if(name==="fullscreen"){
           toggleFullscreen();
         }
@@ -5761,6 +5949,8 @@ function n2kIcon(name){
 
   function exit(){
     pause();
+    setCapture(false);
+    stopVoice();
   }
 
   window.n2kDemoMode={
@@ -5771,8 +5961,11 @@ function n2kIcon(name){
     next:next,
     restart:restart,
     setFormat:setFormat,
+    setCapture:setCapture,
     duration:150,
     scenes:15,
+    captions:true,
+    voiceover:"browser-speech-synthesis",
     privacy:"synthetic-only"
   };
 })();
