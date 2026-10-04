@@ -1,3 +1,8 @@
+## 1.30.52-beta1
+- Speaker defaults to ON and subtitles default to OFF in Demo Mode.
+- Scene changes now wait for actual browser-TTS completion instead of cutting narration at the nominal scene duration.
+- Add a short post-speech visual tail and show the total runtime as a minimum because TTS voice speed differs by browser/system.
+
 ## 1.30.51-beta1
 - Extend Demo Mode scene timing to 198 seconds so German narration can finish before scene changes.
 - Replace the fixed 02:30 runtime label with the calculated total scene duration.
