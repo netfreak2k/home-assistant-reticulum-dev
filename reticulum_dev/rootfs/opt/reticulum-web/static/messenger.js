@@ -4316,6 +4316,7 @@ function n2kIcon(name){
     const live=contacts.filter(function(item){
       return Number(item.age_seconds||0)<=120;
     }).length;
+    const known=Number(data.count);
     const mode=typeof window.n2kGetMeshFilter==="function"
       ? window.n2kGetMeshFilter()
       : "live";
