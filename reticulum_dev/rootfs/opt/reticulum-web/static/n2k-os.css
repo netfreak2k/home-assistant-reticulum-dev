@@ -4398,11 +4398,15 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
 
 /* Depth planes: far nodes are quieter/smaller, near nodes slightly clearer. */
 #n2k-overview-live-svg .n2k-cnode{
+  filter:saturate(1.02) brightness(.98);
+  animation:none !important;
+}
+
+#n2k-overview-live-svg .n2k-cnode-orb{
   transform-box:fill-box;
   transform-origin:center;
-  filter:saturate(1.02) brightness(.98);
-  animation:n2kOverviewNodeCinema 8.5s ease-in-out infinite alternate !important;
-  animation-delay:calc(var(--n2k-hyper-index,0) * -0.18s) !important;
+  animation:n2kOverviewOrbCinema 9.5s ease-in-out infinite alternate !important;
+  animation-delay:calc(var(--n2k-hyper-index,0) * -0.19s) !important;
 }
 
 #n2k-overview-live-svg .n2k-cnode.depth-near{
@@ -4467,7 +4471,14 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
   filter:
     drop-shadow(0 4px 12px rgba(0,0,0,.28))
     drop-shadow(0 0 9px rgba(86,190,224,.28)) !important;
-  animation:n2kOverviewCoreCinema 18s ease-in-out infinite alternate !important;
+  animation:none !important;
+}
+
+#n2k-overview-live-svg .n2k-ccore-glow,
+#n2k-overview-live-svg .n2k-ccore-body{
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:n2kOverviewCoreShapeCinema 13s ease-in-out infinite alternate !important;
 }
 
 #n2k-overview-live-svg .n2k-u-core-aura{
@@ -4542,10 +4553,9 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
   to{filter:drop-shadow(0 0 3.5px currentColor)}
 }
 
-@keyframes n2kOverviewNodeCinema{
-  0%{transform:translate3d(-1px,1px,0) scale(.985)}
-  50%{transform:translate3d(1.5px,-1px,0) scale(1.008)}
-  100%{transform:translate3d(.5px,1.2px,0) scale(.995)}
+@keyframes n2kOverviewOrbCinema{
+  from{transform:scale(.965);filter:brightness(.94)}
+  to{transform:scale(1.025);filter:brightness(1.06)}
 }
 
 @keyframes n2kOverviewNodePulseCinema{
@@ -4558,9 +4568,9 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
   to{filter:brightness(1.14) drop-shadow(0 0 4px currentColor)}
 }
 
-@keyframes n2kOverviewCoreCinema{
-  from{transform:translateY(1px) scale(.99)}
-  to{transform:translateY(-1px) scale(1.015)}
+@keyframes n2kOverviewCoreShapeCinema{
+  from{transform:scale(.985);opacity:.88}
+  to{transform:scale(1.018);opacity:1}
 }
 
 @keyframes n2kOverviewCorePulseCinema{
