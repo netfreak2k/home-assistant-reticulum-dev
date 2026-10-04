@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.30.50-beta1 — Social Demo Readability & Contrast
+
+### Demo Mode
+
+- Raise contrast for secondary copy, badges, controls, cards and scene labels.
+- Increase small-text sizes that were difficult to read in screen recordings and compressed social feeds.
+- Strengthen subtitle panels for muted autoplay viewing.
+- Improve 9:16 portrait typography without changing the 2:30 timing or scene controller.
+- Add stronger text shadows and dark content surfaces so animated mesh backgrounds do not compete with copy.
+- Preserve the existing 15-chapter story, cinematic transitions, privacy-safe synthetic data and capture layouts.
+
+### Release hygiene
+
+- Bump add-on and frontend cache version to 1.30.50-beta1 so Home Assistant receives the updated assets.
+- Update README, Demo Mode documentation, add-on changelog and release notes.
+
 ## 1.30.49-beta1 — Demo Mode Production Pass
 
 ### Demo Mode
