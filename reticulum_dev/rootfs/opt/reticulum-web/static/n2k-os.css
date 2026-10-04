@@ -3912,3 +3912,20 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
     font-size:9.6px !important;
   }
 }
+
+
+/* 1.30.46-beta1 · Overview uses the same Living Mesh time controls. */
+#n2k-os-overview .n2k-overview-universe-toolbar{
+  padding:0 14px 8px !important;
+  justify-content:flex-start !important;
+}
+
+#n2k-os-overview .n2k-overview-universe-toolbar .n2k-universe-filters{
+  margin-top:0 !important;
+}
+
+@media(max-width:900px){
+  #n2k-os-overview .n2k-overview-universe-toolbar{
+    padding:0 10px 7px !important;
+  }
+}
