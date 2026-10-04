@@ -7,9 +7,15 @@ This repository contains the current public beta development build.
 
 ## Current status
 
-**1.18.6-beta1 · Public beta baseline**
+**1.30.49-beta1 · Active public beta development**
 
-The beta baseline has passed functional validation, update testing and a clean-install test on a second Home Assistant system.
+The original public beta baseline has passed functional validation, update testing
+and a clean-install test on a second Home Assistant system. Development has since
+continued with the unified app UI, Living Mesh, network monitoring and the
+privacy-safe Social Demo Mode.
+
+The project remains beta software. Keep a working backup before installing
+development updates.
 
 Verified:
 
@@ -113,10 +119,23 @@ names, but users should still review files before publishing them publicly.
 - Home Assistant Ingress UI
 - Integrated system self-test
 - Privacy-conscious support diagnostic export
+- Unified desktop/mobile navigation
+- Living Mesh topology visualization
+- Live / 1 h / 5 h / Replay mesh views
+- Cinematic mesh camera motion
+- Read-only network monitoring with 24 h local history
+- Social Demo Mode with 2:30 scripted story
+- 9:16 / 1:1 / 16:9 capture layouts
+- Privacy-safe synthetic messenger demonstration
+- Optional browser narration and high-contrast subtitles
+- Capture Mode for clean screen recording
 
 ## Documentation
 
 - [User guide](docs/USER_GUIDE.md)
+- [Demo Mode & social capture](docs/DEMO_MODE.md)
+- [Contributing](CONTRIBUTING.md)
+- [Beta tester guide](BETA_TESTER_GUIDE.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
 - [Project license](LICENSE)
 
@@ -237,19 +256,28 @@ Do not publish passwords, API tokens or other private credentials.
 
 ## Development policy
 
-The project is currently under feature freeze for beta stabilization.
+The project is in active beta development.
 
-Allowed changes:
+Changes should remain incremental, testable and rollback-safe. Reticulum/LXMF
+core behaviour should not be changed casually when a UI-only or read-only
+solution is sufficient.
 
-- bug fixes
-- compatibility fixes
-- stability improvements
-- diagnostics
-- documentation
-- licensing corrections
+Before merging a development change:
 
-Major UI redesigns and protocol architecture changes are postponed until the
-beta baseline is considered stable.
+- keep a known-good rollback point
+- validate JavaScript/CSS syntax
+- avoid exposing private chat/contact data in diagnostics or demos
+- preserve persistent Reticulum identity and messenger data
+- verify Home Assistant ingress behaviour
+- document user-visible changes
+
+## Contributing
+
+Curious users are welcome to participate through testing, bug reports, hardware
+validation, documentation, translations, UI feedback and code contributions.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the recommended workflow and privacy
+rules.
 
 ## Licensing
 
