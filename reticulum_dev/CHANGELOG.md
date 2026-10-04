@@ -1,3 +1,6 @@
+## 1.30.31-beta1
+- Fix contact-name matching in the overview chat preview and invalidate cached frontend assets.
+
 ## 1.30.30-beta1
 - Animate the overview Living Mesh with staggered node pulses and moving route dashes.
 - Populate Live Signals from recent announces in the same overview contacts feed, including recent announces present on first load.

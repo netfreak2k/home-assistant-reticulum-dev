@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.30-beta1";
+  const VERSION="1.30.31-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4458,7 +4458,7 @@ function n2kIcon(name){
 
   function overviewChatName(chat){
     const name=String(chat&&chat.display_name||"").trim();
-    if(name&&!/^Kontakt\\s+[0-9A-F]+$/i.test(name)) return name;
+    if(name&&!/^Kontakt\s+[0-9A-F]+$/i.test(name)) return name;
     const peer=String(chat&&chat.peer_hash||"");
     return peer?"Kontakt "+peer.slice(0,6).toUpperCase():"Unbekannt";
   }
