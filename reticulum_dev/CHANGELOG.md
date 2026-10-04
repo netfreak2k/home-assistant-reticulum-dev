@@ -1,3 +1,6 @@
+## 1.30.33-beta1
+- Keep the header Store & Forward state tied to the latest runtime response, without stale text overriding it.
+
 ## 1.30.32-beta1
 - Render the overview Living Mesh with the same animated constellation renderer as the navigation view.
 - Drive the Store & Forward header state from the authoritative propagation runtime API.

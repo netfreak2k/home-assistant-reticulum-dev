@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.32-beta1";
+  const VERSION="1.30.33-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4438,6 +4438,7 @@ function n2kIcon(name){
         backboneSub=(propagationState.runtime_node?String(propagationState.runtime_node).slice(0,8)+"…":"Propagation Node aktiv")+(propagationState.selected_hops?" · "+propagationState.selected_hops+" Hop(s)":"");
       }
     }
+    if(!propagationState){
     if(/warte auf serverantwort/i.test(propagation)){backbone="Antwort ausstehend";backboneSub="Server antwortet"+(selectedHash?" · "+selectedHash.slice(0,8)+"…":"");}
     else if(/suche serverpfad/i.test(propagation)){backbone="Serverpfad wird gesucht";backboneSub=textOf("n2k-propagation-candidate-count","Discovery aktiv");}
     else if(/kein serverpfad/i.test(propagation)){backbone="Kein Propagation Node";backboneSub=textOf("n2k-propagation-candidate-count","Noch kein erreichbarer Server");}
@@ -4452,6 +4453,7 @@ function n2kIcon(name){
     }
     else if(/abruf erfolgreich/i.test(propagation)){backbone="Sync erfolgreich";backboneSub=textOf("n2k-propagation-last-success",propagationDetail);}
     else if(/empfange nachrichten/i.test(propagation)){backbone="Empfängt Nachrichten";backboneSub=selectedHash?"Node · "+selectedHash.slice(0,8)+"…":"Übertragung läuft";}
+    }
     const backboneChip=byId("n2k-chip-backbone");
     if(backboneChip){
       const chipState=/fehlgeschlagen|kein serverpfad|fehler|verweigert/i.test(backbone) ? "error"
