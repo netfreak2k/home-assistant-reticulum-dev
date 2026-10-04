@@ -4319,6 +4319,142 @@ def schedule_self_restart(delay=2.0):
 
 
 
+# -----------------------------------------------------
+# GitHub repository counter
+# Public repository metrics are cached to avoid hitting
+# GitHub's unauthenticated API rate limit.
+# -----------------------------------------------------
+
+_GITHUB_STATS_CACHE = {
+    "timestamp": 0,
+    "data": None,
+}
+
+_GITHUB_STATS_TTL = 600
+_GITHUB_REPO = "netfreak2k/home-assistant-reticulum-dev"
+
+
+def _github_json(url, timeout=5):
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "N2K-RNS-Gateway",
+        },
+    )
+
+    with urllib.request.urlopen(
+        request,
+        timeout=timeout,
+    ) as response:
+        payload = json.loads(
+            response.read().decode("utf-8")
+        )
+        headers = dict(response.headers.items())
+
+    return payload, headers
+
+
+def get_github_stats():
+    now = time.time()
+    cached = _GITHUB_STATS_CACHE.get("data")
+
+    if (
+        cached is not None
+        and now - _GITHUB_STATS_CACHE.get("timestamp", 0)
+        < _GITHUB_STATS_TTL
+    ):
+        result = dict(cached)
+        result["cached"] = True
+        return result
+
+    try:
+        base = (
+            "https://api.github.com/repos/"
+            + _GITHUB_REPO
+        )
+
+        repo_data, _ = _github_json(base)
+        releases, _ = _github_json(
+            base + "/releases?per_page=100"
+        )
+
+        commits, commit_headers = _github_json(
+            base + "/commits?per_page=1"
+        )
+
+        commit_count = len(commits)
+
+        link = commit_headers.get("Link", "")
+        match = re.search(
+            r'[?&]page=(\d+)>; rel="last"',
+            link,
+        )
+        if match:
+            commit_count = int(match.group(1))
+
+        download_count = 0
+        for release in releases:
+            for asset in release.get("assets", []):
+                download_count += int(
+                    asset.get("download_count", 0) or 0
+                )
+
+        latest_release = None
+        if releases:
+            release = releases[0]
+            latest_release = {
+                "tag": release.get("tag_name"),
+                "name": release.get("name"),
+                "published_at": release.get("published_at"),
+            }
+
+        data = {
+            "ok": True,
+            "repository": _GITHUB_REPO,
+            "stars": int(
+                repo_data.get("stargazers_count", 0) or 0
+            ),
+            "forks": int(
+                repo_data.get("forks_count", 0) or 0
+            ),
+            "open_issues": int(
+                repo_data.get("open_issues_count", 0) or 0
+            ),
+            "watchers": int(
+                repo_data.get("subscribers_count", 0) or 0
+            ),
+            "commits": int(commit_count or 0),
+            "releases": len(releases),
+            "downloads": int(download_count),
+            "latest_release": latest_release,
+            "updated_at": repo_data.get("updated_at"),
+            "html_url": repo_data.get("html_url"),
+            "cached": False,
+            "cache_ttl_seconds": _GITHUB_STATS_TTL,
+        }
+
+        _GITHUB_STATS_CACHE["timestamp"] = now
+        _GITHUB_STATS_CACHE["data"] = dict(data)
+
+        return data
+
+    except Exception as exc:
+        if cached is not None:
+            result = dict(cached)
+            result["ok"] = True
+            result["cached"] = True
+            result["stale"] = True
+            result["warning"] = str(exc)
+            return result
+
+        return {
+            "ok": False,
+            "repository": _GITHUB_REPO,
+            "error": str(exc),
+        }
+
+
 class Handler(BaseHTTPRequestHandler):
 
     def send_json(self, data, status=200):
@@ -4979,6 +5115,14 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.endswith("/api/selftest"):
             self.send_json(get_n2k_selftest())
+            return
+
+        if path.endswith("/api/github-stats"):
+            result = get_github_stats()
+            self.send_json(
+                result,
+                200 if result.get("ok") else 503,
+            )
             return
 
         if path.endswith("/api/status"):
