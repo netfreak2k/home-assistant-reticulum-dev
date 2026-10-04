@@ -910,27 +910,6 @@ body.n2k-os-ready.n2k-overview-active #n2k-mobile-real-content > :not(#n2k-os-ov
   animation:n2kOverviewAuroraSpin 13s linear infinite;
 }
 
-.n2k-overview-hyperfx::after{
-  content:"";
-  position:absolute;
-  left:-10%;
-  right:-10%;
-  height:2px;
-  top:-8%;
-  background:linear-gradient(
-    90deg,
-    transparent,
-    rgba(35,209,255,.15),
-    rgba(121,255,218,.85),
-    rgba(255,87,202,.72),
-    transparent
-  );
-  box-shadow:
-    0 0 12px rgba(38,213,255,.8),
-    0 0 28px rgba(255,74,199,.28);
-  animation:n2kOverviewScan 3.8s linear infinite;
-}
-
 .n2k-overview-hyperfx i{
   position:absolute;
   width:4px;
@@ -1068,6 +1047,23 @@ body.n2k-os-ready.n2k-overview-active #n2k-mobile-real-content > :not(#n2k-os-ov
 #n2k-overview-live-svg .n2k-cnode-label-group.important .n2k-cnode-label{
   fill:#ffffff !important;
   filter:drop-shadow(0 0 5px rgba(85,219,255,.55));
+}
+
+
+/* When LIVE currently has no nodes, retain recent-known mesh context.
+   Live count stays 0; context nodes are intentionally quieter. */
+#n2k-constellation-svg.n2k-context-fallback .n2k-cnode{
+  opacity:.54;
+  filter:saturate(.85) brightness(.86) !important;
+}
+#n2k-constellation-svg.n2k-context-fallback .n2k-clink{
+  opacity:.22 !important;
+}
+#n2k-constellation-svg.n2k-context-fallback .n2k-cnode-label-group{
+  opacity:.68;
+}
+#n2k-constellation-svg.n2k-context-fallback .n2k-ccore{
+  opacity:1;
 }
 
 .n2k-overview-mesh-stats{
