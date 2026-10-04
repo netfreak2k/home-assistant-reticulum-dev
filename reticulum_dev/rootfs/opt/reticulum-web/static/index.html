@@ -12621,26 +12621,47 @@ if (
 
   function startAmbientAnimation(){
     cancelAnimationFrame(animationFrame);
-    var svg=el("n2k-constellation-svg");
-    if(!svg) return;
+
+    var mainSvg=el("n2k-constellation-svg");
+    var overviewSvg=el("n2k-overview-live-svg");
+    var svgs=[mainSvg,overviewSvg].filter(Boolean);
+
+    if(!svgs.length) return;
+
     if(filter!=="replay"){
       replayStarted=0;
-      svg.style.removeProperty("--n2k-replay");
+      svgs.forEach(function(svg){
+        svg.style.removeProperty("--n2k-replay");
+      });
       return;
     }
 
     function frame(now){
-      if(document.hidden || !svg.getClientRects().length || filter!=="replay") return;
-      if(filter==="replay"){
-        if(!replayStarted) replayStarted=now;
-        var progress=((now-replayStarted)%12000)/12000;
-        svg.style.setProperty("--n2k-replay",progress.toFixed(4));
-      }else{
-        replayStarted=0;
-        svg.style.removeProperty("--n2k-replay");
+      if(filter!=="replay") return;
+
+      var visible=svgs.some(function(svg){
+        return svg.getClientRects().length>0;
+      });
+
+      if(document.hidden || !visible){
+        animationFrame=requestAnimationFrame(frame);
+        return;
       }
+
+      if(!replayStarted) replayStarted=now;
+
+      var progress=((now-replayStarted)%12000)/12000;
+
+      svgs.forEach(function(svg){
+        svg.style.setProperty(
+          "--n2k-replay",
+          progress.toFixed(4)
+        );
+      });
+
       animationFrame=requestAnimationFrame(frame);
     }
+
     animationFrame=requestAnimationFrame(frame);
   }
 
