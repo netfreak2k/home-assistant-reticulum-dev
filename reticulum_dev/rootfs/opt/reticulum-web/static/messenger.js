@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.51-beta1";
+  const VERSION="1.30.52-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5052,12 +5052,12 @@ function n2kIcon(name){
           '<button type="button" data-demo-action="toggle">▶ Start</button>'+
           '<button type="button" data-demo-action="next">Nächste Szene</button>'+
           '<button type="button" data-demo-action="restart">↺ Neustart</button>'+
-          '<button type="button" data-demo-action="voice">🔊 Sprecher AUS</button>'+
-          '<button type="button" data-demo-action="captions" class="active">CC Untertitel AN</button>'+
+          '<button type="button" data-demo-action="voice" class="active">🔊 Sprecher AN</button>'+
+          '<button type="button" data-demo-action="captions">CC Untertitel AUS</button>'+
           '<button type="button" data-demo-action="capture">● Aufnahme-Modus</button>'+
           '<button type="button" data-demo-action="fullscreen">⛶ Vollbild</button>'+
         '</div>'+
-        '<div class="n2k-demo-runtime" id="n2k-demo-runtime">00:00 / 03:18</div>'+
+        '<div class="n2k-demo-runtime" id="n2k-demo-runtime">00:00 / ≥03:18</div>'+
         '<div class="n2k-demo-formats" role="group" aria-label="Social Format">'+
           '<button type="button" data-demo-format="portrait">9:16</button>'+
           '<button type="button" data-demo-format="square">1:1</button>'+
@@ -5476,7 +5476,7 @@ function n2kIcon(name){
 
 
 /* =========================================================
-   N2K Demo Mode 1.30.51-beta1
+   N2K Demo Mode 1.30.52-beta1
    Production social story · narrator-safe variable pacing.
    Privacy rule: synthetic-only. No API/chat/contact access.
    ========================================================= */
@@ -5602,8 +5602,10 @@ function n2kIcon(name){
   let sceneStartedAt=0;
   let pausedElapsed=0;
   let bound=false;
-  let voiceEnabled=false;
-  let captionsEnabled=true;
+  let voiceEnabled=true;
+  let captionsEnabled=false;
+  let speechActive=false;
+  let speechRunId=0;
   let captureEnabled=false;
   let transitionTimer=null;
 
@@ -5632,7 +5634,7 @@ function n2kIcon(name){
   }
   function updateRuntime(){
     const node=byId("n2k-demo-runtime");
-    if(node) node.textContent=formatTime(currentElapsed())+" / "+formatTime(TOTAL_SECONDS);
+    if(node) node.textContent=formatTime(currentElapsed())+" / ≥"+formatTime(TOTAL_SECONDS);
     const root=stage();
     if(root){
       root.style.setProperty("--n2k-demo-progress",String(Math.min(1,currentElapsed()/TOTAL_SECONDS)));
@@ -5650,6 +5652,8 @@ function n2kIcon(name){
     if(timer){clearTimeout(timer);timer=null;}
   }
   function cancelSpeech(){
+    speechRunId+=1;
+    speechActive=false;
     try{
       if("speechSynthesis" in window) window.speechSynthesis.cancel();
     }catch(_ignore){}
@@ -5666,15 +5670,28 @@ function n2kIcon(name){
     cancelSpeech();
     if(!voiceEnabled || !scene || !("speechSynthesis" in window)) return;
     try{
+      const runId=++speechRunId;
       const utterance=new SpeechSynthesisUtterance(scene.narration);
       utterance.lang="de-DE";
-      utterance.rate=.94;
+      utterance.rate=.92;
       utterance.pitch=1;
       utterance.volume=1;
+      utterance.onstart=function(){
+        if(runId===speechRunId) speechActive=true;
+      };
+      utterance.onend=function(){
+        if(runId===speechRunId) speechActive=false;
+      };
+      utterance.onerror=function(){
+        if(runId===speechRunId) speechActive=false;
+      };
       const voice=chooseGermanVoice();
       if(voice) utterance.voice=voice;
+      speechActive=true;
       window.speechSynthesis.speak(utterance);
-    }catch(_ignore){}
+    }catch(_ignore){
+      speechActive=false;
+    }
   }
   function updateControls(){
     const toggle=document.querySelector('[data-demo-action="toggle"]');
@@ -5751,15 +5768,30 @@ function n2kIcon(name){
     speakScene(meta);
     updateRuntime();
   }
+  function advanceScene(){
+    if(!running) return;
+    sceneIndex=(sceneIndex+1)%SCENES.length;
+    renderScene(sceneIndex);
+    schedule(sceneDurationMs(sceneIndex));
+  }
+  function waitForNarrationThenAdvance(){
+    clearTimer();
+    if(!running) return;
+    const synthBusy=voiceEnabled && (
+      speechActive ||
+      (("speechSynthesis" in window) && (window.speechSynthesis.speaking || window.speechSynthesis.pending))
+    );
+    if(synthBusy){
+      timer=setTimeout(waitForNarrationThenAdvance,250);
+      return;
+    }
+    timer=setTimeout(advanceScene,900);
+  }
   function schedule(remaining){
     clearTimer();
     if(!running) return;
     const wait=Math.max(250,Number(remaining)||sceneDurationMs(sceneIndex));
-    timer=setTimeout(function(){
-      sceneIndex=(sceneIndex+1)%SCENES.length;
-      renderScene(sceneIndex);
-      schedule(sceneDurationMs(sceneIndex));
-    },wait);
+    timer=setTimeout(waitForNarrationThenAdvance,wait);
   }
   function resume(){
     if(running) return;
