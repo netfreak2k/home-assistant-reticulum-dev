@@ -2341,7 +2341,7 @@ code {
 }
 </style>
 
-<link rel="stylesheet" href="static/n2k-monitoring.css?v=1.30.39-beta1">
+<link rel="stylesheet" href="static/n2k-monitoring.css?v=1.30.40-beta1">
 </head>
 
 <body>
@@ -2355,11 +2355,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.30.39-beta1</h1>
+        <h1>N2K RNS Gateway · 1.30.40-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.39-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.40-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -3179,43 +3179,66 @@ code {
         <span id="n2k-monitor-state" class="n2k-monitor-state">STARTET</span>
       </div>
 
-      <div class="n2k-monitor-grid">
-        <div class="n2k-monitor-card">
-          <small>Verfügbarkeit</small>
+      <div class="n2k-monitor-grid n2k-monitor-grid-unifi">
+        <div class="n2k-monitor-card n2k-monitor-card-unifi">
+          <div class="n2k-monitor-card-head">
+            <small>Verfügbarkeit</small>
+            <span class="n2k-monitor-dot" aria-hidden="true"></span>
+          </div>
           <strong id="n2k-mon-health">—</strong>
           <em id="n2k-mon-health-sub">Messung startet</em>
+          <svg class="n2k-monitor-mini n2k-monitor-mini-health" viewBox="0 0 160 38" preserveAspectRatio="none" aria-label="Verfügbarkeitsverlauf">
+            <path class="gridline" d="M0 32 L160 32"></path>
+            <path id="n2k-mon-mini-health-fill" class="area" d=""></path>
+            <path id="n2k-mon-mini-health" class="trace" d=""></path>
+          </svg>
         </div>
-        <div class="n2k-monitor-card">
-          <small>Reticulum-Pfade</small>
+
+        <div class="n2k-monitor-card n2k-monitor-card-unifi">
+          <div class="n2k-monitor-card-head">
+            <small>Reticulum-Pfade</small>
+            <span id="n2k-mon-paths-delta" class="n2k-monitor-delta">—</span>
+          </div>
           <strong id="n2k-mon-paths">—</strong>
           <em id="n2k-mon-paths-sub">Trend wird aufgebaut</em>
+          <svg class="n2k-monitor-mini n2k-monitor-mini-paths" viewBox="0 0 160 38" preserveAspectRatio="none" aria-label="Pfadverlauf">
+            <path class="gridline" d="M0 32 L160 32"></path>
+            <path id="n2k-mon-mini-paths-fill" class="area" d=""></path>
+            <path id="n2k-mon-mini-paths" class="trace" d=""></path>
+          </svg>
         </div>
-        <div class="n2k-monitor-card">
-          <small>Pfad-Dynamik</small>
+
+        <div class="n2k-monitor-card n2k-monitor-card-unifi">
+          <div class="n2k-monitor-card-head">
+            <small>Pfad-Dynamik</small>
+            <span id="n2k-mon-churn-rate" class="n2k-monitor-delta">—</span>
+          </div>
           <strong id="n2k-mon-churn">—</strong>
           <em id="n2k-mon-churn-sub">Neue / verlorene Pfade</em>
+          <svg class="n2k-monitor-mini n2k-monitor-mini-churn" viewBox="0 0 160 38" preserveAspectRatio="none" aria-label="Pfaddynamik">
+            <path class="gridline" d="M0 32 L160 32"></path>
+            <path id="n2k-mon-mini-churn-fill" class="area" d=""></path>
+            <path id="n2k-mon-mini-churn" class="trace" d=""></path>
+          </svg>
         </div>
-        <div class="n2k-monitor-card">
-          <small>RNode Funk</small>
+
+        <div class="n2k-monitor-card n2k-monitor-card-unifi">
+          <div class="n2k-monitor-card-head">
+            <small>RNode Funk</small>
+            <span id="n2k-mon-radio-state" class="n2k-monitor-delta">—</span>
+          </div>
           <strong id="n2k-mon-radio">—</strong>
           <em id="n2k-mon-radio-sub">Optional</em>
+          <svg class="n2k-monitor-mini n2k-monitor-mini-radio" viewBox="0 0 160 38" preserveAspectRatio="none" aria-label="RNode Signalverlauf">
+            <path class="gridline" d="M0 32 L160 32"></path>
+            <path id="n2k-mon-mini-radio-fill" class="area" d=""></path>
+            <path id="n2k-mon-mini-radio" class="trace" d=""></path>
+          </svg>
         </div>
       </div>
 
-      <div class="n2k-monitor-history">
-        <div class="n2k-monitor-chart">
-          <div class="n2k-monitor-chart-label">
-            <span>Pfad-Historie</span>
-            <span id="n2k-mon-chart-range">—</span>
-          </div>
-          <svg id="n2k-mon-spark-paths" class="n2k-monitor-spark" viewBox="0 0 240 34" preserveAspectRatio="none" aria-label="Pfad-Historie">
-            <path class="baseline" d="M2 32 L238 32"></path>
-            <path id="n2k-mon-spark-paths-trace" class="trace" d=""></path>
-          </svg>
-        </div>
-        <div id="n2k-monitor-history-note" class="n2k-monitor-history-note">
-          Historie startet mit diesem Update.
-        </div>
+      <div id="n2k-monitor-history-note" class="n2k-monitor-footnote">
+        Historie startet mit diesem Update.
       </div>
     </section>
 
@@ -3717,7 +3740,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.30.39-beta1</strong>
+      <strong>N2K RNS Gateway · 1.30.40-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -12530,7 +12553,7 @@ if (
 })();
 </script>
 
-<script src="static/messenger.js?v=1.30.39-beta1"></script>
+<script src="static/messenger.js?v=1.30.40-beta1"></script>
 
 
 <script id="n2k-mobile-real-js-1181">
@@ -17934,7 +17957,7 @@ hr{
 })();
 </script>
 
-<script src="static/n2k-monitoring.js?v=1.30.39-beta1" defer></script>
+<script src="static/n2k-monitoring.js?v=1.30.40-beta1" defer></script>
 </body>
 </html>
 
