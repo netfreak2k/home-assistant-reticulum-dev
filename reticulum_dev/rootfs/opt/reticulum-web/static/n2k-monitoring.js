@@ -1,10 +1,10 @@
 /* N2K RNS Gateway · Monitoring module
-   1.30.39-beta1
+   1.30.40-beta1
    Read-only: GET endpoints + browser-local history only. */
 (function(){
   "use strict";
 
-  var MODULE_VERSION="1.30.39-beta1";
+  var MODULE_VERSION="1.30.40-beta1";
   var VERSION_KEY="n2k.monitor.version";
   var HISTORY_KEY="n2k.monitor.history.v1";
   var PATHS_KEY="n2k.monitor.paths.v1";
@@ -228,40 +228,117 @@
     return {label:"VERTEILT",className:"risk-low"};
   }
 
-  function renderSpark(items){
-    var svg=byId("n2k-mon-spark-paths");
-    var trace=byId("n2k-mon-spark-paths-trace");
-    if(!svg||!trace) return;
+  function sparkGeometry(values){
+    var clean=values.filter(function(value){
+      return value!==null && value!==undefined && Number.isFinite(Number(value));
+    }).map(Number);
 
-    var data=items.slice(-120);
-    if(data.length<2){
-      trace.setAttribute("d","");
-      return;
+    if(!clean.length){
+      return {line:"",area:""};
     }
 
-    var values=data.map(function(item){return number(item.paths,0);});
-    var min=Math.min.apply(Math,values);
-    var max=Math.max.apply(Math,values);
+    var width=160;
+    var height=38;
+    var bottom=34;
+    var top=4;
+    var min=Math.min.apply(Math,clean);
+    var max=Math.max.apply(Math,clean);
+
     if(max===min){
       max=min+1;
-      min=Math.max(0,min-1);
+      min=min-1;
     }
 
-    var width=240;
-    var height=34;
-    var pad=2;
     var points=values.map(function(value,index){
-      var x=pad+(index/(values.length-1))*(width-pad*2);
-      var y=height-pad-((value-min)/(max-min))*(height-pad*2);
-      return [x,y];
-    });
+      if(value===null||value===undefined||!Number.isFinite(Number(value))){
+        return null;
+      }
 
-    var d=points.map(function(point,index){
-      return (index===0?"M":"L")+point[0].toFixed(1)+" "+point[1].toFixed(1);
+      var x=values.length<=1
+        ?width/2
+        :(index/(values.length-1))*width;
+      var y=bottom-((Number(value)-min)/(max-min))*(bottom-top);
+
+      return [x,y];
+    }).filter(Boolean);
+
+    if(!points.length){
+      return {line:"",area:""};
+    }
+
+    if(points.length===1){
+      points=[
+        [0,points[0][1]],
+        [width,points[0][1]]
+      ];
+    }
+
+    var line=points.map(function(point,index){
+      return (index===0?"M":"L")+
+        point[0].toFixed(1)+" "+
+        point[1].toFixed(1);
     }).join(" ");
 
-    trace.setAttribute("d",d);
-    text("n2k-mon-chart-range",min+"–"+Math.max.apply(Math,values)+" Pfade");
+    var first=points[0];
+    var last=points[points.length-1];
+    var area=line+
+      " L"+last[0].toFixed(1)+" "+height+
+      " L"+first[0].toFixed(1)+" "+height+
+      " Z";
+
+    return {line:line,area:area};
+  }
+
+  function renderMiniSpark(id,values){
+    var trace=byId(id);
+    var fill=byId(id+"-fill");
+
+    if(!trace||!fill) return;
+
+    var geometry=sparkGeometry(values.slice(-120));
+    trace.setAttribute("d",geometry.line);
+    fill.setAttribute("d",geometry.area);
+  }
+
+  function renderMiniCharts(items){
+    var data=items.slice(-120);
+
+    renderMiniSpark(
+      "n2k-mon-mini-health",
+      data.map(function(item){
+        return item&&item.online?100:0;
+      })
+    );
+
+    renderMiniSpark(
+      "n2k-mon-mini-paths",
+      data.map(function(item){
+        return number(item&&item.paths,0);
+      })
+    );
+
+    renderMiniSpark(
+      "n2k-mon-mini-churn",
+      data.map(function(item){
+        return number(item&&item.newPaths,0)+
+          number(item&&item.gonePaths,0);
+      })
+    );
+
+    renderMiniSpark(
+      "n2k-mon-mini-radio",
+      data.map(function(item){
+        if(
+          !item ||
+          item.noise===null ||
+          item.noise===undefined ||
+          !Number.isFinite(Number(item.noise))
+        ){
+          return null;
+        }
+        return Number(item.noise);
+      })
+    );
   }
 
   function renderMonitor(snapshot,items){
@@ -280,6 +357,10 @@
 
     text("n2k-mon-paths",snapshot.paths);
     text("n2k-mon-paths-sub",trend.label);
+    text(
+      "n2k-mon-paths-delta",
+      trend.delta===0?"STABIL":((trend.delta>0?"+":"")+trend.delta)
+    );
 
     text(
       "n2k-mon-churn",
@@ -288,6 +369,10 @@
     text(
       "n2k-mon-churn-sub",
       "Pfadwechsel · Relay "+Math.round(snapshot.relayShare)+"%"
+    );
+    text(
+      "n2k-mon-churn-rate",
+      (snapshot.newPaths+snapshot.gonePaths)+" Δ"
     );
 
     if(snapshot.rnodePresent){
@@ -303,9 +388,14 @@
           ?(snapshot.rnodeUp?"RNode aktiv":"RNode erkannt")
           :"Kanal "+formatPercent(snapshot.channelLoad)
       );
+      text(
+        "n2k-mon-radio-state",
+        snapshot.rnodeUp?"LIVE":"PRÜFEN"
+      );
     }else{
       text("n2k-mon-radio","OPTIONAL");
       text("n2k-mon-radio-sub","Kein RNode erforderlich");
+      text("n2k-mon-radio-state","OPTIONAL");
     }
 
     if(state){
@@ -323,7 +413,7 @@
       " lokale Messpunkte · Historie entsteht nur, solange die App geöffnet ist."
     );
 
-    renderSpark(items);
+    renderMiniCharts(items);
   }
 
   function renderMesh(snapshot){
