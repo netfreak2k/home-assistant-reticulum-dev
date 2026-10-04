@@ -1,0 +1,270 @@
+/* N2K RNS Gateway · Monitoring module
+   1.30.38-beta1
+   Additive/read-only UI. No core messenger, RNode or propagation styles. */
+
+.n2k-monitoring-widget,
+.n2k-mesh-insights{
+  border:1px solid rgba(255,255,255,.085);
+  border-radius:14px;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(74,135,190,.07),transparent 34%),
+    linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.n2k-monitoring-widget{
+  margin:12px 0;
+  padding:12px 14px;
+}
+
+.n2k-monitor-head,
+.n2k-mesh-insights-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.n2k-monitor-title,
+.n2k-mesh-insights-title{
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.01em;
+}
+
+.n2k-monitor-sub,
+.n2k-mesh-insights-sub{
+  margin-top:3px;
+  color:rgba(215,225,232,.55);
+  font-size:9px;
+  line-height:1.35;
+}
+
+.n2k-monitor-state{
+  flex:0 0 auto;
+  padding:4px 7px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  color:rgba(215,225,232,.65);
+  background:rgba(0,0,0,.12);
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+
+.n2k-monitor-state.ok{
+  color:#75dda0;
+  border-color:rgba(85,217,139,.2);
+  background:rgba(85,217,139,.07);
+}
+
+.n2k-monitor-state.warn{
+  color:#efc46f;
+  border-color:rgba(240,189,91,.2);
+  background:rgba(240,189,91,.06);
+}
+
+.n2k-monitor-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin-top:10px;
+}
+
+.n2k-monitor-card{
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:10px;
+  background:rgba(0,0,0,.13);
+}
+
+.n2k-monitor-card small{
+  display:block;
+  overflow:hidden;
+  color:rgba(215,225,232,.48);
+  font-size:8px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-overflow:ellipsis;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+
+.n2k-monitor-card strong{
+  display:block;
+  margin-top:4px;
+  overflow:hidden;
+  color:#e7edf4;
+  font-size:16px;
+  line-height:20px;
+  font-variant-numeric:tabular-nums;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.n2k-monitor-card em{
+  display:block;
+  min-height:13px;
+  margin-top:2px;
+  overflow:hidden;
+  color:rgba(215,225,232,.5);
+  font-size:8px;
+  font-style:normal;
+  line-height:13px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.n2k-monitor-history{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+  gap:12px;
+  margin-top:9px;
+  padding-top:8px;
+  border-top:1px solid rgba(255,255,255,.05);
+}
+
+.n2k-monitor-chart{
+  min-width:0;
+}
+
+.n2k-monitor-chart-label{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:3px;
+  color:rgba(215,225,232,.46);
+  font-size:8px;
+}
+
+.n2k-monitor-spark{
+  display:block;
+  width:100%;
+  height:34px;
+  overflow:visible;
+}
+
+.n2k-monitor-spark .baseline{
+  fill:none;
+  stroke:rgba(255,255,255,.07);
+  stroke-width:1;
+}
+
+.n2k-monitor-spark .trace{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  color:rgba(132,188,235,.9);
+}
+
+.n2k-monitor-history-note{
+  max-width:180px;
+  color:rgba(215,225,232,.43);
+  font-size:8px;
+  line-height:1.35;
+  text-align:right;
+}
+
+.n2k-mesh-insights{
+  margin:0 0 10px;
+  padding:10px 12px;
+}
+
+.n2k-mesh-insights-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:6px;
+  margin-top:8px;
+}
+
+.n2k-mesh-insight{
+  min-width:0;
+  padding:7px 8px;
+  border-radius:9px;
+  background:rgba(0,0,0,.13);
+}
+
+.n2k-mesh-insight small{
+  display:block;
+  overflow:hidden;
+  color:rgba(215,225,232,.45);
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-overflow:ellipsis;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+
+.n2k-mesh-insight b{
+  display:block;
+  margin-top:3px;
+  overflow:hidden;
+  color:#e7edf4;
+  font-size:12px;
+  line-height:16px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.n2k-mesh-insight span{
+  display:block;
+  margin-top:1px;
+  overflow:hidden;
+  color:rgba(215,225,232,.42);
+  font-size:7px;
+  line-height:11px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.n2k-mesh-insight.risk-low b{color:#75dda0;}
+.n2k-mesh-insight.risk-medium b{color:#efc46f;}
+.n2k-mesh-insight.risk-high b{color:#ff8585;}
+
+@media(max-width:800px){
+  .n2k-monitor-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .n2k-mesh-insights-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .n2k-mesh-insight:last-child{
+    grid-column:span 2;
+  }
+
+  .n2k-monitor-history{
+    grid-template-columns:1fr;
+  }
+
+  .n2k-monitor-history-note{
+    max-width:none;
+    text-align:left;
+  }
+}
+
+@media(max-width:430px){
+  .n2k-monitoring-widget,
+  .n2k-mesh-insights{
+    border-radius:12px;
+  }
+
+  .n2k-monitoring-widget{
+    padding:10px;
+  }
+
+  .n2k-monitor-card{
+    padding:8px;
+  }
+
+  .n2k-monitor-card strong{
+    font-size:15px;
+  }
+}
