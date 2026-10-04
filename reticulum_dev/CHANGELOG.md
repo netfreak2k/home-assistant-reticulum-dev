@@ -1,3 +1,8 @@
+## 1.30.32-beta1
+- Render the overview Living Mesh with the same animated constellation renderer as the navigation view.
+- Drive the Store & Forward header state from the authoritative propagation runtime API.
+- Add a dashboard action that requests both RNS and LXMF announces and reports success or cooldown.
+
 ## 1.30.31-beta1
 - Fix contact-name matching in the overview chat preview and invalidate cached frontend assets.
 

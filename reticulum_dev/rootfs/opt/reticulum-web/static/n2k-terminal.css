@@ -380,3 +380,10 @@ body.n2k-os-ready #n2k-os-overview .n2k-overview-telemetry{display:none !importa
   body.n2k-os-ready .n2k-header-stack{gap:4px !important;}
   body.n2k-os-ready .n2k-header-stack .n2k-stack-chip{padding-inline:6px !important;font-size:8px !important;}
 }
+
+/* 1.30.32-beta1 · OVERVIEW ANNOUNCE ACTION */
+body.n2k-os-ready #n2k-os-overview .n2k-bento-actions{display:grid;grid-template-columns:1fr;gap:7px;margin-top:auto;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-actions .n2k-bento-action{min-height:34px;margin-top:0;padding:8px 10px;font-size:10px;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-announce{border-color:rgba(113,217,176,.48);background:linear-gradient(110deg,rgba(113,217,176,.18),rgba(113,217,176,.07));}
+body.n2k-os-ready #n2k-os-overview .n2k-overview-announce-result{min-height:12px;margin:4px 0 0;color:rgba(185,242,209,.8);font-size:9px;line-height:1.35;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-announce:disabled{opacity:.55;cursor:wait;}

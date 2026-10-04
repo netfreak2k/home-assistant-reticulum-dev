@@ -2241,11 +2241,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.30.31-beta1</h1>
+        <h1>N2K RNS Gateway · 1.30.32-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.31-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.32-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -3486,7 +3486,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.30.31-beta1</strong>
+      <strong>N2K RNS Gateway · 1.30.32-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -10766,6 +10766,8 @@ if (
   }
 
   function setRuntime(data){
+    window.n2kPropagationStatus=data;
+    window.dispatchEvent(new CustomEvent("n2k-propagation-status",{detail:data}));
     var state=$("n2k-propagation-state");
     var runtime=$("n2k-propagation-runtime");
     var last=$("n2k-propagation-last-sync");
@@ -11554,12 +11556,13 @@ if (
     );
   }
 
-  function render(data){
+  function render(data,targetOverride){
+    var isOverviewTarget=!!targetOverride;
     latestData=data;
     window.n2kMeshLatestData=data;
     window.n2kMeshLeaderboardContacts=Array.isArray(data&&data.contacts)?data.contacts:[];
-    var svg=el("n2k-constellation-svg");
-    var empty=el("n2k-constellation-empty");
+    var svg=targetOverride||el("n2k-constellation-svg");
+    var empty=isOverviewTarget?el("n2k-overview-mesh-empty"):el("n2k-constellation-empty");
     if(!svg) return;
 
     var raw=Array.isArray(data&&data.contacts)?data.contacts:[];
@@ -11581,7 +11584,7 @@ if (
     if(el("n2k-map-visible")) el("n2k-map-visible").textContent=String(items.length);
     if(el("n2k-map-paths")) el("n2k-map-paths").textContent=String(Number(data&&data.rns_path_count||0));
     if(el("n2k-map-relays")) el("n2k-map-relays").textContent=String(relays);
-    if(empty) empty.hidden=items.length>0;
+    if(empty) empty.hidden=items.length>0||(isOverviewTarget&&Number(data&&data.rns_path_count||0)>0);
 
     var defs=
       '<defs>'+
@@ -11713,7 +11716,7 @@ if (
       svg.removeAttribute("data-focus-peer");
     }
 
-    svg.querySelectorAll(".n2k-cnode").forEach(function(node){
+    if(!isOverviewTarget) svg.querySelectorAll(".n2k-cnode").forEach(function(node){
       function choose(){
         var peer=node.getAttribute("data-peer")||"";
         var item=items.find(function(x){return String(x.destination_hash||"")===peer;});
@@ -11728,7 +11731,7 @@ if (
       });
     });
 
-    if(!svg.__n2kFocusClearBound){
+    if(!isOverviewTarget && !svg.__n2kFocusClearBound){
       svg.addEventListener("click",function(e){
         if(e.target===svg || e.target.closest(".n2k-u-orbits") || e.target.closest(".n2k-u-clusters")){
           selected="";
@@ -11740,9 +11743,15 @@ if (
       svg.__n2kFocusClearBound=true;
     }
 
-    handleRealtime(items);
-    startAmbientAnimation();
+    if(!isOverviewTarget){
+      handleRealtime(items);
+      startAmbientAnimation();
+    }
   }
+
+  window.n2kRenderLivingMesh=function(data,target){
+    if(target && target instanceof SVGSVGElement) render(data,target);
+  };
 
   function showDetail(item){
     var name=String(item.display_name||"").trim() ||
@@ -12275,7 +12284,7 @@ if (
 })();
 </script>
 
-<script src="static/messenger.js?v=1.30.31-beta1"></script>
+<script src="static/messenger.js?v=1.30.32-beta1"></script>
 
 
 <script id="n2k-mobile-real-js-1181">

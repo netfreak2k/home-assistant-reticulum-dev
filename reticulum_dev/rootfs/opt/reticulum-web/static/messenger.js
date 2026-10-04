@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.31-beta1";
+  const VERSION="1.30.32-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4172,7 +4172,7 @@ function n2kIcon(name){
             '<div id="n2k-overview-mesh-stage" class="n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen"><svg id="n2k-overview-live-svg" class="n2k-overview-mesh-lines" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg><div id="n2k-overview-mesh-empty" class="n2k-overview-mesh-empty" hidden>Warte auf erste Announce oder bekannte RNS-Pfade</div><div class="n2k-overview-mesh-stats"><div class="n2k-overview-mesh-stat"><small>Live</small><strong id="n2k-ov-live">—</strong></div><div class="n2k-overview-mesh-stat"><small>Bekannt</small><strong id="n2k-ov-seen">—</strong></div><div class="n2k-overview-mesh-stat"><small>Pfade</small><strong id="n2k-ov-paths">—</strong></div><div class="n2k-overview-mesh-stat"><small>Relais</small><strong id="n2k-ov-relays">—</strong></div></div></div></div>'+
         '</section>'+
         '<section class="n2k-bento-card n2k-bento-chat" aria-label="LXMF Messenger Vorschau"><div class="n2k-bento-head"><div><span class="n2k-bento-eyebrow">LXMF MESSENGER</span><h2>Deine Chats</h2></div><span class="n2k-bento-live-dot" aria-hidden="true"></span></div><p class="n2k-bento-caption">Nachrichten und ungelesene Gespräche im Blick.</p><div id="n2k-overview-chat-list" class="n2k-bento-chat-list" aria-live="polite"><span class="n2k-bento-empty">Chats werden geladen…</span></div><button type="button" class="n2k-bento-action" data-n2k-overview-page="chat">Messenger öffnen <span aria-hidden="true">↗</span></button></section>'+
-        '<aside class="n2k-bento-card n2k-bento-system" aria-label="Systemcheck und Netzprotokoll"><div class="n2k-bento-matrix" aria-hidden="true">01 · RNS · LXMF<br>7A 03 · MESH · 91<br>LINK · 0F · ROUTE<br>DATA · 42 · LIVE</div><div class="n2k-bento-head"><div><span class="n2k-bento-eyebrow">SYSTEM &amp; MESH</span><h2>Live-Signale</h2></div><span class="n2k-bento-live-dot" aria-hidden="true"></span></div><p id="n2k-bento-selftest" class="n2k-bento-selftest">Systemcheck öffnen für den aktuellen Prüfbericht.</p><div id="n2k-live-event-list" class="n2k-live-event-list"><span class="n2k-event-empty">Warte auf Status- oder Announce-Ereignisse</span></div><button type="button" class="n2k-bento-action n2k-bento-action-secondary" data-n2k-overview-page="status">Systemcheck ansehen <span aria-hidden="true">↗</span></button></aside>'+
+        '<aside class="n2k-bento-card n2k-bento-system" aria-label="Systemcheck und Netzprotokoll"><div class="n2k-bento-matrix" aria-hidden="true">01 · RNS · LXMF<br>7A 03 · MESH · 91<br>LINK · 0F · ROUTE<br>DATA · 42 · LIVE</div><div class="n2k-bento-head"><div><span class="n2k-bento-eyebrow">SYSTEM &amp; MESH</span><h2>Live-Signale</h2></div><span class="n2k-bento-live-dot" aria-hidden="true"></span></div><p id="n2k-bento-selftest" class="n2k-bento-selftest">Systemcheck öffnen für den aktuellen Prüfbericht.</p><div id="n2k-live-event-list" class="n2k-live-event-list"><span class="n2k-event-empty">Warte auf Status- oder Announce-Ereignisse</span></div><div class="n2k-bento-actions"><button type="button" class="n2k-bento-action n2k-bento-announce" data-n2k-overview-announce>Jetzt announcen <span aria-hidden="true">↗</span></button><button type="button" class="n2k-bento-action n2k-bento-action-secondary" data-n2k-overview-page="status">Systemcheck ansehen <span aria-hidden="true">↗</span></button></div><p id="n2k-overview-announce-result" class="n2k-overview-announce-result" aria-live="polite"></p></aside>'+
       '</div>';
 
     stage.prepend(overview);
@@ -4196,6 +4196,9 @@ function n2kIcon(name){
       });
     }
 
+    const announceButton=overview.querySelector("[data-n2k-overview-announce]");
+    if(announceButton) announceButton.addEventListener("click",announceFromOverview);
+
     overview.querySelectorAll("[data-n2k-overview-page]").forEach(function(button){
       button.addEventListener("click",function(){
         if(typeof window.n2kShowPage==="function") window.n2kShowPage(button.dataset.n2kOverviewPage);
@@ -4203,6 +4206,34 @@ function n2kIcon(name){
     });
 
     return overview;
+  }
+
+  async function announceFromOverview(){
+    const button=byId("n2k-os-overview")?.querySelector("[data-n2k-overview-announce]");
+    const result=byId("n2k-overview-announce-result");
+    if(!button||button.disabled) return;
+    button.disabled=true;
+    if(result) result.textContent="RNS- und LXMF-Announce werden angefordert…";
+    const requests=[["RNS","api/node/announce"],["LXMF","api/node/lxmf/announce"]];
+    try{
+      const outcomes=await Promise.all(requests.map(async function(entry){
+        const response=await fetch(entry[1],{method:"POST",cache:"no-store"});
+        const data=await response.json();
+        return {name:entry[0],ok:response.ok&&data.ok===true,retry:Number(data.retry_after||0),error:String(data.error||"")};
+      }));
+      const ok=outcomes.filter(item=>item.ok).map(item=>item.name);
+      const failed=outcomes.filter(item=>!item.ok);
+      if(ok.length){
+        addEvent(ok.join(" + ")+" Announce angefordert","ok");
+        if(result) result.textContent=ok.join(" + ")+" Announce angefordert."+(failed.length?" · "+failed.map(item=>item.retry?"Cooldown "+item.name+": "+item.retry+" s":item.name+": "+(item.error||"fehlgeschlagen")).join(" · "):"");
+      }else if(result){
+        result.textContent=failed.map(item=>item.retry?"Cooldown "+item.name+": "+item.retry+" s":item.name+": "+(item.error||"fehlgeschlagen")).join(" · ");
+      }
+    }catch(error){
+      if(result) result.textContent="Announce API nicht erreichbar: "+String(error.message||error);
+    }finally{
+      setTimeout(function(){button.disabled=false;},2500);
+    }
   }
 
   function escapeSvg(value){
@@ -4240,6 +4271,11 @@ function n2kIcon(name){
     if(empty){
       empty.hidden=contacts.length>0||(paths!==null&&paths>0);
       empty.textContent="Noch keine LXMF Announces oder RNS-Pfade im letzten Tag";
+    }
+
+    if(typeof window.n2kRenderLivingMesh==="function"){
+      window.n2kRenderLivingMesh({contacts:contacts,count:Number.isFinite(known)?known:contacts.length,rns_path_count:paths||0},target);
+      return;
     }
 
     const shown=contacts.slice(0,24);
@@ -4381,12 +4417,27 @@ function n2kIcon(name){
     const rnsSub=textOf("shared-name","Reticulum Network Stack");
     const lxmf=textOf("n2k-status-lxmf",textOf("messenger-status-text","—"));
     const propagation=textOf("n2k-propagation-runtime","—");
+    const propagationState=window.n2kPropagationStatus||null;
     const propagationDetail=textOf("n2k-propagation-last-sync","—");
     const propagationSuccess=textOf("n2k-propagation-last-success","—");
     const selectedNode=textOf("n2k-propagation-selected","");
     const selectedHash=(selectedNode.match(/[0-9a-f]{8,}/i)||[])[0]||"";
     let backbone=propagation!=="—" ? propagation : "Status wird geprüft";
     let backboneSub=propagationDetail;
+    if(propagationState){
+      const sync=String(propagationState.sync_result||"").toUpperCase();
+      if(!propagationState.enabled){
+        backbone="Deaktiviert";backboneSub="Store & Forward ist ausgeschaltet";
+      }else if(!propagationState.runtime_enabled){
+        backbone=propagationState.auto_discovery?"Aktiviert · wartet auf Propagation Node":"Aktiviert · kein Node gesetzt";
+        backboneSub=Number(propagationState.candidate_count||0)+" Nodes bekannt";
+      }else if(["NO_PATH","LINK_FAILED","TRANSFER_FAILED","NO_IDENTITY_RCVD","NO_ACCESS","FAILED","ERROR"].includes(sync)){
+        backbone="Letzter Sync fehlgeschlagen";backboneSub=String(propagationState.error||propagationState.sync_result||"Fehler");
+      }else if(["READY","IDLE","REQUESTED","PATH_REQUESTED","LINK_ESTABLISHING","LINK_ESTABLISHED","REQUEST_SENT","RECEIVING","RESPONSE_RECEIVED","COMPLETE"].includes(sync)){
+        backbone=sync==="COMPLETE"?"Sync erfolgreich":"Store & Forward bereit";
+        backboneSub=(propagationState.runtime_node?String(propagationState.runtime_node).slice(0,8)+"…":"Propagation Node aktiv")+(propagationState.selected_hops?" · "+propagationState.selected_hops+" Hop(s)":"");
+      }
+    }
     if(/warte auf serverantwort/i.test(propagation)){backbone="Antwort ausstehend";backboneSub="Server antwortet"+(selectedHash?" · "+selectedHash.slice(0,8)+"…":"");}
     else if(/suche serverpfad/i.test(propagation)){backbone="Serverpfad wird gesucht";backboneSub=textOf("n2k-propagation-candidate-count","Discovery aktiv");}
     else if(/kein serverpfad/i.test(propagation)){backbone="Kein Propagation Node";backboneSub=textOf("n2k-propagation-candidate-count","Noch kein erreichbarer Server");}
@@ -4409,7 +4460,8 @@ function n2kIcon(name){
         : /\baus\b|nicht aktiv/i.test(backbone) ? "offline" : "wait";
       backboneChip.classList.remove("is-online","is-warn","is-offline","is-error","is-wait");
       backboneChip.classList.add("is-"+chipState);
-      backboneChip.title="Store & Forward · "+propagation+" · "+backboneSub;
+      backboneChip.title="Store & Forward · "+backbone+" · "+backboneSub;
+      backboneChip.setAttribute("aria-label","Store & Forward: "+backbone);
     }
 
     const map={
@@ -4425,7 +4477,7 @@ function n2kIcon(name){
     const propagationDot=byId("n2k-ov-backbone-dot");
     if(propagationDot){
       const kind=/fehler|gescheitert|verweigert|ERROR|FAILED|NO_PATH|NO_ACCESS/i.test(backbone) ? "bad"
-        : /erfolgreich|COMPLETE/i.test(backbone) ? "ok" : "wait";
+        : /bereit|erfolgreich|COMPLETE/i.test(backbone) ? "ok" : "wait";
       propagationDot.className="n2k-overview-dot "+kind;
     }
 
