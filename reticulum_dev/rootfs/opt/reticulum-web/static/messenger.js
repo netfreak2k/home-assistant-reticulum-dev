@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.26-beta1";
+  const VERSION="1.30.27-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4109,8 +4109,6 @@ function n2kIcon(name){
   const previous=new Map();
   const events=[];
   let overviewMeshLastFetch=0;
-  let overviewMeshFetching=false;
-  let overviewMeshLoaded=false;
 
   function byId(id){return document.getElementById(id);}
 
@@ -4271,27 +4269,33 @@ function n2kIcon(name){
       '<g class="n2k-overview-nodes">'+nodes.join("")+'</g>';
   }
 
-  async function refreshOverviewMesh(){
+  function refreshOverviewMesh(){
     const now=Date.now();
-    if(overviewMeshFetching||now-overviewMeshLastFetch<15000) return;
-    overviewMeshFetching=true;
+    if(now-overviewMeshLastFetch<4500) return;
     overviewMeshLastFetch=now;
-    try{
-      const since=Math.floor(now/1000)-86400;
-      const response=await fetch("api/messenger/nearby?since="+since+"&ts="+now,{cache:"no-store"});
-      const data=await response.json();
-      if(!response.ok||!data||!data.ok) throw new Error((data&&data.error)||("HTTP "+response.status));
-      overviewMeshLoaded=true;
-      renderOverviewMesh(data);
-    }catch(error){
-      if(!overviewMeshLoaded){
-        const empty=byId("n2k-overview-mesh-empty");
-        if(empty){empty.hidden=false;empty.textContent="Netzwerkdaten momentan nicht erreichbar";}
-      }
-      console.warn("[N2K Overview] Mesh-Daten nicht verfügbar",error);
-    }finally{
-      overviewMeshFetching=false;
+    const latest=window.n2kMeshLatestData;
+    const shared=Array.isArray(latest&&latest.contacts)
+      ? latest.contacts
+      : window.n2kMeshLeaderboardContacts;
+    if(!Array.isArray(shared)){
+      const empty=byId("n2k-overview-mesh-empty");
+      if(empty){empty.hidden=false;empty.textContent="Mesh-Daten werden geladen…";}
+      return;
     }
+    let paths=Number(latest&&latest.rns_path_count||0);
+    if(!paths){
+      const raw=String(textOf("net-paths","0")).replace(/[^0-9]/g,"");
+      paths=parseInt(raw,10)||0;
+    }
+    const knownContacts=shared.filter(function(item){
+      return Number(item&&item.age_seconds||0)<=86400;
+    });
+    renderOverviewMesh({
+      ok:true,
+      contacts:knownContacts,
+      count:knownContacts.length,
+      rns_path_count:paths
+    });
   }
   function watchNodeAnnounces(){
     const contacts=window.n2kMeshLeaderboardContacts;

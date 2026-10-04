@@ -1,3 +1,7 @@
+## 1.30.27-beta1
+- Reuse the already loaded mesh contacts and network path counter for the overview instead of issuing a competing second nearby request.
+- Keep the overview populated when the map API's optional nearby enrichment is unavailable.
+
 ## 1.30.26-beta1
 - Drive the overview mesh directly from the passive nearby API so its counts and node visualization do not depend on the hidden Living Mesh page or its Live-only filter.
 - Show recently heard contacts and the actual RNS path count in the overview, including route indicators only where the backend reports a known path.
