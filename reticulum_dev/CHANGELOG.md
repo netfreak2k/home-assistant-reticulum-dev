@@ -1,3 +1,7 @@
+## 1.30.26-beta1
+- Drive the overview mesh directly from the passive nearby API so its counts and node visualization do not depend on the hidden Living Mesh page or its Live-only filter.
+- Show recently heard contacts and the actual RNS path count in the overview, including route indicators only where the backend reports a known path.
+
 ## 1.30.25-beta1
 - Remove duplicated RNS/LXMF overview cards; keep service indicators in the header.
 - Add a compact Store & Forward header indicator with accurate last-sync state and detail.

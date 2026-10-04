@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.25-beta1";
+  const VERSION="1.30.26-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4108,6 +4108,9 @@ function n2kIcon(name){
   let showAllEvents=false;
   const previous=new Map();
   const events=[];
+  let overviewMeshLastFetch=0;
+  let overviewMeshFetching=false;
+  let overviewMeshLoaded=false;
 
   function byId(id){return document.getElementById(id);}
 
@@ -4198,19 +4201,98 @@ function n2kIcon(name){
     return overview;
   }
 
-  function syncOverviewMesh(){
-    const source=byId("n2k-constellation-svg");
-    const target=byId("n2k-overview-live-svg");
-    if(!source||!target) return;
-    const viewBox=source.getAttribute("viewBox")||"0 0 1100 620";
-    if(target.getAttribute("viewBox")!==viewBox) target.setAttribute("viewBox",viewBox);
-    ["n2k-focus-mode","n2k-showcase-mode","n2k-showcase-reveal","n2k-showcase-flow","n2k-showcase-finale","n2k-realtime-event-mode"].forEach(function(name){
-      target.classList.toggle(name,source.classList.contains(name));
-    });
-    const next=source.innerHTML;
-    if(next && target.innerHTML!==next) target.innerHTML=next;
+  function escapeSvg(value){
+    return String(value==null?"":value)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&apos;");
   }
 
+  function renderOverviewMesh(data){
+    const target=byId("n2k-overview-live-svg");
+    if(!target) return;
+    const contacts=Array.isArray(data.contacts)?data.contacts:[];
+    const live=contacts.filter(function(item){
+      return Number(item.age_seconds||0)<=120;
+    }).length;
+    const known=Number(data.count);
+    const paths=Number(data.rns_path_count||0);
+    const relays=contacts.filter(function(item){
+      const hops=Number(item.hops);
+      return item.path_known===true && Number.isFinite(hops) && hops<=2;
+    }).length;
+    const numbers={
+      "n2k-ov-live":String(live),
+      "n2k-ov-seen":String(Number.isFinite(known)?known:contacts.length),
+      "n2k-ov-paths":paths.toLocaleString("de-DE"),
+      "n2k-ov-relays":String(relays)
+    };
+    Object.keys(numbers).forEach(function(id){
+      const node=byId(id); if(node) node.textContent=numbers[id];
+    });
+    const badge=byId("n2k-overview-live-badge");
+    if(badge) badge.textContent=live+" LIVE";
+    const empty=byId("n2k-overview-mesh-empty");
+    if(empty){
+      empty.hidden=contacts.length>0||paths>0;
+      empty.textContent="Noch keine LXMF Announces oder RNS-Pfade im letzten Tag";
+    }
+
+    const shown=contacts.slice(0,24);
+    const core='<g transform="translate(550 310)">'+
+      '<circle r="48" fill="rgba(72,199,177,.10)" stroke="rgba(112,238,213,.35)" stroke-width="1.5"/>'+
+      '<circle r="28" fill="rgba(72,199,177,.14)" stroke="#74e7cb" stroke-width="2"/>'+
+      '<circle r="8" fill="#c7fff1"/>'+
+      '<text y="62" text-anchor="middle" fill="#c4d9dd" font-size="15" font-weight="700">N2K CORE</text></g>';
+    const rings='<g fill="none" stroke="rgba(137,194,201,.12)" stroke-width="1">'+
+      '<ellipse cx="550" cy="310" rx="210" ry="135"/><ellipse cx="550" cy="310" rx="370" ry="235"/></g>';
+    const links=[];
+    const nodes=[];
+    shown.forEach(function(item,index){
+      const hash=String(item.destination_hash||"");
+      let seed=parseInt(hash.slice(0,8),16);
+      if(!Number.isFinite(seed)) seed=index*2654435761;
+      const angle=(index/Math.max(1,shown.length))*Math.PI*2+(seed%97)/97*.18;
+      const radius=175+(index%4)*58;
+      const x=550+Math.cos(angle)*radius;
+      const y=310+Math.sin(angle)*Math.min(235,radius*.63);
+      const name=String(item.display_name||("Node "+hash.slice(0,8))).slice(0,22);
+      const route=item.path_known===true;
+      if(route) links.push('<line x1="550" y1="310" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="rgba(103,224,196,.24)" stroke-width="1.4" stroke-dasharray="4 7"/>');
+      nodes.push('<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')" opacity="'+(Number(item.age_seconds||0)<=120?"1":".76")+'">'+
+        '<title>'+escapeSvg(name+" · "+hash+" · "+(route?"RNS-Pfad bekannt":"zuletzt gehört"))+'</title>'+
+        '<circle r="17" fill="rgba(80,210,183,.10)" stroke="'+(route?"#64e6c0":"#75bdd2")+'" stroke-width="1.5"/>'+
+        '<circle r="5" fill="'+(Number(item.age_seconds||0)<=120?"#70f2c0":"#78bfd6")+'"/>'+
+        '<text y="31" text-anchor="middle" fill="#d5e6ed" font-size="12">'+escapeSvg(name)+'</text></g>');
+    });
+    target.setAttribute("viewBox","0 0 1100 620");
+    target.dataset.n2kDashboardRendered="true";
+    target.innerHTML='<g class="n2k-overview-rings">'+rings+'</g>'+
+      '<g class="n2k-overview-routes">'+links.join("")+'</g>'+core+
+      '<g class="n2k-overview-nodes">'+nodes.join("")+'</g>';
+  }
+
+  async function refreshOverviewMesh(){
+    const now=Date.now();
+    if(overviewMeshFetching||now-overviewMeshLastFetch<15000) return;
+    overviewMeshFetching=true;
+    overviewMeshLastFetch=now;
+    try{
+      const since=Math.floor(now/1000)-86400;
+      const response=await fetch("api/messenger/nearby?since="+since+"&ts="+now,{cache:"no-store"});
+      const data=await response.json();
+      if(!response.ok||!data||!data.ok) throw new Error((data&&data.error)||("HTTP "+response.status));
+      overviewMeshLoaded=true;
+      renderOverviewMesh(data);
+    }catch(error){
+      if(!overviewMeshLoaded){
+        const empty=byId("n2k-overview-mesh-empty");
+        if(empty){empty.hidden=false;empty.textContent="Netzwerkdaten momentan nicht erreichbar";}
+      }
+      console.warn("[N2K Overview] Mesh-Daten nicht verfügbar",error);
+    }finally{
+      overviewMeshFetching=false;
+    }
+  }
   function watchNodeAnnounces(){
     const contacts=window.n2kMeshLeaderboardContacts;
     if(!Array.isArray(contacts)) return;
@@ -4238,7 +4320,7 @@ function n2kIcon(name){
     if(!ensureOverview()) return;
     updateChatPreview();
     watchNodeAnnounces();
-    syncOverviewMesh();
+    refreshOverviewMesh();
 
     const rnode=textOf("hero-lora",textOf("n2k-status-rnode","—"));
     const rnodeSub=textOf("rnode-live-rate",textOf("n2k-status-rnode-sub","Live-Funkhardware"));
@@ -4278,15 +4360,11 @@ function n2kIcon(name){
     }
 
     const map={
-      "n2k-ov-live":textOf("n2k-map-live","—"),
-      "n2k-ov-seen":textOf("n2k-map-visible","—"),
-      "n2k-ov-paths":textOf("n2k-map-paths",textOf("net-paths","—")),
-      "n2k-ov-relays":textOf("n2k-map-relays","—")
+      "n2k-ov-live":textOf("n2k-ov-live","—"),
+      "n2k-ov-seen":textOf("n2k-ov-seen","—"),
+      "n2k-ov-paths":textOf("n2k-ov-paths","—"),
+      "n2k-ov-relays":textOf("n2k-ov-relays","—")
     };
-
-    Object.keys(map).forEach(function(id){
-      const el=byId(id); if(el) el.textContent=map[id];
-    });
 
     setDot("n2k-ov-rnode-dot",rnode);
     setDot("n2k-ov-rns-dot",rns);
@@ -4305,9 +4383,6 @@ function n2kIcon(name){
 
     const pathsValue=map["n2k-ov-paths"];
     const liveValue=map["n2k-ov-live"];
-    const meshEmpty=byId("n2k-overview-mesh-empty");
-    if(meshEmpty) meshEmpty.hidden=Number(map["n2k-ov-seen"]||0)>0;
-
     if(previous.has("paths") && previous.get("paths")!==String(pathsValue||"").trim()){
       previous.set("paths",String(pathsValue||"").trim());
       addEvent("Reticulum kennt jetzt "+pathsValue+" Pfade","ok");
