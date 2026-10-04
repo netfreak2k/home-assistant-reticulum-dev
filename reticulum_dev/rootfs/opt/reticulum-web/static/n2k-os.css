@@ -4245,3 +4245,343 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
 
 /* 1.30.21-beta1 · keep core service status in the header only. */
 #n2k-os-overview > .n2k-overview-grid{display:none !important;}
+
+
+/* =========================================================
+   1.30.43-beta1 · OVERVIEW CINEMATIC 3D
+   Visual-only refinement for dashboard Living Mesh.
+   Slower camera, clearer node colors, softer presence,
+   stronger depth separation. No mesh data logic changed.
+   ========================================================= */
+
+#n2k-overview-mesh-stage{
+  perspective:1200px;
+  perspective-origin:50% 46%;
+  transform-style:preserve-3d;
+  box-shadow:
+    inset 0 26px 70px rgba(0,0,0,.20),
+    inset 0 -24px 80px rgba(0,0,0,.28),
+    inset 0 0 110px rgba(25,131,190,.05);
+}
+
+#n2k-overview-mesh-stage::before{
+  opacity:.42 !important;
+  transform:translateZ(-50px) scale(1.04);
+  filter:blur(.12px);
+}
+
+#n2k-overview-mesh-stage::after{
+  opacity:.46 !important;
+  transform:translateZ(-20px) scale(1.015);
+  filter:
+    drop-shadow(0 0 5px rgba(32,216,255,.48))
+    blur(.15px);
+}
+
+.n2k-overview-hyperfx{
+  transform:translateZ(-35px) scale(1.025);
+  opacity:.62;
+}
+
+.n2k-overview-hyperfx::before{
+  opacity:.34;
+  filter:blur(52px);
+  animation:n2kOverviewAuroraCinema 34s linear infinite !important;
+}
+
+.n2k-overview-hyperfx i{
+  opacity:.28;
+  animation-duration:11s,3.4s !important;
+}
+
+#n2k-overview-live-svg{
+  transform-origin:50% 50%;
+  transform-style:preserve-3d;
+  will-change:transform,filter;
+  filter:
+    saturate(1.12)
+    contrast(1.03)
+    drop-shadow(0 10px 24px rgba(0,0,0,.24));
+  animation:n2kOverviewCameraCinema 34s cubic-bezier(.45,.05,.55,.95) infinite alternate !important;
+}
+
+#n2k-overview-live-svg .n2k-rns-backdrop{
+  opacity:.58;
+}
+
+#n2k-overview-live-svg .n2k-u-orbits{
+  opacity:.42;
+}
+
+#n2k-overview-live-svg .n2k-u-orbits ellipse,
+#n2k-overview-live-svg .n2k-rns-propagation ellipse{
+  opacity:.34;
+  stroke-dasharray:3 13;
+  animation-duration:22s !important;
+}
+
+#n2k-overview-live-svg .n2k-u-orbits ellipse:nth-child(2),
+#n2k-overview-live-svg .n2k-rns-propagation ellipse:nth-child(2){
+  animation-duration:29s !important;
+}
+
+#n2k-overview-live-svg .n2k-u-orbits ellipse:nth-child(3),
+#n2k-overview-live-svg .n2k-rns-propagation ellipse:nth-child(3){
+  animation-duration:37s !important;
+}
+
+/* Routes remain visible, but recede behind nodes. */
+#n2k-overview-live-svg .n2k-clink{
+  stroke-width:1.15 !important;
+  opacity:.28 !important;
+  stroke-dasharray:7 14;
+  filter:drop-shadow(0 0 2px currentColor) !important;
+  animation:
+    n2kOverviewRouteFlowCinema 6.8s linear infinite,
+    n2kOverviewRouteGlowCinema 5.4s ease-in-out infinite alternate !important;
+}
+
+#n2k-overview-live-svg .n2k-clink.fresh{
+  opacity:.52 !important;
+  stroke-width:1.35 !important;
+}
+
+/* Four immediately readable node families. */
+#n2k-overview-live-svg .n2k-cnode.route-radio{
+  color:#f1b55a;
+}
+#n2k-overview-live-svg .n2k-cnode.route-internet{
+  color:#58aef6;
+}
+#n2k-overview-live-svg .n2k-cnode.route-local{
+  color:#57d8a2;
+}
+#n2k-overview-live-svg .n2k-cnode.route-ghost{
+  color:#a98ae8;
+}
+
+#n2k-overview-live-svg .route-radio .n2k-cnode-halo,
+#n2k-overview-live-svg .route-radio .n2k-cnode-orb{
+  stroke:#eab15d !important;
+  fill:rgba(235,171,76,.105) !important;
+}
+#n2k-overview-live-svg .route-radio .n2k-cnode-core{
+  fill:#f2c271 !important;
+}
+
+#n2k-overview-live-svg .route-internet .n2k-cnode-halo,
+#n2k-overview-live-svg .route-internet .n2k-cnode-orb{
+  stroke:#5aa9ea !important;
+  fill:rgba(70,154,226,.105) !important;
+}
+#n2k-overview-live-svg .route-internet .n2k-cnode-core{
+  fill:#79bff3 !important;
+}
+
+#n2k-overview-live-svg .route-local .n2k-cnode-halo,
+#n2k-overview-live-svg .route-local .n2k-cnode-orb{
+  stroke:#61d3a4 !important;
+  fill:rgba(74,205,154,.10) !important;
+}
+#n2k-overview-live-svg .route-local .n2k-cnode-core{
+  fill:#77e0b6 !important;
+}
+
+#n2k-overview-live-svg .route-ghost .n2k-cnode-halo,
+#n2k-overview-live-svg .route-ghost .n2k-cnode-orb{
+  stroke:#a98ce1 !important;
+  fill:rgba(155,114,214,.095) !important;
+}
+#n2k-overview-live-svg .route-ghost .n2k-cnode-core{
+  fill:#bca6e8 !important;
+}
+
+/* Depth planes: far nodes are quieter/smaller, near nodes slightly clearer. */
+#n2k-overview-live-svg .n2k-cnode{
+  transform-box:fill-box;
+  transform-origin:center;
+  filter:saturate(1.02) brightness(.98);
+  animation:n2kOverviewNodeCinema 8.5s ease-in-out infinite alternate !important;
+  animation-delay:calc(var(--n2k-hyper-index,0) * -0.18s) !important;
+}
+
+#n2k-overview-live-svg .n2k-cnode.depth-near{
+  opacity:.80;
+  filter:saturate(1.06) brightness(1.03) drop-shadow(0 3px 5px rgba(0,0,0,.20));
+}
+#n2k-overview-live-svg .n2k-cnode.depth-mid{
+  opacity:.60;
+  filter:saturate(.92) brightness(.93);
+}
+#n2k-overview-live-svg .n2k-cnode.depth-far{
+  opacity:.36;
+  filter:saturate(.68) brightness(.78) blur(.28px);
+}
+
+/* Remove the previous oversized breathing effect. */
+#n2k-overview-live-svg .n2k-cnode-halo{
+  opacity:.32 !important;
+}
+#n2k-overview-live-svg .n2k-cnode-announce-wave{
+  opacity:.10 !important;
+}
+#n2k-overview-live-svg .n2k-cnode-halo,
+#n2k-overview-live-svg .n2k-cnode-announce-wave{
+  animation:n2kOverviewNodePulseCinema 7.2s ease-in-out infinite !important;
+  animation-delay:calc(var(--n2k-hyper-index,0) * -0.23s) !important;
+}
+
+#n2k-overview-live-svg .n2k-cnode-orb{
+  stroke-width:1.1 !important;
+}
+
+#n2k-overview-live-svg .n2k-cnode-core{
+  opacity:.86;
+}
+
+#n2k-overview-live-svg .n2k-cnode.fresh .n2k-cnode-core{
+  animation:n2kOverviewCoreFlashCinema 4.6s ease-in-out infinite alternate !important;
+}
+
+/* Labels also contribute to depth instead of filling the whole scene. */
+#n2k-overview-live-svg .n2k-cnode-label-group{
+  opacity:.38;
+}
+#n2k-overview-live-svg .n2k-cnode-label-group.important{
+  opacity:.76;
+}
+#n2k-overview-live-svg .depth-far .n2k-cnode-label-group{
+  opacity:.18;
+}
+#n2k-overview-live-svg .n2k-cnode-label{
+  fill:rgba(224,236,242,.78) !important;
+  filter:none !important;
+}
+#n2k-overview-live-svg .n2k-cnode-hop,
+#n2k-overview-live-svg .n2k-cnode-route{
+  fill:rgba(180,197,207,.50) !important;
+}
+
+/* Core stays the anchor, but is no longer visually overpowering. */
+#n2k-overview-live-svg .n2k-ccore{
+  filter:
+    drop-shadow(0 4px 12px rgba(0,0,0,.28))
+    drop-shadow(0 0 9px rgba(86,190,224,.28)) !important;
+  animation:n2kOverviewCoreCinema 18s ease-in-out infinite alternate !important;
+}
+
+#n2k-overview-live-svg .n2k-u-core-aura{
+  opacity:.28 !important;
+}
+#n2k-overview-live-svg .n2k-u-core-pulse{
+  opacity:.38 !important;
+  animation:n2kOverviewCorePulseCinema 6.4s ease-in-out infinite !important;
+}
+#n2k-overview-live-svg .n2k-u-core-sparks{
+  opacity:.38;
+}
+
+/* Soft foreground vignette creates a camera/lens layer above the SVG. */
+#n2k-overview-mesh-stage{
+  background-blend-mode:screen,screen,screen,screen,screen,normal;
+}
+#n2k-overview-mesh-stage .n2k-overview-mesh-stats{
+  transform:translateZ(44px);
+}
+#n2k-overview-mesh-stage .n2k-overview-live{
+  transform:translateZ(48px);
+}
+
+@keyframes n2kOverviewCameraCinema{
+  0%{
+    transform:
+      translate3d(-7px,5px,18px)
+      rotateX(.7deg)
+      rotateY(-1.2deg)
+      rotateZ(-.08deg)
+      scale(1.006);
+  }
+  35%{
+    transform:
+      translate3d(2px,-2px,24px)
+      rotateX(.2deg)
+      rotateY(.45deg)
+      rotateZ(.04deg)
+      scale(1.013);
+  }
+  70%{
+    transform:
+      translate3d(6px,-4px,20px)
+      rotateX(-.45deg)
+      rotateY(1.0deg)
+      rotateZ(.10deg)
+      scale(1.017);
+  }
+  100%{
+    transform:
+      translate3d(-3px,2px,22px)
+      rotateX(.25deg)
+      rotateY(-.35deg)
+      rotateZ(-.03deg)
+      scale(1.011);
+  }
+}
+
+@keyframes n2kOverviewAuroraCinema{
+  0%{transform:rotate(0deg) scale(.98);filter:hue-rotate(0deg) blur(52px)}
+  50%{transform:rotate(180deg) scale(1.035);filter:hue-rotate(24deg) blur(58px)}
+  100%{transform:rotate(360deg) scale(.98);filter:hue-rotate(0deg) blur(52px)}
+}
+
+@keyframes n2kOverviewRouteFlowCinema{
+  to{stroke-dashoffset:-84}
+}
+
+@keyframes n2kOverviewRouteGlowCinema{
+  from{filter:drop-shadow(0 0 1px currentColor)}
+  to{filter:drop-shadow(0 0 3.5px currentColor)}
+}
+
+@keyframes n2kOverviewNodeCinema{
+  0%{transform:translate3d(-1px,1px,0) scale(.985)}
+  50%{transform:translate3d(1.5px,-1px,0) scale(1.008)}
+  100%{transform:translate3d(.5px,1.2px,0) scale(.995)}
+}
+
+@keyframes n2kOverviewNodePulseCinema{
+  0%,100%{transform:scale(.92);opacity:.08}
+  50%{transform:scale(1.08);opacity:.34}
+}
+
+@keyframes n2kOverviewCoreFlashCinema{
+  from{filter:brightness(.94)}
+  to{filter:brightness(1.14) drop-shadow(0 0 4px currentColor)}
+}
+
+@keyframes n2kOverviewCoreCinema{
+  from{transform:translateY(1px) scale(.99)}
+  to{transform:translateY(-1px) scale(1.015)}
+}
+
+@keyframes n2kOverviewCorePulseCinema{
+  0%,100%{transform:scale(.94);opacity:.18}
+  50%{transform:scale(1.08);opacity:.42}
+}
+
+@media(max-width:900px){
+  #n2k-overview-live-svg{
+    animation-duration:40s !important;
+  }
+  #n2k-overview-live-svg .n2k-cnode-label-group{
+    opacity:.28;
+  }
+  #n2k-overview-live-svg .n2k-cnode-label-group.important{
+    opacity:.64;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #n2k-overview-live-svg{
+    transform:none !important;
+  }
+}
