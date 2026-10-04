@@ -1,3 +1,7 @@
+## 1.30.28-beta1
+- Make the overview fall back to the working Living Mesh renderer and reuse its refresh routine when shared data is not ready.
+- Populate overview counters from the existing mesh and network status fields while the shared contact data loads.
+
 ## 1.30.27-beta1
 - Reuse the already loaded mesh contacts and network path counter for the overview instead of issuing a competing second nearby request.
 - Keep the overview populated when the map API's optional nearby enrichment is unavailable.
