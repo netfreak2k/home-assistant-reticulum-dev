@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.23-beta1";
+  const VERSION="1.30.24-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4062,6 +4062,9 @@ function n2kIcon(name){
   }
 
   function updateVersionLabels(){
+    window.N2K_APP_VERSION=VERSION;
+    const canonical=document.querySelector(".n2k-title-row > h1");
+    if(canonical) canonical.textContent="N2K RNS Gateway · "+VERSION;
     const version=document.getElementById("n2k-modern-title-version");
     if(version) version.textContent=VERSION;
 
@@ -4165,24 +4168,14 @@ function n2kIcon(name){
             '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("mesh")+'</span>RNS</div><i id="n2k-ov-rns-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-rns-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-rns-sub" class="n2k-overview-sub">Network Stack</div></div>'+
             '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("chat")+'</span>LXMF</div><i id="n2k-ov-lxmf-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-lxmf-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-lxmf-sub" class="n2k-overview-sub">Messenger</div></div>'+
             '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("forward")+'</span>Store &amp; Forward</div><i id="n2k-ov-backbone-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-backbone-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-backbone-sub" class="n2k-overview-sub">Propagation / Sync</div></div>'+
-          '</div>'+
+          '</div></section>'+
+        '<section class="n2k-bento-card n2k-bento-mesh-card" aria-label="Living Mesh Netzwerk">'+
           '<div class="n2k-bento-mesh"><div class="n2k-overview-panel-head"><div><strong>Living Mesh</strong><small>Echtzeit-Topologie</small></div><span id="n2k-overview-live-badge" class="n2k-overview-live">LIVE</span></div>'+
             '<div id="n2k-overview-mesh-stage" class="n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen"><svg id="n2k-overview-live-svg" class="n2k-overview-mesh-lines" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg><div id="n2k-overview-mesh-empty" class="n2k-overview-mesh-empty" hidden>Warte auf erste Announce oder bekannte RNS-Pfade</div><div class="n2k-overview-mesh-stats"><div class="n2k-overview-mesh-stat"><small>Live</small><strong id="n2k-ov-live">—</strong></div><div class="n2k-overview-mesh-stat"><small>Bekannt</small><strong id="n2k-ov-seen">—</strong></div><div class="n2k-overview-mesh-stat"><small>Pfade</small><strong id="n2k-ov-paths">—</strong></div><div class="n2k-overview-mesh-stat"><small>Relais</small><strong id="n2k-ov-relays">—</strong></div></div></div></div>'+
         '</section>'+
         '<section class="n2k-bento-card n2k-bento-chat" aria-label="LXMF Messenger Vorschau"><div class="n2k-bento-head"><div><span class="n2k-bento-eyebrow">LXMF MESSENGER</span><h2>Deine Chats</h2></div><span class="n2k-bento-live-dot" aria-hidden="true"></span></div><p class="n2k-bento-caption">Nachrichten und ungelesene Gespräche im Blick.</p><div id="n2k-overview-chat-list" class="n2k-bento-chat-list" aria-live="polite"><span class="n2k-bento-empty">Chats werden geladen…</span></div><button type="button" class="n2k-bento-action" data-n2k-overview-page="chat">Messenger öffnen <span aria-hidden="true">↗</span></button></section>'+
         '<aside class="n2k-bento-card n2k-bento-system" aria-label="Systemcheck und Netzprotokoll"><div class="n2k-bento-matrix" aria-hidden="true">01 · RNS · LXMF<br>7A 03 · MESH · 91<br>LINK · 0F · ROUTE<br>DATA · 42 · LIVE</div><div class="n2k-bento-head"><div><span class="n2k-bento-eyebrow">SYSTEM &amp; MESH</span><h2>Live-Signale</h2></div><span class="n2k-bento-live-dot" aria-hidden="true"></span></div><p id="n2k-bento-selftest" class="n2k-bento-selftest">Systemcheck öffnen für den aktuellen Prüfbericht.</p><div id="n2k-live-event-list" class="n2k-live-event-list"><span class="n2k-event-empty">Warte auf Status- oder Announce-Ereignisse</span></div><button type="button" class="n2k-bento-action n2k-bento-action-secondary" data-n2k-overview-page="status">Systemcheck ansehen <span aria-hidden="true">↗</span></button></aside>'+
-      '</div>'+
-      '<section class="n2k-overview-telemetry" aria-label="Live Netzwerk- und Funkwerte">'+
-        '<div class="n2k-telemetry-head"><strong>Netzwerk · Livewerte</strong><small>Verlauf seit Öffnen</small></div>'+
-        '<div class="n2k-telemetry-grid">'+
-          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">◉</span><div><small>Nodes online</small><strong id="n2k-telemetry-live">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-live" points=""></polyline></svg></article>'+
-          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">⌘</span><div><small>RNS-Pfade</small><strong id="n2k-telemetry-paths">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-paths" points=""></polyline></svg></article>'+
-          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">◌</span><div><small>Noise Floor</small><strong id="n2k-telemetry-noise">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-noise" points=""></polyline></svg></article>'+
-          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">⌁</span><div><small>Airtime</small><strong id="n2k-telemetry-airtime">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-airtime" points=""></polyline></svg></article>'+
-          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">↓</span><div><small>RX</small><strong id="n2k-telemetry-rx">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-rx" points=""></polyline></svg></article>'+
-          '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">↑</span><div><small>TX</small><strong id="n2k-telemetry-tx">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-tx" points=""></polyline></svg></article>'+
-        '</div>'+
-      '</section>';
+      '</div>';
 
     stage.prepend(overview);
 
@@ -4226,57 +4219,13 @@ function n2kIcon(name){
     if(!source||!target) return;
     const viewBox=source.getAttribute("viewBox")||"0 0 1100 620";
     if(target.getAttribute("viewBox")!==viewBox) target.setAttribute("viewBox",viewBox);
+    ["n2k-focus-mode","n2k-showcase-mode","n2k-showcase-reveal","n2k-showcase-flow","n2k-showcase-finale","n2k-realtime-event-mode"].forEach(function(name){
+      target.classList.toggle(name,source.classList.contains(name));
+    });
     const next=source.innerHTML;
     if(next && target.innerHTML!==next) target.innerHTML=next;
   }
 
-  const metricHistory=new Map();
-  let lastMetricSample=0;
-  function metricNumber(value){
-    const match=String(value||"").match(/-?\d+(?:[.,]\d+)?/);
-    if(!match) return null;
-    const number=Number(match[0].replace(",","."));
-    return Number.isFinite(number)?number:null;
-  }
-  function sparkline(id,value){
-    const line=byId("n2k-spark-"+id);
-    if(!line) return;
-    const now=Date.now();
-    if(now-lastMetricSample>=8000){
-      const numeric=metricNumber(value);
-      if(numeric!==null){
-        const samples=metricHistory.get(id)||[];
-        samples.push(numeric);
-        if(samples.length>18) samples.shift();
-        metricHistory.set(id,samples);
-      }
-    }
-    const samples=metricHistory.get(id)||[];
-    if(!samples.length){line.setAttribute("points","");return;}
-    const min=Math.min(...samples),max=Math.max(...samples),span=max-min;
-    const points=samples.map((sample,index)=>{
-      const x=samples.length===1?50:4+(index*92/(samples.length-1));
-      const y=span===0?12:20-((sample-min)/span)*16;
-      return x.toFixed(1)+","+y.toFixed(1);
-    }).join(" ");
-    line.setAttribute("points",points);
-  }
-  function updateTelemetry(){
-    const values={
-      live:textOf("n2k-map-live","—"),
-      paths:textOf("n2k-map-paths","—"),
-      noise:textOf("n2k-radio-noise",textOf("rnode-live-noise","—")),
-      airtime:textOf("n2k-radio-airtime-text",textOf("rnode-live-airtime","—")),
-      rx:textOf("n2k-radio-rx",textOf("rnode-live-rx","—")),
-      tx:textOf("n2k-radio-tx",textOf("rnode-live-tx","—"))
-    };
-    Object.keys(values).forEach(key=>{
-      const target=byId("n2k-telemetry-"+key);
-      if(target) target.textContent=values[key];
-      sparkline(key,values[key]);
-    });
-    if(Date.now()-lastMetricSample>=8000) lastMetricSample=Date.now();
-  }
   function watchNodeAnnounces(){
     const contacts=window.n2kMeshLeaderboardContacts;
     if(!Array.isArray(contacts)) return;
@@ -4302,7 +4251,6 @@ function n2kIcon(name){
 
   function update(){
     if(!ensureOverview()) return;
-    updateTelemetry();
     updateChatPreview();
     watchNodeAnnounces();
     syncOverviewMesh();
@@ -4319,18 +4267,28 @@ function n2kIcon(name){
     const selftestText=textOf("n2k-selftest-summary","").trim();
     if(selftestTarget && selftestText) selftestTarget.textContent=selftestText;
     const propagation=textOf("n2k-propagation-runtime","—");
-    const propagationDetail=textOf("n2k-propagation-last-sync","Propagation / Sync");
+    const propagationDetail=textOf("n2k-propagation-last-sync","—");
+    const propagationSuccess=textOf("n2k-propagation-last-success","—");
     const selectedNode=textOf("n2k-propagation-selected","");
     const selectedHash=(selectedNode.match(/[0-9a-f]{8,}/i)||[])[0]||"";
     let backbone=propagation!=="—" ? propagation : "Status wird geprüft";
     let backboneSub=propagationDetail;
-    if(/warte auf serverantwort/i.test(propagation)){backbone="Antwort ausstehend";backboneSub="Server verbunden"+(selectedHash?" · "+selectedHash.slice(0,8)+"…":"");}
+    if(/warte auf serverantwort/i.test(propagation)){backbone="Antwort ausstehend";backboneSub="Server antwortet"+(selectedHash?" · "+selectedHash.slice(0,8)+"…":"");}
     else if(/suche serverpfad/i.test(propagation)){backbone="Serverpfad wird gesucht";backboneSub=textOf("n2k-propagation-candidate-count","Discovery aktiv");}
-    else if(/kein serverpfad/i.test(propagation)){backbone="Kein Serverpfad";backboneSub=textOf("n2k-propagation-candidate-count","Noch kein erreichbarer Server");}
+    else if(/kein serverpfad/i.test(propagation)){backbone="Kein Propagation Node";backboneSub=textOf("n2k-propagation-candidate-count","Noch kein erreichbarer Server");}
+    else if(/verbindung gescheitert|link_failed/i.test(propagation)){
+      backbone="Letzter Sync fehlgeschlagen";
+      backboneSub=(selectedHash?"Node "+selectedHash.slice(0,8)+"… · ":"")+"Versuch "+propagationDetail+
+        (propagationSuccess!=="—"?" · Zuletzt erfolgreich "+propagationSuccess:"");
+    }
+    else if(/übertragung gescheitert|transfer_failed|identität nicht bestätigt|no_identity_rcvd|zugriff verweigert|no_access/i.test(propagation)){
+      backbone="Letzter Sync fehlgeschlagen";
+      backboneSub=propagationDetail+(propagationSuccess!=="—"?" · Zuletzt erfolgreich "+propagationSuccess:"");
+    }
     else if(/abruf erfolgreich/i.test(propagation)){backbone="Sync erfolgreich";backboneSub=textOf("n2k-propagation-last-success",propagationDetail);}
-    else if(/empfange nachrichten/i.test(propagation)){backbone="Empfängt Nachrichten";backboneSub=selectedHash?"Server · "+selectedHash.slice(0,8)+"…":"Übertragung läuft";}
+    else if(/empfange nachrichten/i.test(propagation)){backbone="Empfängt Nachrichten";backboneSub=selectedHash?"Node · "+selectedHash.slice(0,8)+"…":"Übertragung läuft";}
     const backboneCard=byId("n2k-ov-backbone-main");
-    if(backboneCard) backboneCard.title=propagation;
+    if(backboneCard) backboneCard.title=propagation+" · "+backboneSub;
 
     const map={
       "n2k-ov-rnode-main":rnode,
@@ -4364,7 +4322,7 @@ function n2kIcon(name){
     watchValue("rnode",rnode,"RNode Status");
     watchValue("rns",rns,"Reticulum Status");
     watchValue("lxmf",lxmf,"LXMF Status");
-    watchValue("backbone",backbone,"Backbone Status");
+    watchValue("backbone",backbone,"Store & Forward");
 
     const pathsValue=map["n2k-ov-paths"];
     const liveValue=map["n2k-ov-live"];
@@ -4445,10 +4403,14 @@ function n2kIcon(name){
 
   function openOverview(){
     ensureOverview();
-    document.body.classList.add("n2k-overview-active");
-    document.querySelectorAll(".n2k-os-nav-button").forEach(function(btn){
-      btn.classList.toggle("is-active",btn.dataset.n2kAction==="overview");
-    });
+    if(typeof window.n2kShowPage==="function"){
+      window.n2kShowPage("overview");
+    }else{
+      document.body.classList.add("n2k-overview-active");
+      document.querySelectorAll(".n2k-os-nav-button").forEach(function(btn){
+        btn.classList.toggle("is-active",btn.dataset.n2kAction==="overview");
+      });
+    }
     window.scrollTo({top:0,behavior:"smooth"});
     update();
   }

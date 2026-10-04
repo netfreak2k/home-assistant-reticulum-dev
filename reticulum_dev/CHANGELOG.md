@@ -1,3 +1,11 @@
+## 1.30.24-beta1
+- Keep the overview version in sync across add-on metadata, page title, badge and cached script URL.
+- Route Overview through the unified page router so returning from Chat never leaves the chat page visible.
+- Compact the four gateway services into one strip and give the Living Mesh animation the main visual area.
+- Remove the sparse, mostly empty live-values strip; keep verified mesh counts and routes on the mesh card.
+- Clarify that Store & Forward errors describe the last sync attempt and show the last successful sync when available.
+- Mirror live-mesh animation states into the overview preview; retain original CC0 icons and artwork.
+
 ## 1.30.23-beta1
 - Keep the chat list rendered when the data is unchanged but another UI transition clears its DOM.
 - Show actionable empty and load-error states, with Contacts and retry shortcuts.

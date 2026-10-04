@@ -330,3 +330,47 @@ body.n2k-os-ready #n2k-page-chat .m97-empty strong{color:#e5eee7;font-size:14px;
 body.n2k-os-ready #n2k-page-chat .m97-empty span{max-width:380px;font-size:11px;}
 body.n2k-os-ready #n2k-page-chat .m97-empty button{min-height:38px;margin-top:4px;padding:8px 13px;border:1px solid rgba(114,219,167,.32);border-radius:11px;background:rgba(114,219,167,.1);color:#b9f2d1;font:700 11px system-ui,sans-serif;cursor:pointer;}
 body.n2k-os-ready #n2k-page-chat .m97-empty button:hover{background:rgba(114,219,167,.17);}
+
+/* 1.30.24-beta1 · stream-ready dashboard hierarchy. Original N2K artwork only. */
+body.n2k-os-ready #n2k-os-overview .n2k-bento-grid{grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:14px;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-node{grid-column:1/-1;grid-row:auto;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-services{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-services > .n2k-overview-card{min-height:74px !important;padding:10px 12px !important;border-color:rgba(178,205,188,.19);background:linear-gradient(145deg,rgba(30,48,42,.76),rgba(13,23,21,.72));}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-services .n2k-overview-card-title{font-size:11px;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-services .n2k-overview-main{font-size:12px !important;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-services .n2k-overview-sub{font-size:9px;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card{grid-row:span 2;display:flex;min-height:390px;padding:0;border-color:rgba(111,205,184,.25);background:linear-gradient(155deg,rgba(19,37,34,.94),rgba(8,18,18,.96));}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-bento-mesh{display:flex;flex:1;flex-direction:column;min-width:0;margin:0;border:0;border-radius:inherit;background:transparent;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-panel-head{padding:14px 16px 8px !important;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-panel-head strong{font-size:14px !important;color:#e5c982;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-panel-head small{font-size:10px !important;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-mesh-stage{flex:1;height:auto !important;min-height:330px !important;margin:0 8px 8px;border-radius:15px;background:radial-gradient(ellipse at 50% 50%,rgba(98,211,184,.13),transparent 57%),linear-gradient(180deg,rgba(5,17,16,.28),rgba(4,12,12,.72)) !important;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-mesh-lines{filter:drop-shadow(0 0 8px rgba(110,220,192,.44)) !important;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-mesh-stats{left:12px !important;right:12px !important;bottom:10px !important;gap:7px !important;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-mesh-stat{gap:5px !important;padding:7px 9px !important;border-color:rgba(177,219,199,.18) !important;background:rgba(5,14,13,.8) !important;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-mesh-stat small{font-size:9px !important;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-mesh-stat strong{font-size:13px !important;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-chat,body.n2k-os-ready #n2k-os-overview .n2k-bento-system{min-height:185px;padding:18px;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-chat .n2k-bento-head h2,body.n2k-os-ready #n2k-os-overview .n2k-bento-system .n2k-bento-head h2{font-size:19px;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-chat .n2k-bento-chat-body strong{font-size:12px;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-chat .n2k-bento-chat-body small{font-size:10px;}
+body.n2k-os-ready #n2k-os-overview .n2k-bento-system .n2k-live-event-chip{font-size:10px;}
+body.n2k-os-ready #n2k-os-overview .n2k-overview-telemetry{display:none !important;}
+#n2k-overview-live-svg.n2k-focus-mode .n2k-cnode.depth-far,#n2k-overview-live-svg.n2k-realtime-event-mode .n2k-cnode.depth-far{opacity:.2 !important;filter:saturate(.6) brightness(.7) blur(.4px) !important;}
+#n2k-overview-live-svg.n2k-focus-mode .n2k-cnode.selected,#n2k-overview-live-svg.n2k-realtime-event-mode .n2k-cnode.n2k-realtime-event{opacity:1 !important;filter:drop-shadow(0 0 12px rgba(115,225,194,.54)) drop-shadow(0 0 25px rgba(240,189,108,.22)) !important;}
+#n2k-overview-live-svg.n2k-focus-mode .n2k-clink,#n2k-overview-live-svg.n2k-realtime-event-mode .n2k-clink{opacity:.12 !important;}
+#n2k-overview-live-svg.n2k-focus-mode .n2k-clink.selected,#n2k-overview-live-svg.n2k-realtime-event-mode .n2k-clink.n2k-realtime-event{opacity:.85 !important;}
+@container (max-width:760px){
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-grid{grid-template-columns:minmax(0,1fr);}
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-node{grid-column:auto;}
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card{grid-row:auto;min-height:310px;}
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card .n2k-overview-mesh-stage{min-height:250px !important;}
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-services{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@container (max-width:440px){
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-card{padding:14px;}
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-mesh-card{padding:0;}
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-services{gap:7px;}
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-services > .n2k-overview-card{min-height:68px !important;padding:8px !important;}
+}
+@media(prefers-reduced-motion:reduce){#n2k-overview-live-svg *{animation:none !important;transition:none !important;}}
