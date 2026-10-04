@@ -1,3 +1,33 @@
+# Changelog
+
+## 1.30.49-beta1 — Demo Mode Production Pass
+
+### Demo Mode
+
+- Expand the 2:30 Social Story into a production-oriented capture workflow.
+- Use variable scene timing while keeping the total runtime at exactly 150 seconds.
+- Add a stronger five-second opening hook.
+- Add high-contrast in-video subtitles.
+- Add optional browser speech synthesis for the scripted German narration.
+- Add Capture Mode that hides navigation, controls and surrounding UI for recording.
+- Keep 9:16, 1:1 and 16:9 output layouts.
+- Add cinematic transition overlays between scenes.
+- Improve mobile readability, contrast and high-contrast accessibility support.
+- Strengthen the final community call-to-action.
+
+### Privacy
+
+- Demo Mode remains synthetic-only.
+- Demo Mode does not fetch messenger data, contacts or destination hashes.
+- Real incoming LXMF messages cannot be exposed by the Social Demo controller.
+
+### Documentation
+
+- Add dedicated Demo Mode and social capture documentation.
+- Add CONTRIBUTING.md with testing, hardware and privacy guidance.
+- Update README, User Guide and Beta Tester Guide for the current 1.30.x feature set.
+- Replace the outdated feature-freeze wording with active beta development guidance.
+
 ## 1.30.21-beta1
 
 - Remove the four repeated status cards from the overview; keep RNS, LXMF and NODE in the header and detailed status on the Status page.
