@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.24-beta1";
+  const VERSION="1.30.25-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4160,15 +4160,6 @@ function n2kIcon(name){
     overview.setAttribute("aria-label","N2K Übersicht");
     overview.innerHTML=
       '<div class="n2k-bento-grid">'+
-        '<section class="n2k-bento-card n2k-bento-node" aria-label="Node und Funkstatus">'+
-          '<div class="n2k-bento-head"><span class="n2k-bento-eyebrow">GATEWAY STATUS</span><span class="n2k-bento-mark">'+n2kIcon("radio")+'</span></div>'+
-          '<div class="n2k-bento-node-name" id="n2k-bento-node-name">N2K RNS Gateway</div>'+
-          '<div class="n2k-bento-services">'+
-            '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("radio")+'</span>RNode</div><i id="n2k-ov-rnode-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-rnode-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-rnode-sub" class="n2k-overview-sub">Live-Funkhardware</div></div>'+
-            '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("mesh")+'</span>RNS</div><i id="n2k-ov-rns-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-rns-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-rns-sub" class="n2k-overview-sub">Network Stack</div></div>'+
-            '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("chat")+'</span>LXMF</div><i id="n2k-ov-lxmf-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-lxmf-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-lxmf-sub" class="n2k-overview-sub">Messenger</div></div>'+
-            '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("forward")+'</span>Store &amp; Forward</div><i id="n2k-ov-backbone-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-backbone-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-backbone-sub" class="n2k-overview-sub">Propagation / Sync</div></div>'+
-          '</div></section>'+
         '<section class="n2k-bento-card n2k-bento-mesh-card" aria-label="Living Mesh Netzwerk">'+
           '<div class="n2k-bento-mesh"><div class="n2k-overview-panel-head"><div><strong>Living Mesh</strong><small>Echtzeit-Topologie</small></div><span id="n2k-overview-live-badge" class="n2k-overview-live">LIVE</span></div>'+
             '<div id="n2k-overview-mesh-stage" class="n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen"><svg id="n2k-overview-live-svg" class="n2k-overview-mesh-lines" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg><div id="n2k-overview-mesh-empty" class="n2k-overview-mesh-empty" hidden>Warte auf erste Announce oder bekannte RNS-Pfade</div><div class="n2k-overview-mesh-stats"><div class="n2k-overview-mesh-stat"><small>Live</small><strong id="n2k-ov-live">—</strong></div><div class="n2k-overview-mesh-stat"><small>Bekannt</small><strong id="n2k-ov-seen">—</strong></div><div class="n2k-overview-mesh-stat"><small>Pfade</small><strong id="n2k-ov-paths">—</strong></div><div class="n2k-overview-mesh-stat"><small>Relais</small><strong id="n2k-ov-relays">—</strong></div></div></div></div>'+
@@ -4205,12 +4196,6 @@ function n2kIcon(name){
     });
 
     return overview;
-  }
-
-  function setDot(id,value){
-    const dot=byId(id);
-    if(!dot) return;
-    dot.className="n2k-overview-dot "+statusClass(value);
   }
 
   function syncOverviewMesh(){
@@ -4260,12 +4245,6 @@ function n2kIcon(name){
     const rns=textOf("hero-rns",textOf("n2k-status-rns","—"));
     const rnsSub=textOf("shared-name","Reticulum Network Stack");
     const lxmf=textOf("n2k-status-lxmf",textOf("messenger-status-text","—"));
-    const nodeName=byId("node-status")?.getAttribute("data-node-name")||"N2K RNS Gateway";
-    const nodeNameTarget=byId("n2k-bento-node-name");
-    if(nodeNameTarget) nodeNameTarget.textContent=nodeName;
-    const selftestTarget=byId("n2k-bento-selftest");
-    const selftestText=textOf("n2k-selftest-summary","").trim();
-    if(selftestTarget && selftestText) selftestTarget.textContent=selftestText;
     const propagation=textOf("n2k-propagation-runtime","—");
     const propagationDetail=textOf("n2k-propagation-last-sync","—");
     const propagationSuccess=textOf("n2k-propagation-last-success","—");
@@ -4287,18 +4266,18 @@ function n2kIcon(name){
     }
     else if(/abruf erfolgreich/i.test(propagation)){backbone="Sync erfolgreich";backboneSub=textOf("n2k-propagation-last-success",propagationDetail);}
     else if(/empfange nachrichten/i.test(propagation)){backbone="Empfängt Nachrichten";backboneSub=selectedHash?"Node · "+selectedHash.slice(0,8)+"…":"Übertragung läuft";}
-    const backboneCard=byId("n2k-ov-backbone-main");
-    if(backboneCard) backboneCard.title=propagation+" · "+backboneSub;
+    const backboneChip=byId("n2k-chip-backbone");
+    if(backboneChip){
+      const chipState=/fehlgeschlagen|kein serverpfad|fehler|verweigert/i.test(backbone) ? "error"
+        : /serverpfad wird gesucht|kein propagation node|antwort ausstehend|sync angefordert/i.test(backbone) ? "warn"
+        : /sync erfolgreich|server verbunden|empfängt nachrichten|\bbereit\b/i.test(backbone) ? "online"
+        : /\baus\b|nicht aktiv/i.test(backbone) ? "offline" : "wait";
+      backboneChip.classList.remove("is-online","is-warn","is-offline","is-error","is-wait");
+      backboneChip.classList.add("is-"+chipState);
+      backboneChip.title="Store & Forward · "+propagation+" · "+backboneSub;
+    }
 
     const map={
-      "n2k-ov-rnode-main":rnode,
-      "n2k-ov-rnode-sub":rnodeSub,
-      "n2k-ov-rns-main":rns,
-      "n2k-ov-rns-sub":rnsSub,
-      "n2k-ov-lxmf-main":lxmf,
-      "n2k-ov-lxmf-sub":"LXMF Messenger",
-      "n2k-ov-backbone-main":backbone,
-      "n2k-ov-backbone-sub":backboneSub,
       "n2k-ov-live":textOf("n2k-map-live","—"),
       "n2k-ov-seen":textOf("n2k-map-visible","—"),
       "n2k-ov-paths":textOf("n2k-map-paths",textOf("net-paths","—")),

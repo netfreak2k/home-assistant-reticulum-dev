@@ -1,3 +1,8 @@
+## 1.30.25-beta1
+- Remove duplicated RNS/LXMF overview cards; keep service indicators in the header.
+- Add a compact Store & Forward header indicator with accurate last-sync state and detail.
+- Give the Living Mesh preview the main overview column without the oversized service block.
+
 ## 1.30.24-beta1
 - Keep the overview version in sync across add-on metadata, page title, badge and cached script URL.
 - Route Overview through the unified page router so returning from Chat never leaves the chat page visible.
