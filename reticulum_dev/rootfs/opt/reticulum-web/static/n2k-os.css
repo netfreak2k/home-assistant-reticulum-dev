@@ -5654,3 +5654,36 @@ body.n2k-demo-capture .n2k-demo-watermark{
     border-color:rgba(255,255,255,.28);
   }
 }
+
+
+/* 1.30.49-beta1 · preserve social aspect ratios in fullscreen capture */
+.n2k-demo-stage::backdrop{
+  background:#000;
+}
+
+.n2k-demo-stage[data-format="portrait"]:fullscreen{
+  width:min(100vw,56.25vh) !important;
+  height:min(100vh,177.7778vw) !important;
+  max-width:none !important;
+  max-height:none !important;
+  aspect-ratio:9/16 !important;
+  margin:auto !important;
+}
+
+.n2k-demo-stage[data-format="square"]:fullscreen{
+  width:min(100vw,100vh) !important;
+  height:min(100vw,100vh) !important;
+  max-width:none !important;
+  max-height:none !important;
+  aspect-ratio:1/1 !important;
+  margin:auto !important;
+}
+
+.n2k-demo-stage[data-format="wide"]:fullscreen{
+  width:min(100vw,177.7778vh) !important;
+  height:min(100vh,56.25vw) !important;
+  max-width:none !important;
+  max-height:none !important;
+  aspect-ratio:16/9 !important;
+  margin:auto !important;
+}
