@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.50-beta1";
+  const VERSION="1.30.51-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5044,7 +5044,7 @@ function n2kIcon(name){
 
     surface.innerHTML=
       '<div class="n2k-demo-meta">'+
-        '<div><span class="n2k-demo-kicker">SOCIAL STORY</span><strong>2:30 Auto Demo</strong><small>Warum · Entstehung · Reticulum · LXMF · Mesh · Nutzen · Zukunft · Mitmachen</small></div>'+
+        '<div><span class="n2k-demo-kicker">SOCIAL STORY</span><strong>3:18 Auto Demo</strong><small>Warum · Entstehung · Reticulum · LXMF · Mesh · Nutzen · Zukunft · Mitmachen</small></div>'+
         '<div class="n2k-demo-badges"><span class="privacy">PRIVACY SAFE</span><span>SYNTHETIC DATA</span><span>15 KAPITEL</span></div>'+
       '</div>'+
       '<div class="n2k-demo-controls">'+
@@ -5057,7 +5057,7 @@ function n2kIcon(name){
           '<button type="button" data-demo-action="capture">● Aufnahme-Modus</button>'+
           '<button type="button" data-demo-action="fullscreen">⛶ Vollbild</button>'+
         '</div>'+
-        '<div class="n2k-demo-runtime" id="n2k-demo-runtime">00:00 / 02:30</div>'+
+        '<div class="n2k-demo-runtime" id="n2k-demo-runtime">00:00 / 03:18</div>'+
         '<div class="n2k-demo-formats" role="group" aria-label="Social Format">'+
           '<button type="button" data-demo-format="portrait">9:16</button>'+
           '<button type="button" data-demo-format="square">1:1</button>'+
@@ -5476,8 +5476,8 @@ function n2kIcon(name){
 
 
 /* =========================================================
-   N2K Demo Mode 1.30.50-beta1
-   Production social story · 2:30 total · variable pacing.
+   N2K Demo Mode 1.30.51-beta1
+   Production social story · narrator-safe variable pacing.
    Privacy rule: synthetic-only. No API/chat/contact access.
    ========================================================= */
 (function(){
@@ -5488,21 +5488,21 @@ function n2kIcon(name){
       title:"Was passiert, wenn das Netz weg ist?",
       description:"Der Hook: Kommunikation darf nicht an einem einzigen Netz hängen.",
       kicker:"KEIN NETZ?",
-      duration:5,
+      duration:11,
       narration:"Was passiert, wenn Mobilfunk oder Internet plötzlich weg sind? Genau hier beginnt die Idee hinter N2K RNS Gateway."
     },
     {
       title:"Warum Local First?",
       description:"Lokale Kommunikation als zusätzlicher, unabhängiger Weg.",
       kicker:"WARUM LOCAL FIRST?",
-      duration:8,
+      duration:14,
       narration:"Cloud und Mobilfunk sind praktisch. Aber sie sollten nicht der einzige Weg sein. Lokale Infrastruktur kann auch dann weiterarbeiten, wenn draußen nichts mehr geht."
     },
     {
       title:"Wie das Gateway entstanden ist",
       description:"Vom Reticulum-Node zum integrierten Home-Assistant-Gateway.",
       kicker:"ENTSTEHUNG",
-      duration:10,
+      duration:14,
       narration:"Das Projekt begann mit einem Reticulum Node in Home Assistant. Daraus wurden Messenger, Living Mesh, RNode Integration, Monitoring und ein kompletter Gateway Workflow."
     },
     {
@@ -5516,77 +5516,77 @@ function n2kIcon(name){
       title:"Reticulum erklärt · Transport",
       description:"LoRa, LAN und Internet als austauschbare Transportwege.",
       kicker:"RETICULUM · TEIL 2",
-      duration:12,
+      duration:15,
       narration:"Ein Ziel kann über LoRa, über das lokale Netzwerk oder über einen Internet Backbone erreichbar sein. Die Anwendung muss den konkreten Transportweg nicht selbst verwalten."
     },
     {
       title:"LXMF erklärt",
       description:"Nachrichten und Zustellung auf dem Reticulum-Netz.",
       kicker:"LXMF",
-      duration:11,
+      duration:13,
       narration:"LXMF setzt auf Reticulum auf. Es kümmert sich um Nachrichten, Zustellung und kann mit Propagation Nodes auch Store and Forward Szenarien abbilden."
     },
     {
       title:"N2K RNS Gateway",
       description:"Messenger, Mesh, Funk und Diagnose in einer Oberfläche.",
       kicker:"DIE APP",
-      duration:10,
+      duration:13,
       narration:"N2K RNS Gateway bringt diese Technik in Home Assistant zusammen. Messenger, Funkhardware, Netzstatus, Diagnose und Visualisierung landen in einer gemeinsamen Oberfläche."
     },
     {
       title:"Living Mesh",
       description:"Routen, Relays und Aktivität werden grafisch verständlich.",
       kicker:"LIVING MESH",
-      duration:14,
+      duration:12,
       narration:"Living Mesh macht sichtbar, was normalerweise im Hintergrund passiert. Nodes, Relays, Routen, Aktivität und Transportarten werden zu einem lebenden Netzwerkbild."
     },
     {
       title:"RNode & LoRa",
       description:"Reticulum-Funk direkt am Home-Assistant-Gateway.",
       kicker:"RNODE · LORA",
-      duration:10,
+      duration:13,
       narration:"Mit einem RNode wird LoRa zum Funkweg des Gateways. Die App zeigt Verbindung, Funkstatus und wichtige Werte direkt und verständlich an."
     },
     {
       title:"Privacy Messenger",
       description:"Die Social-Demo verwendet ausschließlich synthetische Daten.",
       kicker:"PRIVACY SAFE",
-      duration:10,
+      duration:14,
       narration:"Auch beim Messenger gilt Datenschutz zuerst. Im Demo Mode erscheinen keine echten Namen, keine Nachrichtentexte und keine Destination Hashes. Alles hier ist synthetisch."
     },
     {
       title:"Store & Forward",
       description:"Nachrichten können auf spätere Erreichbarkeit warten.",
       kicker:"STORE & FORWARD",
-      duration:11,
+      duration:13,
       narration:"Ist ein Ziel gerade nicht erreichbar, muss eine Nachricht nicht zwangsläufig verloren sein. LXMF kann Propagation Nodes für eine spätere Zustellung nutzen."
     },
     {
       title:"Monitoring",
       description:"Trends für Pfade, Verfügbarkeit und Funk statt bloßer Momentwerte.",
       kicker:"NETWORK INTELLIGENCE",
-      duration:9,
+      duration:12,
       narration:"Monitoring zeigt nicht nur den aktuellen Zustand. Verfügbarkeit, Pfade, Dynamik und Funkwerte werden über Zeit sichtbar und dadurch besser einschätzbar."
     },
     {
       title:"Entwicklung",
       description:"Iterativ auf echter Hardware: bauen, testen, korrigieren, pushen.",
       kicker:"BUILD · TEST · FIX",
-      duration:10,
+      duration:13,
       narration:"Die Entwicklung läuft iterativ auf echter Hardware. Ein Feature wird gebaut, getestet, korrigiert und erst danach in die nächste Beta übernommen."
     },
     {
       title:"Ziele",
       description:"Einfacher Einstieg, lokale Kontrolle und robuste Kommunikation.",
       kicker:"WOHIN GEHT ES?",
-      duration:10,
+      duration:13,
       narration:"Das Ziel ist klar: weniger Kommandozeile, mehr Verständnis, lokale Kontrolle und ein Einstieg, den auch neue Nutzer ohne Reticulum Vorwissen schaffen."
     },
     {
       title:"Mach mit",
       description:"Teste, melde Bugs, bring Ideen und Hardwareerfahrung ein.",
       kicker:"NEUGIERIG?",
-      duration:8,
+      duration:16,
       narration:"Du hast einen Raspberry Pi, einen RNode, Home Assistant oder einfach eine gute Idee? Teste mit, melde Bugs, probiere Hardware aus oder entwickle direkt auf GitHub mit."
     }
   ];
@@ -5632,7 +5632,7 @@ function n2kIcon(name){
   }
   function updateRuntime(){
     const node=byId("n2k-demo-runtime");
-    if(node) node.textContent=formatTime(currentElapsed())+" / 02:30";
+    if(node) node.textContent=formatTime(currentElapsed())+" / "+formatTime(TOTAL_SECONDS);
     const root=stage();
     if(root){
       root.style.setProperty("--n2k-demo-progress",String(Math.min(1,currentElapsed()/TOTAL_SECONDS)));
