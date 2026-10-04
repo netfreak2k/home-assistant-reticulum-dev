@@ -7,7 +7,7 @@ This repository contains the current public beta development build.
 
 ## Current status
 
-**1.30.49-beta1 · Active public beta development**
+**1.30.50-beta1 · Active public beta development**
 
 The original public beta baseline has passed functional validation, update testing
 and a clean-install test on a second Home Assistant system. Development has since
@@ -129,6 +129,7 @@ names, but users should still review files before publishing them publicly.
 - Privacy-safe synthetic messenger demonstration
 - Optional browser narration and high-contrast subtitles
 - Capture Mode for clean screen recording
+- Production readability/contrast pass for muted-feed viewing and small mobile screens
 
 ## Documentation
 
