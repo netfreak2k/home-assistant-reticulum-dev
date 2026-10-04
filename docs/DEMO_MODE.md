@@ -37,8 +37,8 @@ narrator-safe total runtime of 198 seconds:
 
 1. Open **Demo Mode**.
 2. Choose **9:16**, **1:1** or **16:9**.
-3. Decide whether browser narration should be enabled.
-4. Keep **CC subtitles** enabled for social platforms where videos may autoplay muted.
+3. Browser narration is enabled by default; disable it only if you want a silent capture.
+4. CC subtitles are disabled by default. Enable them manually when you want a muted-feed version.
 5. Press **Capture Mode**.
 6. Start the screen recorder.
 7. Press **Restart** if you need the story from frame zero.
@@ -49,9 +49,18 @@ caption. The in-video subtitles and N2K watermark stay visible.
 
 ## Narrator-safe pacing
 
-Version 1.30.51-beta1 lengthens scene timing from 150 to 198 seconds.
+Version 1.30.52-beta1 lengthens scene timing from 150 to 198 seconds.
 Each scene now includes enough headroom for the existing German narration at a calm browser-TTS pace plus a short visual pause before the next scene.
 The runtime display is derived from the scene table instead of being hard-coded, so future timing changes stay consistent automatically.
+
+## Speech synchronization
+
+Starting with 1.30.52-beta1, scene changes are no longer allowed to interrupt active speech. The controller waits for the browser speech engine to report that narration has finished, then keeps the current visual on screen for an additional short tail before transitioning. The displayed total runtime is therefore a minimum (≥ 03:18) because installed voices and browsers speak at slightly different speeds.
+
+Default state:
+
+- speaker: ON
+- subtitles: OFF
 
 ## Narration
 
