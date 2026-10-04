@@ -3850,3 +3850,65 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
 
 /* 1.30.21-beta1 · keep core service status in the header only. */
 #n2k-os-overview > .n2k-overview-grid{display:none !important;}
+
+
+/* =========================================================
+   1.30.45-beta1 · LIVING MESH READABILITY
+   Shared by navigation + overview.
+   ========================================================= */
+
+.n2k-constellation-stats{
+  gap:7px !important;
+}
+
+.n2k-constellation-stats span{
+  padding:5px 8px !important;
+  border-color:rgba(255,255,255,.095) !important;
+  background:rgba(7,13,18,.56) !important;
+  color:rgba(214,224,230,.80) !important;
+  font-size:9.5px !important;
+  font-weight:650 !important;
+  line-height:1.1 !important;
+  letter-spacing:.015em !important;
+  text-shadow:0 1px 2px rgba(0,0,0,.55);
+}
+
+.n2k-constellation-stats b{
+  color:rgba(246,249,250,.98) !important;
+  font-size:10.5px !important;
+  font-weight:850 !important;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 1px 3px rgba(0,0,0,.72);
+}
+
+.n2k-constellation-sub,
+.n2k-universe-sub{
+  color:rgba(202,214,221,.72) !important;
+  font-size:10.5px !important;
+  line-height:1.4 !important;
+}
+
+#n2k-os-overview .n2k-constellation-title{
+  color:rgba(245,248,249,.98) !important;
+}
+
+#n2k-os-overview .n2k-constellation-stats span{
+  background:rgba(5,10,14,.68) !important;
+  backdrop-filter:blur(5px);
+}
+
+@media(max-width:900px){
+  .n2k-constellation-stats{
+    max-width:none !important;
+    gap:5px !important;
+  }
+
+  .n2k-constellation-stats span{
+    padding:4px 6px !important;
+    font-size:8.8px !important;
+  }
+
+  .n2k-constellation-stats b{
+    font-size:9.6px !important;
+  }
+}
