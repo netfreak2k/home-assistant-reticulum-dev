@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.30.51-beta1 — Narrator-safe Demo Timing
+
+### Demo Mode
+
+- Extend the Social Demo from 150 to 198 seconds (about 3:18).
+- Give every scene enough time for the existing German narration to finish naturally.
+- Add breathing room after spoken lines instead of cutting directly into the next scene.
+- Make the runtime display derive from the scene durations instead of a hard-coded 02:30 label.
+- Preserve the existing 15-scene story, visuals, privacy model and capture formats.
+
 ## 1.30.50-beta1 — Social Demo Readability & Contrast
 
 ### Demo Mode
