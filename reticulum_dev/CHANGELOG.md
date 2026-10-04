@@ -1,3 +1,9 @@
+## 1.30.50-beta1
+- Improve Demo Mode readability and contrast for social-media capture, especially muted feeds and 9:16 portrait output.
+- Increase secondary text, badge, control, card and subtitle legibility while preserving the 150-second story timing.
+- Strengthen dark content surfaces and text shadows over cinematic mesh animation.
+- Align frontend cache/version markers with the add-on version.
+
 ## 1.30.36-beta1
 - Stop the chat viewport observer from triggering itself and ignore unrelated mesh style changes.
 - Avoid idle/replay animation frames when Living Mesh is hidden or replay is not active.
