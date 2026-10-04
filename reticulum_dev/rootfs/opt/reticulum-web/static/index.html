@@ -2228,6 +2228,119 @@ code {
 }
 </style>
 
+
+<style id="n2k-github-counter-css">
+.n2k-github-counter{
+  margin:14px 0 12px;
+  padding:12px 14px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+.n2k-github-counter-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.n2k-github-counter-head>div{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  min-width:0;
+}
+.n2k-github-counter-head small{
+  opacity:.55;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.12em;
+}
+.n2k-github-counter-head strong{
+  font-size:13px;
+  font-weight:800;
+}
+.n2k-github-counter-link{
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  flex:0 0 28px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:9px;
+  color:inherit;
+  text-decoration:none;
+  background:rgba(255,255,255,.03);
+}
+.n2k-github-counter-grid{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:6px;
+}
+.n2k-github-counter-grid>div{
+  min-width:0;
+  padding:8px 5px 7px;
+  border-radius:10px;
+  text-align:center;
+  background:rgba(0,0,0,.14);
+}
+.n2k-github-counter-grid span{
+  display:block;
+  height:14px;
+  opacity:.58;
+  font-size:11px;
+  line-height:14px;
+}
+.n2k-github-counter-grid b{
+  display:block;
+  margin-top:2px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:16px;
+  line-height:20px;
+  font-variant-numeric:tabular-nums;
+}
+.n2k-github-counter-grid small{
+  display:block;
+  margin-top:1px;
+  opacity:.5;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:8px;
+  white-space:nowrap;
+}
+.n2k-github-counter-foot{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:8px;
+  opacity:.52;
+  font-size:9px;
+}
+#n2k-gh-release{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  text-align:right;
+}
+@media(max-width:700px){
+  .n2k-github-counter{
+    padding:10px;
+  }
+  .n2k-github-counter-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .n2k-github-counter-head>div{
+    display:block;
+  }
+  .n2k-github-counter-head strong{
+    display:block;
+    margin-top:2px;
+  }
+}
+</style>
+
 </head>
 
 <body>
@@ -2241,11 +2354,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.30.36-beta1</h1>
+        <h1>N2K RNS Gateway · 1.30.37-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.36-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.37-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -2988,6 +3101,37 @@ code {
       </article>
     </div>
 
+
+    <section class="n2k-github-counter" aria-label="GitHub Projektzähler">
+      <div class="n2k-github-counter-head">
+        <div>
+          <small>GITHUB · LIVE</small>
+          <strong>Projekt-Counter</strong>
+        </div>
+        <a
+          class="n2k-github-counter-link"
+          href="https://github.com/netfreak2k/home-assistant-reticulum-dev"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Repository auf GitHub öffnen"
+          aria-label="Repository auf GitHub öffnen">↗</a>
+      </div>
+
+      <div class="n2k-github-counter-grid">
+        <div><span>★</span><b id="n2k-gh-stars">—</b><small>Stars</small></div>
+        <div><span>⑂</span><b id="n2k-gh-forks">—</b><small>Forks</small></div>
+        <div><span>!</span><b id="n2k-gh-issues">—</b><small>Issues</small></div>
+        <div><span>⇅</span><b id="n2k-gh-commits">—</b><small>Commits</small></div>
+        <div><span>◆</span><b id="n2k-gh-releases">—</b><small>Releases</small></div>
+        <div><span>↓</span><b id="n2k-gh-downloads">—</b><small>Downloads</small></div>
+      </div>
+
+      <div class="n2k-github-counter-foot">
+        <span id="n2k-gh-state">GitHub wird geladen…</span>
+        <span id="n2k-gh-release"></span>
+      </div>
+    </section>
+
     <nav class="n2k-status-jump" aria-label="Status Bereiche">
       <button type="button" data-n2k-jump="n2k-status-overview">Übersicht</button>
       <button type="button" data-n2k-jump="n2k-hardware-usb-card">RNode Setup</button>
@@ -3486,7 +3630,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.30.36-beta1</strong>
+      <strong>N2K RNS Gateway · 1.30.37-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -12299,7 +12443,7 @@ if (
 })();
 </script>
 
-<script src="static/messenger.js?v=1.30.36-beta1"></script>
+<script src="static/messenger.js?v=1.30.37-beta1"></script>
 
 
 <script id="n2k-mobile-real-js-1181">
@@ -17626,6 +17770,80 @@ hr{
   }else{
     boot();
   }
+})();
+</script>
+
+
+<script id="n2k-github-counter-js">
+(function(){
+  function el(id){ return document.getElementById(id); }
+
+  function compact(value){
+    var n=Number(value);
+    if(!Number.isFinite(n)) return "—";
+    try{
+      return new Intl.NumberFormat("de-DE",{
+        notation:n>=1000?"compact":"standard",
+        maximumFractionDigits:1
+      }).format(n);
+    }catch(_){
+      return String(n);
+    }
+  }
+
+  function set(id,value,title){
+    var node=el(id);
+    if(!node) return;
+    node.textContent=compact(value);
+    if(title!==undefined) node.title=String(title);
+  }
+
+  async function load(){
+    var state=el("n2k-gh-state");
+    try{
+      var response=await fetch("api/github-stats",{
+        cache:"no-store"
+      });
+      var data=await response.json();
+
+      if(!response.ok || !data || !data.ok){
+        throw new Error((data&&data.error)||("HTTP "+response.status));
+      }
+
+      set("n2k-gh-stars",data.stars,data.stars);
+      set("n2k-gh-forks",data.forks,data.forks);
+      set("n2k-gh-issues",data.open_issues,data.open_issues);
+      set("n2k-gh-commits",data.commits,data.commits);
+      set("n2k-gh-releases",data.releases,data.releases);
+      set("n2k-gh-downloads",data.downloads,data.downloads);
+
+      if(state){
+        state.textContent=data.stale
+          ?"GitHub · letzter bekannter Stand"
+          :(data.cached?"GitHub · Cache":"GitHub · aktuell");
+      }
+
+      var release=el("n2k-gh-release");
+      if(release){
+        release.textContent=(
+          data.latest_release && data.latest_release.tag
+        ) ? data.latest_release.tag : "";
+      }
+    }catch(error){
+      if(state){
+        state.textContent="GitHub momentan nicht erreichbar";
+        state.title=String(error&&error.message||error||"");
+      }
+    }
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",load,{once:true});
+  }else{
+    load();
+  }
+
+  window.setInterval(load,600000);
 })();
 </script>
 
