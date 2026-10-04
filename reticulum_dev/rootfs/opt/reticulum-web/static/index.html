@@ -2341,7 +2341,7 @@ code {
 }
 </style>
 
-<link rel="stylesheet" href="static/n2k-monitoring.css?v=1.30.41-beta1">
+<link rel="stylesheet" href="static/n2k-monitoring.css?v=1.30.42-beta1">
 </head>
 
 <body>
@@ -3739,7 +3739,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.30.41-beta1</strong>
+      <strong>N2K RNS Gateway · 1.30.42-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -11824,10 +11824,41 @@ if (
       return Number(a&&a.age_seconds||0)-Number(b&&b.age_seconds||0);
     });
 
-    var items=filterItems(raw).slice(0,42);
     var live=raw.filter(function(item){
       return Number(item&&item.age_seconds||0)<=120 || item&&item.seen_during_scan===true;
     }).length;
+
+    var filtered=filterItems(raw);
+    var contextFallback=false;
+    var items;
+
+    if(isOverviewTarget){
+      // Dashboard overview is context, not a filter view:
+      // always show the newest known nodes, even when LIVE is currently zero.
+      items=raw.filter(function(item){
+        return Number(item&&item.age_seconds||0)<=86400;
+      }).slice(0,42);
+
+      if(!items.length){
+        items=raw.slice(0,24);
+      }
+    }else{
+      items=filtered.slice(0,42);
+
+      // Preserve LIVE semantics, but avoid an apparently empty universe.
+      // If no node is live right now, show recent known nodes as dim context.
+      if(filter==="live" && !items.length && raw.length){
+        items=raw.filter(function(item){
+          return Number(item&&item.age_seconds||0)<=86400;
+        }).slice(0,42);
+
+        if(!items.length){
+          items=raw.slice(0,24);
+        }
+
+        contextFallback=items.length>0;
+      }
+    }
 
     var relays=items.filter(function(item){
       return /backbone|tcp|internet|auto(interface)?|rnode|lora/i.test(String(item.interface||"")) &&
@@ -11961,6 +11992,8 @@ if (
       '<g class="n2k-u-particles">'+particles+'</g>'+
       core+
       '<g class="n2k-constellation-nodes">'+nodes+'</g>';
+
+    svg.classList.toggle("n2k-context-fallback",!!contextFallback);
 
     if(selected){
       svg.classList.add("n2k-focus-mode");
@@ -12552,7 +12585,7 @@ if (
 })();
 </script>
 
-<script src="static/messenger.js?v=1.30.41-beta1"></script>
+<script src="static/messenger.js?v=1.30.42-beta1"></script>
 
 
 <script id="n2k-mobile-real-js-1181">
@@ -17956,7 +17989,7 @@ hr{
 })();
 </script>
 
-<script src="static/n2k-monitoring.js?v=1.30.41-beta1" defer></script>
+<script src="static/n2k-monitoring.js?v=1.30.42-beta1" defer></script>
 </body>
 </html>
 
