@@ -5428,3 +5428,284 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
     order:3;
   }
 }
+
+
+/* =========================================================
+   1.30.49-beta1 · DEMO PRODUCTION / CAPTURE LAYER
+   ========================================================= */
+
+/* Readability: stronger contrast and larger minimum type. */
+.n2k-demo-stage{
+  color:#f7fafb;
+  text-rendering:optimizeLegibility;
+}
+
+.n2k-demo-stage .n2k-demo-story-copy h3,
+.n2k-demo-stage .n2k-demo-intro-copy h3,
+.n2k-demo-stage .n2k-demo-scene-finale h3{
+  color:#ffffff !important;
+  text-shadow:
+    0 2px 12px rgba(0,0,0,.88),
+    0 1px 2px rgba(0,0,0,.95);
+}
+
+.n2k-demo-stage .n2k-demo-story-copy p,
+.n2k-demo-stage .n2k-demo-explain-stack span,
+.n2k-demo-stage .n2k-demo-story-grid article small,
+.n2k-demo-stage .n2k-demo-goals article span{
+  color:rgba(237,244,247,.86) !important;
+  text-shadow:0 1px 3px rgba(0,0,0,.82);
+}
+
+.n2k-demo-stage .n2k-demo-story-copy > span,
+.n2k-demo-stage .n2k-demo-scene-label,
+.n2k-demo-stage .n2k-demo-kicker{
+  text-shadow:0 1px 4px rgba(0,0,0,.92);
+}
+
+.n2k-demo-stage::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.20),transparent 18%,transparent 82%,rgba(0,0,0,.20)),
+    linear-gradient(180deg,rgba(0,0,0,.16),transparent 22%,transparent 70%,rgba(0,0,0,.30));
+}
+
+/* Viral hook: first ~3 seconds read instantly even on a phone. */
+.n2k-demo-hook{
+  position:absolute;
+  inset:0;
+  z-index:15;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:8px;
+  background:#030507;
+  text-align:center;
+  animation:n2kDemoHookExit .65s 2.65s ease forwards;
+}
+
+.n2k-demo-hook b{
+  color:#fff;
+  font-size:clamp(38px,8.2vw,92px);
+  line-height:.88;
+  letter-spacing:-.065em;
+  text-shadow:0 0 36px rgba(240,189,108,.14);
+  animation:n2kDemoHookHit .55s .12s cubic-bezier(.16,.84,.32,1.28) both;
+}
+
+.n2k-demo-hook span{
+  color:#71d9b0;
+  font-size:clamp(10px,1.8vw,18px);
+  font-weight:850;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  opacity:0;
+  animation:n2kDemoHookSub .5s .65s ease forwards;
+}
+
+.n2k-demo-scene-intro .n2k-demo-intro-core{
+  opacity:0;
+}
+.n2k-demo-scene-intro.is-active .n2k-demo-intro-core{
+  animation:n2kDemoIntroReveal .75s 2.85s ease forwards;
+}
+.n2k-demo-scene-intro.is-active .n2k-demo-intro-copy{
+  animation:n2kDemoCopyIn .85s 3.15s ease forwards !important;
+}
+
+/* Transition wipe between chapters. */
+.n2k-demo-transition{
+  position:absolute;
+  inset:0;
+  z-index:60;
+  overflow:hidden;
+  pointer-events:none;
+}
+
+.n2k-demo-transition i{
+  position:absolute;
+  inset:-20% -35%;
+  transform:translateX(-120%) skewX(-12deg);
+  background:
+    linear-gradient(
+      100deg,
+      rgba(3,7,10,0) 0%,
+      rgba(3,7,10,.88) 35%,
+      rgba(113,217,176,.13) 50%,
+      rgba(3,7,10,.94) 65%,
+      rgba(3,7,10,0) 100%
+    );
+}
+
+.n2k-demo-stage.n2k-demo-transitioning .n2k-demo-transition i{
+  animation:n2kDemoTransitionSweep .72s cubic-bezier(.5,0,.2,1);
+}
+
+/* In-frame subtitles: safe for screen recording. */
+.n2k-demo-subtitle{
+  position:absolute;
+  left:50%;
+  bottom:6.8%;
+  z-index:50;
+  width:min(82%,780px);
+  transform:translateX(-50%);
+  padding:9px 13px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:11px;
+  background:rgba(0,0,0,.76);
+  box-shadow:0 10px 28px rgba(0,0,0,.36);
+  backdrop-filter:blur(10px);
+  color:#fff;
+  font-size:clamp(10px,1.45vw,15px);
+  font-weight:760;
+  line-height:1.35;
+  text-align:center;
+  text-shadow:0 1px 3px #000;
+}
+
+.n2k-demo-subtitle[hidden]{
+  display:none !important;
+}
+
+/* Keep other bottom overlays clear of captions. */
+.n2k-demo-bottom-explain{
+  bottom:16.5% !important;
+}
+
+/* Capture Mode: only the production frame remains. */
+body.n2k-demo-capture{
+  overflow:hidden !important;
+  background:#000 !important;
+}
+
+body.n2k-demo-capture #n2k-os-sidebar,
+body.n2k-demo-capture #n2k-mobile-real-nav,
+body.n2k-demo-capture .n2k-app-page-head,
+body.n2k-demo-capture #n2k-page-demo > .n2k-app-page-head,
+body.n2k-demo-capture .n2k-demo-meta,
+body.n2k-demo-capture .n2k-demo-controls,
+body.n2k-demo-capture .n2k-demo-caption{
+  display:none !important;
+}
+
+body.n2k-demo-capture #n2k-page-demo{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:2147483000 !important;
+  display:grid !important;
+  place-items:center !important;
+  width:100vw !important;
+  height:100vh !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  background:#000 !important;
+}
+
+body.n2k-demo-capture #n2k-page-demo .n2k-demo-mode{
+  display:grid !important;
+  place-items:center !important;
+  width:100vw !important;
+  height:100vh !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:#000 !important;
+  box-shadow:none !important;
+}
+
+body.n2k-demo-capture .n2k-demo-stage-wrap{
+  width:100vw !important;
+  height:100vh !important;
+  min-height:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:#000 !important;
+}
+
+body.n2k-demo-capture .n2k-demo-stage{
+  max-width:100vw !important;
+  max-height:100vh !important;
+  border-color:rgba(255,255,255,.04) !important;
+}
+
+/* Preserve selected aspect ratio while filling as much of the capture viewport as possible. */
+body.n2k-demo-capture .n2k-demo-stage[data-format="wide"]{
+  width:min(100vw,177.777vh) !important;
+  height:min(100vh,56.25vw) !important;
+  aspect-ratio:16/9 !important;
+}
+body.n2k-demo-capture .n2k-demo-stage[data-format="square"]{
+  width:min(100vw,100vh) !important;
+  height:min(100vw,100vh) !important;
+  aspect-ratio:1/1 !important;
+}
+body.n2k-demo-capture .n2k-demo-stage[data-format="portrait"]{
+  width:min(100vw,56.25vh) !important;
+  height:min(100vh,177.777vw) !important;
+  aspect-ratio:9/16 !important;
+}
+
+/* Social-safe zones: tighter text measure in portrait. */
+.n2k-demo-stage[data-format="portrait"] .n2k-demo-story{
+  padding:15% 9% 20%;
+}
+.n2k-demo-stage[data-format="portrait"] .n2k-demo-story-copy h3{
+  font-size:clamp(25px,7.2vw,38px);
+}
+.n2k-demo-stage[data-format="portrait"] .n2k-demo-story-copy p{
+  font-size:clamp(10px,3vw,13px);
+}
+.n2k-demo-stage[data-format="portrait"] .n2k-demo-subtitle{
+  bottom:9%;
+  width:82%;
+  padding:9px 10px;
+  font-size:clamp(11px,3.3vw,14px);
+}
+.n2k-demo-stage[data-format="portrait"] .n2k-demo-watermark{
+  left:7%;
+  bottom:3.2%;
+}
+
+@keyframes n2kDemoHookHit{
+  from{opacity:0;transform:scale(.72);filter:blur(8px)}
+  to{opacity:1;transform:scale(1);filter:blur(0)}
+}
+@keyframes n2kDemoHookSub{
+  to{opacity:1}
+}
+@keyframes n2kDemoHookExit{
+  to{opacity:0;visibility:hidden;transform:scale(1.04)}
+}
+@keyframes n2kDemoIntroReveal{
+  from{opacity:0;transform:translate(-50%,-50%) scale(.78)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+@keyframes n2kDemoTransitionSweep{
+  0%{transform:translateX(-120%) skewX(-12deg)}
+  55%{transform:translateX(0) skewX(-12deg)}
+  100%{transform:translateX(120%) skewX(-12deg)}
+}
+
+@media(max-width:900px){
+  .n2k-demo-subtitle{
+    bottom:8%;
+    width:86%;
+    font-size:10.5px;
+    padding:8px 10px;
+  }
+
+  .n2k-demo-bottom-explain{
+    bottom:19% !important;
+  }
+
+  .n2k-demo-hook b{
+    font-size:clamp(34px,12vw,62px);
+  }
+}
