@@ -7,7 +7,7 @@ This repository contains the current public beta development build.
 
 ## Current status
 
-**1.30.50-beta1 · Active public beta development**
+**1.30.51-beta1 · Active public beta development**
 
 The original public beta baseline has passed functional validation, update testing
 and a clean-install test on a second Home Assistant system. Development has since
@@ -124,7 +124,7 @@ names, but users should still review files before publishing them publicly.
 - Live / 1 h / 5 h / Replay mesh views
 - Cinematic mesh camera motion
 - Read-only network monitoring with 24 h local history
-- Social Demo Mode with 2:30 scripted story
+- Social Demo Mode with narrator-safe ~3:18 scripted story
 - 9:16 / 1:1 / 16:9 capture layouts
 - Privacy-safe synthetic messenger demonstration
 - Optional browser narration and high-contrast subtitles
