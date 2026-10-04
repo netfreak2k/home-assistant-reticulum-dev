@@ -49,13 +49,19 @@ caption. The in-video subtitles and N2K watermark stay visible.
 
 ## Narrator-safe pacing
 
-Version 1.30.52-beta1 lengthens scene timing from 150 to 198 seconds.
+Version 1.30.53-beta1 lengthens scene timing from 150 to 198 seconds.
 Each scene now includes enough headroom for the existing German narration at a calm browser-TTS pace plus a short visual pause before the next scene.
 The runtime display is derived from the scene table instead of being hard-coded, so future timing changes stay consistent automatically.
 
+## Stream brightness
+
+Version 1.30.53-beta1 brightens the Demo Mode specifically for live streaming and compressed video platforms such as Twitch, YouTube, TikTok and Reels. The stage now uses brighter blue/teal ambient light, stronger route glow, more visible cards and livelier moving light sources while preserving dark enough text surfaces for readability.
+
+The change is visual only: narration synchronization, scene timing, privacy behavior and capture formats are unchanged.
+
 ## Speech synchronization
 
-Starting with 1.30.52-beta1, scene changes are no longer allowed to interrupt active speech. The controller waits for the browser speech engine to report that narration has finished, then keeps the current visual on screen for an additional short tail before transitioning. The displayed total runtime is therefore a minimum (≥ 03:18) because installed voices and browsers speak at slightly different speeds.
+Starting with 1.30.53-beta1, scene changes are no longer allowed to interrupt active speech. The controller waits for the browser speech engine to report that narration has finished, then keeps the current visual on screen for an additional short tail before transitioning. The displayed total runtime is therefore a minimum (≥ 03:18) because installed voices and browsers speak at slightly different speeds.
 
 Default state:
 
