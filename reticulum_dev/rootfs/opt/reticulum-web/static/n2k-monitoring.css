@@ -1,5 +1,5 @@
 /* N2K RNS Gateway · Monitoring module
-   1.30.38-beta1
+   1.30.40-beta1
    Additive/read-only UI. No core messenger, RNode or propagation styles. */
 
 .n2k-monitoring-widget,
@@ -67,27 +67,71 @@
 .n2k-monitor-grid{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:7px;
+  gap:8px;
   margin-top:10px;
 }
 
 .n2k-monitor-card{
   min-width:0;
-  padding:9px 10px;
-  border:1px solid rgba(255,255,255,.055);
-  border-radius:10px;
-  background:rgba(0,0,0,.13);
+  padding:10px 11px 8px;
+  border:1px solid rgba(255,255,255,.065);
+  border-radius:11px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),rgba(0,0,0,.10)),
+    rgba(0,0,0,.13);
+  overflow:hidden;
+}
+
+.n2k-monitor-card-unifi{
+  position:relative;
+  min-height:112px;
+}
+
+.n2k-monitor-card-unifi::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.n2k-monitor-card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
 }
 
 .n2k-monitor-card small{
   display:block;
+  min-width:0;
   overflow:hidden;
-  color:rgba(215,225,232,.48);
+  color:rgba(215,225,232,.5);
   font-size:8px;
   font-weight:700;
-  letter-spacing:.06em;
+  letter-spacing:.065em;
   text-overflow:ellipsis;
   text-transform:uppercase;
+  white-space:nowrap;
+}
+
+.n2k-monitor-dot{
+  width:6px;
+  height:6px;
+  flex:0 0 6px;
+  border-radius:50%;
+  background:#55d98b;
+  box-shadow:0 0 8px rgba(85,217,139,.45);
+}
+
+.n2k-monitor-delta{
+  flex:0 0 auto;
+  color:rgba(215,225,232,.46);
+  font-size:7px;
+  font-weight:700;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.03em;
   white-space:nowrap;
 }
 
@@ -96,7 +140,7 @@
   margin-top:4px;
   overflow:hidden;
   color:#e7edf4;
-  font-size:16px;
+  font-size:17px;
   line-height:20px;
   font-variant-numeric:tabular-nums;
   text-overflow:ellipsis;
@@ -108,7 +152,7 @@
   min-height:13px;
   margin-top:2px;
   overflow:hidden;
-  color:rgba(215,225,232,.5);
+  color:rgba(215,225,232,.45);
   font-size:8px;
   font-style:normal;
   line-height:13px;
@@ -116,57 +160,46 @@
   white-space:nowrap;
 }
 
-.n2k-monitor-history{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  align-items:end;
-  gap:12px;
-  margin-top:9px;
-  padding-top:8px;
-  border-top:1px solid rgba(255,255,255,.05);
-}
-
-.n2k-monitor-chart{
-  min-width:0;
-}
-
-.n2k-monitor-chart-label{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:3px;
-  color:rgba(215,225,232,.46);
-  font-size:8px;
-}
-
-.n2k-monitor-spark{
+.n2k-monitor-mini{
   display:block;
-  width:100%;
-  height:34px;
-  overflow:visible;
+  width:calc(100% + 22px);
+  height:36px;
+  margin:5px -11px -8px;
+  overflow:hidden;
 }
 
-.n2k-monitor-spark .baseline{
+.n2k-monitor-mini .gridline{
   fill:none;
-  stroke:rgba(255,255,255,.07);
+  stroke:rgba(255,255,255,.055);
   stroke-width:1;
+  vector-effect:non-scaling-stroke;
 }
 
-.n2k-monitor-spark .trace{
+.n2k-monitor-mini .trace{
   fill:none;
   stroke:currentColor;
-  stroke-width:2;
+  stroke-width:1.7;
   stroke-linecap:round;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
-  color:rgba(132,188,235,.9);
 }
 
-.n2k-monitor-history-note{
-  max-width:180px;
-  color:rgba(215,225,232,.43);
-  font-size:8px;
-  line-height:1.35;
+.n2k-monitor-mini .area{
+  stroke:none;
+  fill:currentColor;
+  opacity:.07;
+}
+
+.n2k-monitor-mini-health{color:#55d98b;}
+.n2k-monitor-mini-paths{color:#78bff4;}
+.n2k-monitor-mini-churn{color:#f0bd6c;}
+.n2k-monitor-mini-radio{color:#73d8d0;}
+
+.n2k-monitor-footnote{
+  margin-top:7px;
+  color:rgba(215,225,232,.34);
+  font-size:7px;
+  line-height:1.3;
   text-align:right;
 }
 
@@ -240,12 +273,11 @@
     grid-column:span 2;
   }
 
-  .n2k-monitor-history{
-    grid-template-columns:1fr;
+  .n2k-monitor-card-unifi{
+    min-height:108px;
   }
 
-  .n2k-monitor-history-note{
-    max-width:none;
+  .n2k-monitor-footnote{
     text-align:left;
   }
 }
@@ -261,10 +293,17 @@
   }
 
   .n2k-monitor-card{
-    padding:8px;
+    padding:9px 9px 7px;
   }
 
   .n2k-monitor-card strong{
-    font-size:15px;
+    font-size:16px;
+  }
+
+  .n2k-monitor-mini{
+    width:calc(100% + 18px);
+    margin-left:-9px;
+    margin-right:-9px;
+    margin-bottom:-7px;
   }
 }
