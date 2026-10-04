@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.44-beta1";
+  const VERSION="1.30.45-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4186,7 +4186,7 @@ function n2kIcon(name){
               '</div>'+
             '</div>'+
             '<div id="n2k-overview-mesh-stage" class="n2k-constellation-stage n2k-universe-stage n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen">'+
-              '<svg id="n2k-overview-live-svg" viewBox="0 0 1100 620" role="img" aria-label="N2K Mesh Universe · Reticulum Visualisierung"></svg>'+
+              '<svg id="n2k-overview-live-svg" class="n2k-universe-svg" viewBox="0 0 1100 620" role="img" aria-label="N2K Mesh Universe · Reticulum Visualisierung"></svg>'+
               '<div id="n2k-overview-mesh-empty" class="n2k-constellation-empty n2k-overview-mesh-empty" hidden>Noch keine LXMF-Nodes in diesem Zeitraum.</div>'+
               '<div class="n2k-universe-legend" aria-hidden="true">'+
                 '<span><i class="radio"></i>Radio</span>'+
