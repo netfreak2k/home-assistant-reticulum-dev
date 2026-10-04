@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.42-beta1";
+  const VERSION="1.30.43-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
