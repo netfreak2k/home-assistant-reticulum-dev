@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.46-beta1";
+  const VERSION="1.30.47-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3996,6 +3996,7 @@ function n2kIcon(name){
         '<button class="n2k-os-nav-button is-active" data-n2k-action="overview"><span class="n2k-os-nav-icon">'+n2kIcon("overview")+'</span>Übersicht</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">'+n2kIcon("chat")+'</span>Chat</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">'+n2kIcon("mesh")+'</span>Living Mesh</button>'+
+        '<button class="n2k-os-nav-button n2k-demo-nav-button" data-n2k-action="demo"><span class="n2k-os-nav-icon n2k-demo-nav-icon">▶</span>Demo Mode</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">'+n2kIcon("status")+'</span>Status</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">'+n2kIcon("settings")+'</span>Einstellungen</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">'+n2kIcon("radio")+'</span>Setup</button>'+
@@ -4991,6 +4992,7 @@ function n2kIcon(name){
     overview:{title:"Übersicht",sub:"Live-Status, Living Mesh und aktuelle Aktivitäten"},
     chat:{title:"Chat",sub:"Nachrichten und Kontakte · LXMF Messenger"},
     mesh:{title:"Living Mesh",sub:"Live-Aktivität, Routen und Relays"},
+    demo:{title:"Demo Mode",sub:"Social Showcase · Privacy Safe · 30 Sekunden"},
     status:{title:"Status",sub:"Systemzustand, Funkstatus und Diagnose"},
     settings:{title:"Einstellungen",sub:"Identity, Netzwerk und Store & Forward"},
     setup:{title:"Setup",sub:"Gateway und RNode Schritt für Schritt einrichten"},
@@ -5030,6 +5032,100 @@ function n2kIcon(name){
     const el=typeof id==="string" ? document.querySelector(id) : id;
     const page=makePage(pageName);
     if(el && page && el.parentElement!==page) page.appendChild(el);
+  }
+
+  function ensureDemoSurface(){
+    const page=makePage("demo");
+    if(!page || page.querySelector(".n2k-demo-mode")) return page;
+
+    const surface=document.createElement("section");
+    surface.className="n2k-demo-mode";
+    surface.setAttribute("aria-label","N2K Social Demo Mode");
+
+    surface.innerHTML=
+      '<div class="n2k-demo-meta">'+
+        '<div><span class="n2k-demo-kicker">SOCIAL SHOWCASE</span><strong>30s Auto Demo</strong><small>Intro · Mesh · Messenger · Monitoring · Finale</small></div>'+
+        '<div class="n2k-demo-badges"><span class="privacy">PRIVACY SAFE</span><span>SYNTHETIC DATA</span></div>'+
+      '</div>'+
+      '<div class="n2k-demo-controls">'+
+        '<div class="n2k-demo-controls-main">'+
+          '<button type="button" data-demo-action="toggle">▶ Start</button>'+
+          '<button type="button" data-demo-action="next">Nächste Szene</button>'+
+          '<button type="button" data-demo-action="restart">↺ Neustart</button>'+
+          '<button type="button" data-demo-action="fullscreen">⛶ Vollbild</button>'+
+        '</div>'+
+        '<div class="n2k-demo-formats" role="group" aria-label="Social Format">'+
+          '<button type="button" data-demo-format="portrait">9:16</button>'+
+          '<button type="button" data-demo-format="square">1:1</button>'+
+          '<button type="button" data-demo-format="wide" class="active">16:9</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="n2k-demo-stage-wrap">'+
+        '<div id="n2k-demo-stage" class="n2k-demo-stage" data-format="wide">'+
+          '<div class="n2k-demo-grid" aria-hidden="true"></div>'+
+          '<div class="n2k-demo-glow g1" aria-hidden="true"></div>'+
+          '<div class="n2k-demo-glow g2" aria-hidden="true"></div>'+
+          '<section class="n2k-demo-scene n2k-demo-scene-intro is-active" data-demo-scene="0">'+
+            '<div class="n2k-demo-intro-core"><i></i><i></i><i></i><b>N2K</b></div>'+
+            '<div class="n2k-demo-intro-copy"><span>N2K RNS GATEWAY</span><h3>Reticulum. LXMF.<br>Local Intelligence.</h3><p>Home Assistant · Offgrid · Mesh</p></div>'+
+          '</section>'+
+          '<section class="n2k-demo-scene n2k-demo-scene-mesh" data-demo-scene="1">'+
+            '<div class="n2k-demo-scene-label">LIVING MESH · CINEMATIC</div>'+
+            '<svg class="n2k-demo-mesh-svg" viewBox="0 0 1000 560" aria-hidden="true">'+
+              '<defs><filter id="n2k-demo-glow-filter" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+
+              '<g class="routes">'+
+                '<path id="dm-r1" d="M500 280 Q385 120 205 150"/><path id="dm-r2" d="M500 280 Q650 110 805 165"/><path id="dm-r3" d="M500 280 Q700 330 850 390"/><path id="dm-r4" d="M500 280 Q350 420 185 410"/><path id="dm-r5" d="M500 280 Q520 455 610 490"/><path id="dm-r6" d="M500 280 Q430 245 330 270"/>'+
+              '</g>'+
+              '<g class="particles">'+
+                '<circle r="4"><animateMotion dur="3.6s" repeatCount="indefinite"><mpath href="#dm-r1"/></animateMotion></circle>'+
+                '<circle r="4"><animateMotion dur="4.1s" begin="-1.4s" repeatCount="indefinite"><mpath href="#dm-r2"/></animateMotion></circle>'+
+                '<circle r="3.4"><animateMotion dur="3.1s" begin="-.8s" repeatCount="indefinite"><mpath href="#dm-r4"/></animateMotion></circle>'+
+              '</g>'+
+              '<g class="core" transform="translate(500 280)"><circle class="aura" r="52"/><circle class="pulse" r="36"/><polygon points="0,-25 25,0 0,25 -25,0"/><circle class="dot" r="5"/><text y="70" text-anchor="middle">N2K CORE</text></g>'+
+              '<g class="node radio" transform="translate(205 150)"><circle class="halo" r="24"/><circle class="orb" r="10"/><text x="18" y="4">RADIO</text></g>'+
+              '<g class="node internet" transform="translate(805 165)"><circle class="halo" r="23"/><circle class="orb" r="9"/><text x="18" y="4">INTERNET</text></g>'+
+              '<g class="node local" transform="translate(850 390)"><circle class="halo" r="22"/><circle class="orb" r="9"/><text x="18" y="4">LOCAL</text></g>'+
+              '<g class="node ghost" transform="translate(185 410)"><circle class="halo" r="20"/><circle class="orb" r="8"/><text x="18" y="4">GHOST</text></g>'+
+              '<g class="node internet" transform="translate(610 490)"><circle class="halo" r="18"/><circle class="orb" r="8"/><text x="18" y="4">RELAY</text></g>'+
+              '<g class="node radio" transform="translate(330 270)"><circle class="halo" r="18"/><circle class="orb" r="8"/><text x="18" y="4">RNode</text></g>'+
+            '</svg>'+
+            '<div class="n2k-demo-mesh-status"><span><b>12</b> live</span><span><b>186</b> seen</span><span><b>16.8k</b> paths</span><span><b>24</b> relays</span></div>'+
+          '</section>'+
+          '<section class="n2k-demo-scene n2k-demo-scene-message" data-demo-scene="2">'+
+            '<div class="n2k-demo-scene-label">LXMF MESSENGER · PRIVACY SAFE</div>'+
+            '<div class="n2k-demo-phone">'+
+              '<div class="n2k-demo-phone-head"><span class="avatar">A</span><div><strong>Node A</strong><small>LXMF · verbunden</small></div><i></i></div>'+
+              '<div class="n2k-demo-chat-row in"><span>Neue LXMF-Nachricht empfangen</span><small>Inhalt geschützt · gerade eben</small></div>'+
+              '<div class="n2k-demo-chat-row out"><span>Antwort über Reticulum</span><small>zugestellt ✓✓</small></div>'+
+              '<div class="n2k-demo-privacy-card"><b>PRIVACY SAFE</b><span>Keine echten Namen · keine Nachrichtentexte · keine Destination Hashes</span></div>'+
+            '</div>'+
+          '</section>'+
+          '<section class="n2k-demo-scene n2k-demo-scene-monitor" data-demo-scene="3">'+
+            '<div class="n2k-demo-scene-label">NETWORK MONITOR · RNODE</div>'+
+            '<div class="n2k-demo-monitor-grid">'+
+              '<article><small>VERFÜGBARKEIT</small><strong>100%</strong><svg viewBox="0 0 180 50"><path d="M0 38 L25 34 L48 35 L70 23 L93 28 L115 18 L140 20 L180 10"/></svg></article>'+
+              '<article><small>RETICULUM-PFADE</small><strong>16.8k</strong><svg viewBox="0 0 180 50"><path d="M0 42 L25 39 L48 30 L70 33 L93 24 L115 21 L140 13 L180 8"/></svg></article>'+
+              '<article><small>PFAD-DYNAMIK</small><strong>+18</strong><svg viewBox="0 0 180 50"><path d="M0 35 L25 27 L48 36 L70 17 L93 31 L115 15 L140 22 L180 9"/></svg></article>'+
+              '<article><small>RNODE FUNK</small><strong>-94 dBm</strong><svg viewBox="0 0 180 50"><path d="M0 31 L25 30 L48 33 L70 25 L93 28 L115 21 L140 25 L180 19"/></svg></article>'+
+            '</div>'+
+            '<div class="n2k-demo-radio-wave"><i></i><i></i><i></i><b>RNode · LoRa</b></div>'+
+          '</section>'+
+          '<section class="n2k-demo-scene n2k-demo-scene-finale" data-demo-scene="4">'+
+            '<div class="n2k-demo-finale-orbit"><i></i><i></i><i></i><b>N2K</b></div>'+
+            '<span>OFFGRID · MESH · LOCAL INTELLIGENCE</span>'+
+            '<h3>KEIN NETZ.<br>KEIN PROBLEM.</h3>'+
+            '<p>N2K RNS Gateway · Reticulum · LXMF</p>'+
+          '</section>'+
+          '<div class="n2k-demo-watermark">N2K RNS GATEWAY · DEMO MODE</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="n2k-demo-caption">'+
+        '<div><span id="n2k-demo-scene-number">01 / 05</span><strong id="n2k-demo-scene-title">Gateway Intro</strong><p id="n2k-demo-scene-description">Marken-Intro für Social Media. Rein visuell, ohne Live-Daten.</p></div>'+
+        '<div class="n2k-demo-timeline" aria-label="Demo Fortschritt"><i class="active"></i><i></i><i></i><i></i><i></i></div>'+
+      '</div>';
+
+    page.appendChild(surface);
+    return page;
   }
 
   function buildPages(){
@@ -5079,6 +5175,8 @@ function n2kIcon(name){
 
     move(".n2k-about-card","about");
 
+    ensureDemoSurface();
+
     const more=makePage("more");
     if(more && !more.querySelector(".n2k-os-more-grid")){
       const grid=document.createElement("div");
@@ -5086,6 +5184,7 @@ function n2kIcon(name){
       grid.innerHTML=
         '<button class="n2k-os-more-card" type="button" data-page="settings"><b>'+n2kIcon("settings")+'Einstellungen</b><span>Identity, Netzwerk und Store & Forward</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-page="setup"><b>'+n2kIcon("setup")+'Setup</b><span>Gateway und RNode einrichten</span></button>'+
+        '<button class="n2k-os-more-card n2k-demo-more-card" type="button" data-page="demo"><b><span class="n2k-demo-more-icon">▶</span>Demo Mode</b><span>30s Social Showcase · Privacy Safe</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-page="about"><b>'+n2kIcon("about")+'Über / Lizenz</b><span>Version und Lizenzinformationen</span></button>';
       grid.addEventListener("click",function(e){
         const b=e.target.closest("[data-page]");
@@ -5165,6 +5264,13 @@ function n2kIcon(name){
     );
 
     activateNav(name);
+
+    if(name==="demo"){
+      window.n2kDemoMode?.enter?.();
+    }else{
+      window.n2kDemoMode?.exit?.();
+    }
+
     if(name==="chat") setMessengerPanel(contactsRequested?"contacts":"chats");
     if (name === "chat") {
       const conversation = page.querySelector(".messenger-conversation");
@@ -5203,6 +5309,7 @@ function n2kIcon(name){
       '<button class="n2k-os-nav-button" data-n2k-action="overview"><span class="n2k-os-nav-icon">'+n2kIcon("overview")+'</span>Übersicht</button>'+
       '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">'+n2kIcon("chat")+'</span>Chat</button>'+
       '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">'+n2kIcon("mesh")+'</span>Living Mesh</button>'+
+      '<button class="n2k-os-nav-button n2k-demo-nav-button" data-n2k-action="demo"><span class="n2k-os-nav-icon n2k-demo-nav-icon">▶</span>Demo Mode</button>'+
       '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">'+n2kIcon("status")+'</span>Status</button>'+
       '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">'+n2kIcon("settings")+'</span>Einstellungen</button>'+
       '<button class="n2k-os-nav-button" data-n2k-action="setup"><span class="n2k-os-nav-icon">'+n2kIcon("radio")+'</span>Setup</button>'+
@@ -5318,6 +5425,228 @@ function n2kIcon(name){
   }else{
     boot();
   }
+})();
+
+
+/* =========================================================
+   N2K Demo Mode 1.30.47-beta1
+   Privacy rule: synthetic-only. This controller intentionally
+   performs no fetch() calls and never reads chat/contact content.
+   ========================================================= */
+(function(){
+  "use strict";
+
+  const SCENES=[
+    {
+      title:"Gateway Intro",
+      description:"Marken-Intro für Social Media. Rein visuell, ohne Live-Daten."
+    },
+    {
+      title:"Living Mesh",
+      description:"Cinematic Mesh mit synthetischen Nodes, Routen und Partikeln."
+    },
+    {
+      title:"Privacy Messenger",
+      description:"LXMF-Messenger-Demo ohne echte Namen, Inhalte oder Destination Hashes."
+    },
+    {
+      title:"Monitoring & RNode",
+      description:"Animierte Netzwerk- und Funkmetriken als Social-Media-Showcase."
+    },
+    {
+      title:"Finale",
+      description:"N2K Abschlussbild mit Claim für Reels, TikTok und Instagram."
+    }
+  ];
+
+  const SCENE_MS=6000;
+  let sceneIndex=0;
+  let running=false;
+  let timer=null;
+  let bound=false;
+
+  function byId(id){
+    return document.getElementById(id);
+  }
+
+  function surface(){
+    return document.querySelector("#n2k-page-demo .n2k-demo-mode");
+  }
+
+  function stage(){
+    return byId("n2k-demo-stage");
+  }
+
+  function updateToggle(){
+    const button=document.querySelector('[data-demo-action="toggle"]');
+    if(!button) return;
+    button.textContent=running ? "Ⅱ Pause" : "▶ Start";
+    button.classList.toggle("active",running);
+  }
+
+  function renderScene(index){
+    const root=stage();
+    if(!root) return;
+
+    sceneIndex=((Number(index)||0)%SCENES.length+SCENES.length)%SCENES.length;
+
+    root.querySelectorAll("[data-demo-scene]").forEach(function(scene){
+      scene.classList.remove("is-active");
+    });
+
+    const active=root.querySelector('[data-demo-scene="'+sceneIndex+'"]');
+    if(active){
+      void active.offsetWidth;
+      active.classList.add("is-active");
+    }
+
+    const meta=SCENES[sceneIndex];
+    const number=byId("n2k-demo-scene-number");
+    const title=byId("n2k-demo-scene-title");
+    const description=byId("n2k-demo-scene-description");
+
+    if(number){
+      number.textContent=String(sceneIndex+1).padStart(2,"0")+" / "+String(SCENES.length).padStart(2,"0");
+    }
+    if(title) title.textContent=meta.title;
+    if(description) description.textContent=meta.description;
+
+    document.querySelectorAll(".n2k-demo-timeline i").forEach(function(dot,i){
+      dot.classList.toggle("active",i===sceneIndex);
+      dot.classList.toggle("done",i<sceneIndex);
+    });
+
+    root.classList.remove("n2k-demo-scene-reset");
+    void root.offsetWidth;
+    root.classList.add("n2k-demo-scene-reset");
+  }
+
+  function clearTimer(){
+    if(timer){
+      clearTimeout(timer);
+      timer=null;
+    }
+  }
+
+  function schedule(){
+    clearTimer();
+    if(!running) return;
+
+    timer=setTimeout(function(){
+      sceneIndex=(sceneIndex+1)%SCENES.length;
+      renderScene(sceneIndex);
+      schedule();
+    },SCENE_MS);
+  }
+
+  function start(restart){
+    bind();
+    if(restart) sceneIndex=0;
+    running=true;
+    renderScene(sceneIndex);
+    updateToggle();
+    schedule();
+    document.body.classList.add("n2k-demo-running");
+  }
+
+  function pause(){
+    running=false;
+    clearTimer();
+    updateToggle();
+    document.body.classList.remove("n2k-demo-running");
+  }
+
+  function next(){
+    sceneIndex=(sceneIndex+1)%SCENES.length;
+    renderScene(sceneIndex);
+    if(running) schedule();
+  }
+
+  function restart(){
+    sceneIndex=0;
+    start(false);
+  }
+
+  async function toggleFullscreen(){
+    const root=stage();
+    if(!root) return;
+
+    try{
+      if(document.fullscreenElement){
+        await document.exitFullscreen();
+      }else if(root.requestFullscreen){
+        await root.requestFullscreen();
+      }
+    }catch(_ignore){}
+  }
+
+  function setFormat(format){
+    const root=stage();
+    if(!root) return;
+
+    if(!["portrait","square","wide"].includes(format)){
+      format="wide";
+    }
+
+    root.dataset.format=format;
+
+    document.querySelectorAll("[data-demo-format]").forEach(function(button){
+      button.classList.toggle("active",button.dataset.demoFormat===format);
+    });
+  }
+
+  function bind(){
+    if(bound) return;
+    const root=surface();
+    if(!root) return;
+
+    bound=true;
+
+    root.addEventListener("click",function(event){
+      const action=event.target.closest("[data-demo-action]");
+      if(action){
+        const name=action.dataset.demoAction;
+        if(name==="toggle"){
+          running ? pause() : start(false);
+        }else if(name==="next"){
+          next();
+        }else if(name==="restart"){
+          restart();
+        }else if(name==="fullscreen"){
+          toggleFullscreen();
+        }
+        return;
+      }
+
+      const formatButton=event.target.closest("[data-demo-format]");
+      if(formatButton){
+        setFormat(formatButton.dataset.demoFormat);
+      }
+    });
+
+    renderScene(sceneIndex);
+    updateToggle();
+  }
+
+  function enter(){
+    bind();
+    start(true);
+  }
+
+  function exit(){
+    pause();
+  }
+
+  window.n2kDemoMode={
+    enter:enter,
+    exit:exit,
+    start:function(){start(false);},
+    pause:pause,
+    next:next,
+    restart:restart,
+    setFormat:setFormat,
+    privacy:"synthetic-only"
+  };
 })();
 
 
