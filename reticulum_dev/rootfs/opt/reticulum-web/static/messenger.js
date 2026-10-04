@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.33-beta1";
+  const VERSION="1.30.34-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -3989,13 +3989,12 @@ function n2kIcon(name){
 
     nav.innerHTML=
       '<div class="n2k-os-sidebar-brand">'+
-        '<div class="n2k-os-sidebar-logo" aria-hidden="true">⌁</div>'+
+
         '<div><strong>N2K RNS Gateway</strong><small>Reticulum · LXMF NODE</small></div>'+
       '</div>'+
       '<div class="n2k-os-nav-list">'+
         '<button class="n2k-os-nav-button is-active" data-n2k-action="overview"><span class="n2k-os-nav-icon">'+n2kIcon("overview")+'</span>Übersicht</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">'+n2kIcon("chat")+'</span>Chat</button>'+
-        '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">'+n2kIcon("contacts")+'</span>Kontakte</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">'+n2kIcon("mesh")+'</span>Living Mesh</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">'+n2kIcon("status")+'</span>Status</button>'+
         '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">'+n2kIcon("settings")+'</span>Einstellungen</button>'+
@@ -4473,9 +4472,6 @@ function n2kIcon(name){
       "n2k-ov-relays":textOf("n2k-ov-relays","—")
     };
 
-    setDot("n2k-ov-rnode-dot",rnode);
-    setDot("n2k-ov-rns-dot",rns);
-    setDot("n2k-ov-lxmf-dot",lxmf);
     const propagationDot=byId("n2k-ov-backbone-dot");
     if(propagationDot){
       const kind=/fehler|gescheitert|verweigert|ERROR|FAILED|NO_PATH|NO_ACCESS/i.test(backbone) ? "bad"
@@ -4812,7 +4808,7 @@ function n2kIcon(name){
     nav.innerHTML=
       '<button type="button" data-n2k-os-tab="overview"><b>'+n2kIcon("overview")+'</b><small>Übersicht</small></button>'+
       '<button type="button" data-n2k-os-tab="chat"><b>'+n2kIcon("chat")+'</b><small>Chat</small></button>'+
-      '<button type="button" data-n2k-os-tab="contacts"><b>'+n2kIcon("contacts")+'</b><small>Kontakte</small></button>'+
+      '<button type="button" data-n2k-os-tab="mesh"><b>'+n2kIcon("mesh")+'</b><small>Mesh</small></button>'+
       '<button type="button" data-n2k-os-tab="status"><b>'+n2kIcon("status")+'</b><small>Status</small></button>'+
       '<button type="button" data-n2k-os-tab="more"><b>'+n2kIcon("more")+'</b><small>Mehr</small></button>';
 
@@ -4894,8 +4890,7 @@ function n2kIcon(name){
 
   const PAGE_DEFS={
     overview:{title:"Übersicht",sub:"Live-Status, Living Mesh und aktuelle Aktivitäten"},
-    chat:{title:"Chat",sub:"LXMF Nachrichten"},
-    contacts:{title:"Kontakte",sub:"Kontaktverwaltung, QR, Import und Export"},
+    chat:{title:"Chat",sub:"Nachrichten und Kontakte · LXMF Messenger"},
     mesh:{title:"Living Mesh",sub:"Live-Aktivität, Routen und Relays"},
     status:{title:"Status",sub:"Systemzustand, Funkstatus und Diagnose"},
     settings:{title:"Einstellungen",sub:"Identity, Netzwerk und Store & Forward"},
@@ -4953,7 +4948,10 @@ function n2kIcon(name){
     move(".messenger-conversation","chat");
 
     /* Contacts / Mesh */
-    move("#msg-contacts-view","contacts");
+    move("#msg-contacts-view","chat");
+    const announceStatus=byId("n2k-contact-announce-status");
+    const messengerTools=document.querySelector(".messenger-search-wrap");
+    if(announceStatus&&messengerTools&&announceStatus.parentElement!==messengerTools) messengerTools.appendChild(announceStatus);
     move("#msg-mesh-view","mesh");
 
     /* Status = only status/health/diagnostics */
@@ -5018,7 +5016,35 @@ function n2kIcon(name){
     });
   }
 
+  function setMessengerPanel(mode,chatFilter){
+    const page=byId("n2k-page-chat");
+    if(!page) return;
+    const contactsMode=mode==="contacts";
+    page.dataset.messengerPanel=contactsMode?"contacts":"chats";
+    const search=page.querySelector(".messenger-search-wrap");
+    const list=byId("messenger-chat-list");
+    const contacts=byId("msg-contacts-view");
+    const conv=page.querySelector(".messenger-conversation");
+    [search,list,contacts,conv].forEach(function(el){
+      if(!el) return;
+      const visible=el===search||(contactsMode?el===contacts:el===list);
+      el.hidden=!visible;
+      el.style.setProperty("display",visible?"block":"none","important");
+      if(visible){el.style.setProperty("visibility","visible","important");el.style.setProperty("opacity","1","important");}
+    });
+    if(conv) conv.classList.remove("n2k-unified-chat-open","n2k-real-chat-open","n2k-desktop-chat-open");
+    ["height","max-height","min-height","overflow","flex-direction"].forEach(prop=>page.style.removeProperty(prop));
+    const input=byId("messenger-search");
+    if(input) input.placeholder=contactsMode?"Name oder LXMF-Adresse suchen…":"Chats durchsuchen…";
+    if(typeof window.n2kSelectChatFilter==="function") window.n2kSelectChatFilter(contactsMode?"contacts":chatFilter||"all");
+    if(contactsMode) window.reticulumMessenger097?.loadContacts();
+    else window.reticulumMessengerChats097?.refresh();
+  }
+  window.n2kMessengerPanel=setMessengerPanel;
+
   function showPage(name){
+    const contactsRequested=name==="contacts";
+    if(contactsRequested) name="chat";
     if(!buildPages()) return false;
     hideAll();
 
@@ -5040,6 +5066,7 @@ function n2kIcon(name){
     );
 
     activateNav(name);
+    if(name==="chat") setMessengerPanel(contactsRequested?"contacts":"chats");
     if (name === "chat") {
       const conversation = page.querySelector(".messenger-conversation");
       if (conversation) {
@@ -5076,7 +5103,6 @@ function n2kIcon(name){
     list.innerHTML=
       '<button class="n2k-os-nav-button" data-n2k-action="overview"><span class="n2k-os-nav-icon">'+n2kIcon("overview")+'</span>Übersicht</button>'+
       '<button class="n2k-os-nav-button" data-n2k-action="chat"><span class="n2k-os-nav-icon">'+n2kIcon("chat")+'</span>Chat</button>'+
-      '<button class="n2k-os-nav-button" data-n2k-action="contacts"><span class="n2k-os-nav-icon">'+n2kIcon("contacts")+'</span>Kontakte</button>'+
       '<button class="n2k-os-nav-button" data-n2k-action="mesh"><span class="n2k-os-nav-icon">'+n2kIcon("mesh")+'</span>Living Mesh</button>'+
       '<button class="n2k-os-nav-button" data-n2k-action="status"><span class="n2k-os-nav-icon">'+n2kIcon("status")+'</span>Status</button>'+
       '<button class="n2k-os-nav-button" data-n2k-action="settings"><span class="n2k-os-nav-icon">'+n2kIcon("settings")+'</span>Einstellungen</button>'+
@@ -5099,7 +5125,7 @@ function n2kIcon(name){
     nav.innerHTML=
       '<button type="button" data-n2k-os-tab="overview"><b>'+n2kIcon("overview")+'</b><small>Übersicht</small></button>'+
       '<button type="button" data-n2k-os-tab="chat"><b>'+n2kIcon("chat")+'</b><small>Chat</small></button>'+
-      '<button type="button" data-n2k-os-tab="contacts"><b>'+n2kIcon("contacts")+'</b><small>Kontakte</small></button>'+
+      '<button type="button" data-n2k-os-tab="mesh"><b>'+n2kIcon("mesh")+'</b><small>Mesh</small></button>'+
       '<button type="button" data-n2k-os-tab="status"><b>'+n2kIcon("status")+'</b><small>Status</small></button>'+
       '<button type="button" data-n2k-os-tab="more"><b>'+n2kIcon("more")+'</b><small>Mehr</small></button>';
 
@@ -5118,6 +5144,7 @@ function n2kIcon(name){
       const wrapped=function(peer){
         peer = String(peer || "").trim().toLowerCase();
         if (!/^[0-9a-f]{32}$/.test(peer)) return;
+        const previousPanel=byId("n2k-page-chat")?.dataset.messengerPanel||"chats";
         showPage("chat");
         old(peer);
         // The legacy inbox/status and external conversation renderer must
@@ -5129,6 +5156,9 @@ function n2kIcon(name){
         if (title && selected?.display_name) title.textContent = selected.display_name;
         function revealConversation(){
           const page=byId("n2k-page-chat");
+          if(page){page.dataset.messengerPanel="conversation";page.dataset.messengerReturnPanel=previousPanel;}
+          const contacts=byId("msg-contacts-view");
+          if(contacts){contacts.hidden=true;contacts.style.setProperty("display","none","important");}
           const conv=page?.querySelector(".messenger-conversation");
           const search=page?.querySelector(".messenger-search-wrap");
           const list=page?.querySelector("#messenger-chat-list");
@@ -5154,18 +5184,8 @@ function n2kIcon(name){
     if(back){
       back.onclick=function(e){
         if(e){e.preventDefault();e.stopPropagation();}
-        showPage("chat");
-        const page=byId("n2k-page-chat");
-        const conv=page?.querySelector(".messenger-conversation");
-        const search=page?.querySelector(".messenger-search-wrap");
-        const list=page?.querySelector("#messenger-chat-list");
-        if(conv){
-          conv.classList.remove("n2k-unified-chat-open", "n2k-real-chat-open", "n2k-desktop-chat-open");
-          conv.hidden=true;
-          conv.style.setProperty("display","none","important");
-        }
-        if(search) search.style.setProperty("display","block","important");
-        if(list) list.style.setProperty("display","block","important");
+        const returnPanel=byId("n2k-page-chat")?.dataset.messengerReturnPanel||"chats";
+        showPage(returnPanel==="contacts"?"contacts":"chat");
         return false;
       };
     }
@@ -5274,7 +5294,7 @@ function n2kIcon(name){
     nav.innerHTML=
       '<button type="button" data-n2k-os-tab="overview"><b>'+n2kIcon("overview")+'</b><small>Übersicht</small></button>'+
       '<button type="button" data-n2k-os-tab="chat"><b>'+n2kIcon("chat")+'</b><small>Chat</small></button>'+
-      '<button type="button" data-n2k-os-tab="contacts"><b>'+n2kIcon("contacts")+'</b><small>Kontakte</small></button>'+
+      '<button type="button" data-n2k-os-tab="mesh"><b>'+n2kIcon("mesh")+'</b><small>Mesh</small></button>'+
       '<button type="button" data-n2k-os-tab="status"><b>'+n2kIcon("status")+'</b><small>Status</small></button>'+
       '<button type="button" data-n2k-os-tab="more"><b>'+n2kIcon("more")+'</b><small>Mehr</small></button>';
 
@@ -5378,6 +5398,7 @@ function n2kIcon(name){
 
   function fixChatPage(){
     const page=byId("n2k-page-chat");
+    if(page?.dataset.messengerPanel==="contacts"||page?.dataset.messengerPanel==="conversation") return;
     if(!page) return;
     const search=page.querySelector(".messenger-search-wrap");
     const list=page.querySelector("#messenger-chat-list");
@@ -5487,6 +5508,7 @@ function n2kIcon(name){
 
   function refreshChat(){
     const page=byId("n2k-page-chat");
+    if(page?.dataset.messengerPanel==="contacts"||page?.dataset.messengerPanel==="conversation") return;
     if(!page || !page.classList.contains("is-active")) return;
 
     const search=page.querySelector(".messenger-search-wrap");
@@ -5605,6 +5627,7 @@ function n2kIcon(name){
 
   function repairChat(){
     const page=byId("n2k-page-chat");
+    if(page?.dataset.messengerPanel==="contacts"||page?.dataset.messengerPanel==="conversation") return;
     if(!page || !page.classList.contains("is-active")) return;
 
     const search=document.querySelector(".messenger-search-wrap");

@@ -2241,11 +2241,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.30.33-beta1</h1>
+        <h1>N2K RNS Gateway · 1.30.34-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.33-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.34-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -3486,7 +3486,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.30.33-beta1</strong>
+      <strong>N2K RNS Gateway · 1.30.34-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -3530,17 +3530,18 @@ code {
         <span>LXMF Messenger</span>
       </div>
       <div class="n2k-chat-toolbar-actions">
-        <button id="n2k-chat-add" type="button" aria-label="Neuer Kontakt oder Chat" title="Neuer Kontakt oder Chat">＋</button>
+        <button id="n2k-chat-add" type="button" aria-label="Neuer Kontakt oder Chat" title="Neuer Kontakt oder Chat">+</button>
         <button id="n2k-chat-menu-toggle" type="button" aria-label="Chat Optionen" title="Optionen">⋯</button>
         <div id="n2k-chat-menu" class="n2k-chat-menu">
           <button type="button" data-n2k-chat-tool="qr">Mein QR</button>
-          <button type="button" data-n2k-chat-tool="export">Export</button>
-          <button type="button" data-n2k-chat-tool="import">Import</button>
+          <button type="button" data-n2k-chat-tool="export">Kontakte exportieren</button>
+          <button type="button" data-n2k-chat-tool="import">Kontakte importieren</button>
+          <button type="button" data-n2k-chat-tool="announce">Announce senden</button>
         </div>
       </div>
     </div>
     <div class="n2k-chat-filterbar" role="group" aria-label="Chat Filter">
-      <button type="button" class="active" data-n2k-chat-filter="all">Alle</button>
+      <button type="button" class="active" data-n2k-chat-filter="all">Chats</button>
       <button type="button" data-n2k-chat-filter="unread">Ungelesen</button>
       <button type="button" data-n2k-chat-filter="contacts">Kontakte</button>
       <span id="n2k-chat-summary">—</span>
@@ -12284,7 +12285,7 @@ if (
 })();
 </script>
 
-<script src="static/messenger.js?v=1.30.33-beta1"></script>
+<script src="static/messenger.js?v=1.30.34-beta1"></script>
 
 
 <script id="n2k-mobile-real-js-1181">
@@ -12344,8 +12345,8 @@ if (
     toggle(chats,name==="chats","block");
     toggle(contacts,name==="chats" || name==="contacts","block");
     toggle(settings,name==="settings","block");
-    toggle(mesh,name==="mesh","block");
-    toggle(mesh,name==="mesh","block");
+    toggle(byId("msg-mesh-view"),name==="mesh","block");
+    toggle(byId("msg-mesh-view"),name==="mesh","block");
 
     document.querySelectorAll("#n2k-mobile-real-nav button").forEach(function(btn){
       btn.classList.toggle("active",btn.dataset.realTab===name);
@@ -14453,16 +14454,19 @@ if (
       row.style.display=show ? "" : "none";
     });
 
-    contacts.forEach(function(row){
-      var matches=!q || row.textContent.toLowerCase().includes(q);
-      row.style.display=matches ? "" : "none";
-    });
+    const core=window.reticulumMessenger097;
+    if(filter==="contacts"&&core&&core.state.contactQuery!==String(input.value||"")){
+      core.state.contactQuery=String(input.value||"");
+      const ownSearch=byId("n2k-contact-search");
+      if(ownSearch) ownSearch.value=String(input.value||"");
+      core.renderContacts(true);
+    }
 
     var unreadCount=chats.filter(function(row){return !!row.querySelector(".m80-unread");}).length;
     var summary=byId("n2k-chat-summary");
     if(summary){
       summary.textContent=
-        chats.length+" Chats · "+contacts.length+" Kontakte"+
+        chats.length+" Chats · "+Number(core?.state.contacts.length||contacts.length)+" Kontakte"+
         (unreadCount ? " · "+unreadCount+" neu" : "");
     }
   }
@@ -14491,6 +14495,7 @@ if (
         if(tool==="qr") clickExisting("m110-own-qr");
         if(tool==="export") clickExisting("m110-export");
         if(tool==="import") clickExisting("m110-import");
+        if(tool==="announce") clickExisting("n2k-contact-announce");
         byId("n2k-chat-menu")?.classList.remove("open");
       };
     });
@@ -14500,6 +14505,7 @@ if (
       btn.dataset.bound="1";
       btn.onclick=function(){
         filter=btn.dataset.n2kChatFilter||"all";
+        if(typeof window.n2kMessengerPanel==="function") window.n2kMessengerPanel(filter==="contacts"?"contacts":"chats",filter);
         document.querySelectorAll("[data-n2k-chat-filter]").forEach(function(x){
           x.classList.toggle("active",x===btn);
         });
@@ -14513,6 +14519,12 @@ if (
       input.addEventListener("input",update);
     }
   }
+
+  window.n2kSelectChatFilter=function(value){
+    filter=value||"all";
+    document.querySelectorAll("[data-n2k-chat-filter]").forEach(btn=>btn.classList.toggle("active",btn.dataset.n2kChatFilter===filter));
+    update();
+  };
 
   function boot(){
     bind();
@@ -22319,7 +22331,7 @@ body {
     toggle(chats,name==="chats","block");
     toggle(contacts,name==="chats" || name==="contacts","block");
     toggle(settings,name==="settings","block");
-    toggle(mesh,name==="mesh","block");
+    toggle(byId("msg-mesh-view"),name==="mesh","block");
 
     document.querySelectorAll("#n2k-mobile-clean-tabs-top button").forEach(function(btn){
       btn.classList.toggle("active",btn.dataset.cleanTab===name);
@@ -23236,7 +23248,7 @@ body {
     toggle(chats,name==="chats","block");
     toggle(contacts,name==="chats" || name==="contacts","block");
     toggle(settings,name==="settings","block");
-    toggle(mesh,name==="mesh","block");
+    toggle(byId("msg-mesh-view"),name==="mesh","block");
 
     document.querySelectorAll("#n2k-mobile-real-nav button").forEach(function(btn){
       btn.classList.toggle(

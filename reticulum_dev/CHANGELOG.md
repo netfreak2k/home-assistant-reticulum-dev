@@ -1,3 +1,11 @@
+## 1.30.34-beta1
+- Combine conversations and contact management under a single Chat navigation entry, with shared search and Chats, Unread, and Contacts filters.
+- Open saved contacts directly in a conversation and restore the previous list when returning.
+- Keep favorites, contact creation, QR sharing, import/export, and announce accessible inside the messenger.
+- Compact the sidebar title and subtitle and remove its logo.
+- Fix obsolete overview status-dot calls and undefined mesh references in mobile view switching.
+- Verify desktop and mobile navigation, contact search, favorites, conversation entry/back, and overview isolation with mocked API data.
+
 ## 1.30.33-beta1
 - Keep the header Store & Forward state tied to the latest runtime response, without stale text overriding it.
 
