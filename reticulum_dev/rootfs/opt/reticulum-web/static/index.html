@@ -3036,7 +3036,7 @@ code {
         <div class="n2k-constellation-filters n2k-universe-filters" role="group" aria-label="Zeitraum">
           <button type="button" data-n2k-map-filter="live" class="active">Live</button>
           <button type="button" data-n2k-map-filter="hour">1 h</button>
-          <button type="button" data-n2k-map-filter="day">24 h</button>
+          <button type="button" data-n2k-map-filter="five">5 h</button>
           <button type="button" data-n2k-map-filter="replay">Replay</button>
         </div>
         <div class="n2k-universe-actions">
@@ -11642,6 +11642,14 @@ if (
   var realtimeInitialized=false;
   var realtimeFocusTimer=null;
 
+  // Overview uses the same renderer and the same camera language as Living Mesh,
+  // but owns a separate viewBox state so both views can animate independently.
+  var overviewCameraFrame=0;
+  var overviewCurrentViewBox={x:0,y:0,w:1100,h:620};
+  var overviewCinemaTimer=null;
+  var overviewCinemaItems=[];
+  var overviewCinemaIndex=0;
+
   function el(id){ return document.getElementById(id); }
 
   function esc(v){
@@ -11709,11 +11717,25 @@ if (
     return {kind:"unknown",short:"GHOST",origin:"Herkunft unbekannt",confidence:"niedrig"};
   }
 
-  function filterItems(items){
+  function filterItems(items,mode){
+    mode=mode||filter;
+
     return items.filter(function(item){
       var age=Number(item&&item.age_seconds||0);
-      if(filter==="live") return age<=120 || item.seen_during_scan===true;
-      if(filter==="hour" || filter==="replay") return age<=3600;
+
+      if(mode==="live"){
+        return age<=120 || item.seen_during_scan===true;
+      }
+
+      if(mode==="hour" || mode==="replay"){
+        return age<=3600;
+      }
+
+      if(mode==="five"){
+        return age<=18000;
+      }
+
+      // Legacy/fallback window.
       return age<=86400;
     });
   }
@@ -11829,13 +11851,14 @@ if (
       return Number(item&&item.age_seconds||0)<=120 || item&&item.seen_during_scan===true;
     }).length;
 
-    var filtered=filterItems(raw);
+    var filtered=filterItems(raw,filter);
     var contextFallback=false;
-    var items;
+    var items=filtered.slice(0,42);
 
-    if(isOverviewTarget){
-      // Dashboard overview is context, not a filter view:
-      // always show the newest known nodes, even when LIVE is currently zero.
+    // Both Living Mesh surfaces use the same time filter semantics.
+    // LIVE may still show recent-known context when the live set is empty,
+    // while the counter itself remains truthful at zero.
+    if(filter==="live" && !items.length && raw.length){
       items=raw.filter(function(item){
         return Number(item&&item.age_seconds||0)<=86400;
       }).slice(0,42);
@@ -11843,22 +11866,8 @@ if (
       if(!items.length){
         items=raw.slice(0,24);
       }
-    }else{
-      items=filtered.slice(0,42);
 
-      // Preserve LIVE semantics, but avoid an apparently empty universe.
-      // If no node is live right now, show recent known nodes as dim context.
-      if(filter==="live" && !items.length && raw.length){
-        items=raw.filter(function(item){
-          return Number(item&&item.age_seconds||0)<=86400;
-        }).slice(0,42);
-
-        if(!items.length){
-          items=raw.slice(0,24);
-        }
-
-        contextFallback=items.length>0;
-      }
+      contextFallback=items.length>0;
     }
 
     var relays=items.filter(function(item){
@@ -12031,7 +12040,9 @@ if (
       svg.__n2kFocusClearBound=true;
     }
 
-    if(!isOverviewTarget){
+    if(isOverviewTarget){
+      startOverviewCinematic(svg,items);
+    }else{
       handleRealtime(items);
       startAmbientAnimation();
     }
@@ -12073,6 +12084,210 @@ if (
       chat.hidden=false;
       chat.dataset.peer=String(item.destination_hash||"");
     }
+  }
+
+
+  function animateOverviewCamera(svg,target,duration){
+    if(!svg) return;
+
+    cancelAnimationFrame(overviewCameraFrame);
+
+    target=target||defaultViewBox;
+    duration=Math.max(220,Number(duration)||900);
+
+    if(document.hidden || !svg.getClientRects().length){
+      overviewCurrentViewBox=Object.assign({},target);
+      svg.setAttribute(
+        "viewBox",
+        [target.x,target.y,target.w,target.h].join(" ")
+      );
+      return;
+    }
+
+    var from={
+      x:overviewCurrentViewBox.x,
+      y:overviewCurrentViewBox.y,
+      w:overviewCurrentViewBox.w,
+      h:overviewCurrentViewBox.h
+    };
+    var start=performance.now();
+
+    function ease(t){
+      return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+    }
+
+    function frame(now){
+      var p=Math.min(1,(now-start)/duration);
+      var e=ease(p);
+
+      overviewCurrentViewBox={
+        x:from.x+(target.x-from.x)*e,
+        y:from.y+(target.y-from.y)*e,
+        w:from.w+(target.w-from.w)*e,
+        h:from.h+(target.h-from.h)*e
+      };
+
+      svg.setAttribute(
+        "viewBox",
+        overviewCurrentViewBox.x.toFixed(1)+" "+
+        overviewCurrentViewBox.y.toFixed(1)+" "+
+        overviewCurrentViewBox.w.toFixed(1)+" "+
+        overviewCurrentViewBox.h.toFixed(1)
+      );
+
+      if(p<1){
+        overviewCameraFrame=requestAnimationFrame(frame);
+      }
+    }
+
+    overviewCameraFrame=requestAnimationFrame(frame);
+  }
+
+  function overviewCameraToPeer(svg,peer,zoom){
+    if(!svg||!peer) return;
+
+    var node=svg.querySelector(
+      '.n2k-cnode[data-peer="'+CSS.escape(peer)+'"]'
+    );
+    if(!node) return;
+
+    var tr=node.getAttribute("transform")||"";
+    var m=tr.match(/translate\(([-\d.]+)\s+([-\d.]+)\)/);
+    if(!m) return;
+
+    var x=Number(m[1]);
+    var y=Number(m[2]);
+    var w=Number(zoom)||720;
+    var h=w*(620/1100);
+
+    // Same cinematic focus duration used by the main Living Mesh.
+    animateOverviewCamera(
+      svg,
+      {x:x-w/2,y:y-h/2,w:w,h:h},
+      850
+    );
+  }
+
+  function fitOverviewToNodes(svg,duration){
+    if(!svg) return;
+
+    var pts=[{x:550,y:310}];
+
+    svg.querySelectorAll(".n2k-cnode").forEach(function(node){
+      var tr=node.getAttribute("transform")||"";
+      var m=tr.match(/translate\(([-\d.]+)\s+([-\d.]+)\)/);
+
+      if(m){
+        pts.push({
+          x:Number(m[1]),
+          y:Number(m[2])
+        });
+      }
+    });
+
+    if(pts.length<=1){
+      animateOverviewCamera(
+        svg,
+        {x:145,y:82,w:810,h:456},
+        duration||650
+      );
+      return;
+    }
+
+    var minX=Math.min.apply(null,pts.map(function(p){return p.x;}));
+    var maxX=Math.max.apply(null,pts.map(function(p){return p.x;}));
+    var minY=Math.min.apply(null,pts.map(function(p){return p.y;}));
+    var maxY=Math.max.apply(null,pts.map(function(p){return p.y;}));
+
+    var padX=Math.max(90,(maxX-minX)*.16);
+    var padY=Math.max(70,(maxY-minY)*.18);
+
+    minX-=padX;
+    maxX+=padX;
+    minY-=padY;
+    maxY+=padY;
+
+    var w=Math.max(760,maxX-minX);
+    var h=Math.max(430,maxY-minY);
+    var targetAspect=1100/620;
+    var aspect=w/h;
+
+    if(aspect>targetAspect){
+      var needH=w/targetAspect;
+      var dy=(needH-h)/2;
+      minY-=dy;
+      h=needH;
+    }else{
+      var needW=h*targetAspect;
+      var dx=(needW-w)/2;
+      minX-=dx;
+      w=needW;
+    }
+
+    minX=Math.max(-40,Math.min(1140-w,minX));
+    minY=Math.max(-25,Math.min(645-h,minY));
+
+    animateOverviewCamera(
+      svg,
+      {x:minX,y:minY,w:w,h:h},
+      duration||700
+    );
+  }
+
+  function startOverviewCinematic(svg,items){
+    overviewCinemaItems=Array.isArray(items)
+      ? items.slice().sort(function(a,b){
+          return activityScore(b)-activityScore(a);
+        })
+      : [];
+
+    if(!svg || !overviewCinemaItems.length){
+      clearTimeout(overviewCinemaTimer);
+      overviewCinemaTimer=null;
+      cancelAnimationFrame(overviewCameraFrame);
+      return;
+    }
+
+    // Do not restart the sequence on every 15 s data refresh.
+    if(overviewCinemaTimer) return;
+
+    fitOverviewToNodes(svg,850);
+
+    function nextMove(){
+      if(!svg.isConnected){
+        overviewCinemaTimer=null;
+        return;
+      }
+
+      if(document.hidden || !svg.getClientRects().length){
+        overviewCinemaTimer=setTimeout(nextMove,1800);
+        return;
+      }
+
+      var list=overviewCinemaItems;
+      if(!list.length){
+        overviewCinemaTimer=null;
+        return;
+      }
+
+      // Same visual rhythm as Living Mesh: focus a node, then return
+      // to the network context before moving to the next active node.
+      if(overviewCinemaIndex%3===2){
+        fitOverviewToNodes(svg,900);
+      }else{
+        var item=list[overviewCinemaIndex%list.length];
+        var peer=String(item&&item.destination_hash||"");
+
+        if(peer){
+          overviewCameraToPeer(svg,peer,720);
+        }
+      }
+
+      overviewCinemaIndex++;
+      overviewCinemaTimer=setTimeout(nextMove,4200);
+    }
+
+    overviewCinemaTimer=setTimeout(nextMove,2600);
   }
 
 
@@ -12495,15 +12710,57 @@ if (
     }
   }
 
+  function setMeshFilter(next){
+    var allowed={
+      live:true,
+      hour:true,
+      five:true,
+      replay:true
+    };
+
+    next=allowed[next]?next:"live";
+    filter=next;
+
+    document.querySelectorAll("[data-n2k-map-filter]").forEach(function(btn){
+      btn.classList.toggle(
+        "active",
+        btn.dataset.n2kMapFilter===filter
+      );
+    });
+
+    if(filter==="replay"){
+      replayStarted=performance.now();
+    }else{
+      replayStarted=0;
+    }
+
+    if(latestData){
+      render(latestData);
+    }else{
+      load();
+    }
+
+    startAmbientAnimation();
+
+    try{
+      window.dispatchEvent(
+        new CustomEvent(
+          "n2k-mesh-filter-change",
+          {detail:{filter:filter}}
+        )
+      );
+    }catch(_ignore){}
+  }
+
+  window.n2kSetMeshFilter=setMeshFilter;
+  window.n2kGetMeshFilter=function(){
+    return filter;
+  };
+
   function boot(){
     document.querySelectorAll("[data-n2k-map-filter]").forEach(function(btn){
       btn.addEventListener("click",function(){
-        filter=btn.dataset.n2kMapFilter||"hour";
-        document.querySelectorAll("[data-n2k-map-filter]").forEach(function(other){
-          other.classList.toggle("active",other===btn);
-        });
-        if(filter==="replay") replayStarted=performance.now();
-        load();
+        setMeshFilter(btn.dataset.n2kMapFilter||"live");
       });
     });
 
@@ -12586,7 +12843,7 @@ if (
 })();
 </script>
 
-<script src="static/messenger.js?v=1.30.45-beta1"></script>
+<script src="static/messenger.js?v=1.30.46-beta1"></script>
 
 
 <script id="n2k-mobile-real-js-1181">
