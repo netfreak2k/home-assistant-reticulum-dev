@@ -156,7 +156,44 @@ Check:
 Restart the updated add-on and hard-refresh/reload the Home Assistant Web UI
 to clear cached frontend content.
 
-## 10. About and licensing
+## 10. Demo Mode
+
+The left navigation contains **Demo Mode**, a privacy-safe social showcase.
+
+Demo Mode runs a 2:30 scripted presentation explaining:
+
+- why local-first communication is useful
+- how N2K RNS Gateway evolved
+- Reticulum identities, paths and transport
+- LXMF messaging and Store & Forward
+- Living Mesh
+- RNode / LoRa
+- monitoring
+- project goals and contribution options
+
+### Privacy
+
+Demo Mode uses synthetic presentation data only. It does not read message
+contents, contact names or destination hashes.
+
+### Recording controls
+
+- **Start / Pause**
+- **Next scene**
+- **Restart**
+- **Narrator** — optional browser speech synthesis
+- **CC subtitles** — high-contrast in-video subtitles
+- **Capture Mode** — hides navigation and surrounding UI
+- **Fullscreen**
+- **9:16 / 1:1 / 16:9** layouts
+
+Browser narration depends on the voices provided by the browser/operating
+system. For consistent published audio, use the documented narration script as
+a source for a dedicated TTS or recorded voice track.
+
+See [Demo Mode & social capture](DEMO_MODE.md).
+
+## 11. About and licensing
 
 The Web UI contains an integrated **About** section identifying:
 
