@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Demo Mode is a built-in 2 minute 30 second social-media presentation for
+Demo Mode is a built-in approximately 3 minute 18 second social-media presentation for
 explaining N2K RNS Gateway, Reticulum and LXMF to people who may have no prior
 mesh-network knowledge.
 
@@ -15,7 +15,7 @@ It is designed for screen recording in:
 ## Story structure
 
 The current production story contains 15 chapters with variable pacing and a
-total runtime of exactly 150 seconds:
+narrator-safe total runtime of 198 seconds:
 
 1. Hook — what happens when the network disappears?
 2. Why local-first communication?
@@ -42,10 +42,16 @@ total runtime of exactly 150 seconds:
 5. Press **Capture Mode**.
 6. Start the screen recorder.
 7. Press **Restart** if you need the story from frame zero.
-8. Record the full 02:30 sequence.
+8. Record the full 03:18 sequence.
 
 Capture Mode hides navigation, page headers, controls and the external scene
 caption. The in-video subtitles and N2K watermark stay visible.
+
+## Narrator-safe pacing
+
+Version 1.30.51-beta1 lengthens scene timing from 150 to 198 seconds.
+Each scene now includes enough headroom for the existing German narration at a calm browser-TTS pace plus a short visual pause before the next scene.
+The runtime display is derived from the scene table instead of being hard-coded, so future timing changes stay consistent automatically.
 
 ## Narration
 
@@ -105,7 +111,7 @@ The social capture UI now deliberately prioritizes legibility over decorative de
 - 9:16 mode receives dedicated portrait typography overrides
 - high-contrast OS/browser preferences receive an additional contrast boost
 
-The story controller, 15-scene order and exact 150-second runtime are unchanged.
+The story controller, 15-scene order and scene order is unchanged; runtime is now 198 seconds so narration can finish naturally.
 This means existing recording workflows remain compatible while compressed TikTok,
 Reels and Shorts playback is easier to read.
 
