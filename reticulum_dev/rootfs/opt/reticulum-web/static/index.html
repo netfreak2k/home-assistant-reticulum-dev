@@ -2341,6 +2341,7 @@ code {
 }
 </style>
 
+<link rel="stylesheet" href="static/n2k-monitoring.css?v=1.30.38-beta1">
 </head>
 
 <body>
@@ -2354,11 +2355,11 @@ code {
       </div>
 
       <div class="n2k-title-row">
-        <h1>N2K RNS Gateway · 1.30.37-beta1</h1>
+        <h1>N2K RNS Gateway · 1.30.38-beta1</h1>
         <div id="n2k-modern-title-shell" class="n2k-modern-title-shell" aria-label="N2K RNS Gateway">
           <span class="n2k-modern-title-orb" aria-hidden="true"></span>
           <span id="n2k-modern-title-text" class="n2k-modern-title-text">N2K RNS Gateway</span>
-          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.37-beta1</span>
+          <span id="n2k-modern-title-version" class="n2k-modern-title-version">1.30.38-beta1</span>
         </div>
 
         <div class="n2k-header-stack" aria-label="Core services">
@@ -2981,6 +2982,43 @@ code {
   <div id="msg-mesh-view"
        class="msg-secondary-view n2k-mesh-view"
        hidden>
+
+    <section id="n2k-mesh-insights" class="n2k-mesh-insights" aria-label="Living Mesh Auswertung">
+      <div class="n2k-mesh-insights-head">
+        <div>
+          <div class="n2k-mesh-insights-title">Mesh Intelligence</div>
+          <div class="n2k-mesh-insights-sub">Read-only Auswertung · Pfade · Hops · Dynamik · Relay-Verteilung</div>
+        </div>
+      </div>
+
+      <div class="n2k-mesh-insights-grid">
+        <div class="n2k-mesh-insight">
+          <small>Live</small>
+          <b id="n2k-mi-live">—</b>
+          <span id="n2k-mi-live-sub">Live aus Mesh-Ansicht</span>
+        </div>
+        <div class="n2k-mesh-insight">
+          <small>Pfade</small>
+          <b id="n2k-mi-paths">—</b>
+          <span id="n2k-mi-paths-sub">Netzwerkpfade</span>
+        </div>
+        <div class="n2k-mesh-insight">
+          <small>Ø Hops</small>
+          <b id="n2k-mi-hops">—</b>
+          <span id="n2k-mi-hops-sub">Pfadtiefe</span>
+        </div>
+        <div class="n2k-mesh-insight">
+          <small>Dynamik</small>
+          <b id="n2k-mi-churn">—</b>
+          <span id="n2k-mi-churn-sub">Neue / verlorene Pfade</span>
+        </div>
+        <div id="n2k-mi-relay-card" class="n2k-mesh-insight">
+          <small>Relay-Verteilung</small>
+          <b id="n2k-mi-relay">—</b>
+          <span id="n2k-mi-relay-sub">Abhängigkeit</span>
+        </div>
+      </div>
+    </section>
     <section class="n2k-constellation-card n2k-universe-card" id="n2k-constellation-card">
       <div class="n2k-constellation-head n2k-universe-head">
         <div>
@@ -3129,6 +3167,55 @@ code {
       <div class="n2k-github-counter-foot">
         <span id="n2k-gh-state">GitHub wird geladen…</span>
         <span id="n2k-gh-release"></span>
+      </div>
+    </section>
+
+    <section id="n2k-monitoring-widget" class="n2k-monitoring-widget" aria-label="Netzwerk Monitoring">
+      <div class="n2k-monitor-head">
+        <div>
+          <div class="n2k-monitor-title">Netzwerk-Monitor</div>
+          <div class="n2k-monitor-sub">24-h Verlauf · lokal · read-only · kein Eingriff in RNS/LXMF</div>
+        </div>
+        <span id="n2k-monitor-state" class="n2k-monitor-state">STARTET</span>
+      </div>
+
+      <div class="n2k-monitor-grid">
+        <div class="n2k-monitor-card">
+          <small>Verfügbarkeit</small>
+          <strong id="n2k-mon-health">—</strong>
+          <em id="n2k-mon-health-sub">Messung startet</em>
+        </div>
+        <div class="n2k-monitor-card">
+          <small>Reticulum-Pfade</small>
+          <strong id="n2k-mon-paths">—</strong>
+          <em id="n2k-mon-paths-sub">Trend wird aufgebaut</em>
+        </div>
+        <div class="n2k-monitor-card">
+          <small>Pfad-Dynamik</small>
+          <strong id="n2k-mon-churn">—</strong>
+          <em id="n2k-mon-churn-sub">Neue / verlorene Pfade</em>
+        </div>
+        <div class="n2k-monitor-card">
+          <small>RNode Funk</small>
+          <strong id="n2k-mon-radio">—</strong>
+          <em id="n2k-mon-radio-sub">Optional</em>
+        </div>
+      </div>
+
+      <div class="n2k-monitor-history">
+        <div class="n2k-monitor-chart">
+          <div class="n2k-monitor-chart-label">
+            <span>Pfad-Historie</span>
+            <span id="n2k-mon-chart-range">—</span>
+          </div>
+          <svg id="n2k-mon-spark-paths" class="n2k-monitor-spark" viewBox="0 0 240 34" preserveAspectRatio="none" aria-label="Pfad-Historie">
+            <path class="baseline" d="M2 32 L238 32"></path>
+            <path id="n2k-mon-spark-paths-trace" class="trace" d=""></path>
+          </svg>
+        </div>
+        <div id="n2k-monitor-history-note" class="n2k-monitor-history-note">
+          Historie startet mit diesem Update.
+        </div>
       </div>
     </section>
 
@@ -3630,7 +3717,7 @@ code {
 
     <div class="n2k-about-row">
       <span>Projekt</span>
-      <strong>N2K RNS Gateway · 1.30.37-beta1</strong>
+      <strong>N2K RNS Gateway · 1.30.38-beta1</strong>
     </div>
 
     <div class="n2k-about-row">
@@ -12443,7 +12530,7 @@ if (
 })();
 </script>
 
-<script src="static/messenger.js?v=1.30.37-beta1"></script>
+<script src="static/messenger.js?v=1.30.38-beta1"></script>
 
 
 <script id="n2k-mobile-real-js-1181">
@@ -17847,6 +17934,7 @@ hr{
 })();
 </script>
 
+<script src="static/n2k-monitoring.js?v=1.30.38-beta1" defer></script>
 </body>
 </html>
 
