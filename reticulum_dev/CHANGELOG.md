@@ -1,3 +1,8 @@
+## 1.30.53-beta1
+- Brighten Demo Mode for Twitch/YouTube/social live capture with stronger ambient lighting, mesh glow and livelier moving light.
+- Improve card separation and visual energy while preserving readable dark text surfaces.
+- Keep speaker synchronization and all Demo Mode behavior unchanged.
+
 ## 1.30.52-beta1
 - Speaker defaults to ON and subtitles default to OFF in Demo Mode.
 - Scene changes now wait for actual browser-TTS completion instead of cutting narration at the nominal scene duration.
