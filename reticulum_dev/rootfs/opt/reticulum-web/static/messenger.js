@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.48-beta1";
+  const VERSION="1.30.49-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5052,6 +5052,9 @@ function n2kIcon(name){
           '<button type="button" data-demo-action="toggle">▶ Start</button>'+
           '<button type="button" data-demo-action="next">Nächste Szene</button>'+
           '<button type="button" data-demo-action="restart">↺ Neustart</button>'+
+          '<button type="button" data-demo-action="voice">🔊 Sprecher AUS</button>'+
+          '<button type="button" data-demo-action="captions" class="active">CC Untertitel AN</button>'+
+          '<button type="button" data-demo-action="capture">● Aufnahme-Modus</button>'+
           '<button type="button" data-demo-action="fullscreen">⛶ Vollbild</button>'+
         '</div>'+
         '<div class="n2k-demo-runtime" id="n2k-demo-runtime">00:00 / 02:30</div>'+
@@ -5156,6 +5159,8 @@ function n2kIcon(name){
             '<div class="n2k-demo-claim">KEIN NETZ · KEIN PROBLEM</div>'+
           '</section>'+
 
+          '<div class="n2k-demo-transition" aria-hidden="true"><i></i><i></i></div>'+
+          '<div id="n2k-demo-subtitles" class="n2k-demo-subtitles" aria-live="polite"><small id="n2k-demo-subtitle-kicker">N2K RNS GATEWAY</small><strong id="n2k-demo-subtitle-text">Was passiert, wenn das Netz weg ist?</strong></div>'+
           '<div class="n2k-demo-watermark">N2K RNS GATEWAY · DEMO MODE · PRIVACY SAFE</div>'+
         '</div>'+
       '</div>'+
@@ -5471,34 +5476,125 @@ function n2kIcon(name){
 
 
 /* =========================================================
-   N2K Demo Mode 1.30.48-beta1
-   2:30 social story · 15 chapters · 10 seconds each.
-   Privacy rule: synthetic-only. The demo controller makes no
-   network requests and never reads chat/contact content.
+   N2K Demo Mode 1.30.49-beta1
+   Production social story · 2:30 total · variable pacing.
+   Privacy rule: synthetic-only. No API/chat/contact access.
    ========================================================= */
 (function(){
   "use strict";
 
   const SCENES=[
-    {title:"Was passiert, wenn das Netz weg ist?",description:"Intro: Warum lokale, unabhängige Kommunikation überhaupt interessant ist."},
-    {title:"Warum Local First?",description:"Cloud und Mobilfunk sind nützlich – aber sie sollten nicht der einzige mögliche Kommunikationsweg sein."},
-    {title:"Wie das Gateway entstanden ist",description:"Vom Home-Assistant-Reticulum-Node zum Messenger, Living Mesh und Monitoring."},
-    {title:"Reticulum erklärt · Netzwerk",description:"Reticulum stellt Identitäten, Pfade und Transport bereit. Anwendungen bauen darauf auf."},
-    {title:"Reticulum erklärt · Transport",description:"LoRa, LAN und Internet können unterschiedliche Wege innerhalb desselben logischen Netzes sein."},
-    {title:"LXMF erklärt",description:"LXMF bringt Nachrichten und Zustellung auf Reticulum – inklusive Store-&-Forward-Konzepten."},
-    {title:"N2K RNS Gateway",description:"Messenger, Mesh, Funkstatus und Diagnose werden in Home Assistant zusammengeführt."},
-    {title:"Living Mesh",description:"Unsichtbare Reticulum-Pfade werden als Nodes, Relays, Routen und Aktivität sichtbar."},
-    {title:"RNode & LoRa",description:"Funkhardware wird direkt Teil des Gateways und lässt sich verständlich überwachen."},
-    {title:"Privacy Messenger",description:"Die Social-Demo zeigt ausschließlich synthetische Texte und keinerlei echte Kontakt- oder Nachrichtendaten."},
-    {title:"Store & Forward",description:"Wenn ein Ziel nicht direkt erreichbar ist, kann LXMF Propagation Nodes zur späteren Zustellung nutzen."},
-    {title:"Monitoring",description:"Verfügbarkeit, Pfade, Dynamik und Funkwerte werden als Verlauf statt nur als Momentaufnahme gezeigt."},
-    {title:"Entwicklung",description:"Build, testen, korrigieren, wieder testen – die App wächst iterativ auf echter Hardware."},
-    {title:"Ziele",description:"Einfacher Einstieg, lokale Kontrolle, robuste Kommunikation und ein verständliches Interface."},
-    {title:"Mach mit",description:"Teste, melde Bugs, bring Ideen, probiere Hardware aus oder entwickle direkt auf GitHub mit."}
+    {
+      title:"Was passiert, wenn das Netz weg ist?",
+      description:"Der Hook: Kommunikation darf nicht an einem einzigen Netz hängen.",
+      kicker:"KEIN NETZ?",
+      duration:5,
+      narration:"Was passiert, wenn Mobilfunk oder Internet plötzlich weg sind? Genau hier beginnt die Idee hinter N2K RNS Gateway."
+    },
+    {
+      title:"Warum Local First?",
+      description:"Lokale Kommunikation als zusätzlicher, unabhängiger Weg.",
+      kicker:"WARUM LOCAL FIRST?",
+      duration:8,
+      narration:"Cloud und Mobilfunk sind praktisch. Aber sie sollten nicht der einzige Weg sein. Lokale Infrastruktur kann auch dann weiterarbeiten, wenn draußen nichts mehr geht."
+    },
+    {
+      title:"Wie das Gateway entstanden ist",
+      description:"Vom Reticulum-Node zum integrierten Home-Assistant-Gateway.",
+      kicker:"ENTSTEHUNG",
+      duration:10,
+      narration:"Das Projekt begann mit einem Reticulum Node in Home Assistant. Daraus wurden Messenger, Living Mesh, RNode Integration, Monitoring und ein kompletter Gateway Workflow."
+    },
+    {
+      title:"Reticulum erklärt · Netzwerk",
+      description:"Identitäten, Pfade und Transport statt klassischer Serverlogik.",
+      kicker:"RETICULUM · TEIL 1",
+      duration:12,
+      narration:"Reticulum ist nicht der Messenger. Es ist das Netzwerk darunter. Kryptografische Identitäten, gelernte Pfade und flexible Transportwege bilden die Grundlage."
+    },
+    {
+      title:"Reticulum erklärt · Transport",
+      description:"LoRa, LAN und Internet als austauschbare Transportwege.",
+      kicker:"RETICULUM · TEIL 2",
+      duration:12,
+      narration:"Ein Ziel kann über LoRa, über das lokale Netzwerk oder über einen Internet Backbone erreichbar sein. Die Anwendung muss den konkreten Transportweg nicht selbst verwalten."
+    },
+    {
+      title:"LXMF erklärt",
+      description:"Nachrichten und Zustellung auf dem Reticulum-Netz.",
+      kicker:"LXMF",
+      duration:11,
+      narration:"LXMF setzt auf Reticulum auf. Es kümmert sich um Nachrichten, Zustellung und kann mit Propagation Nodes auch Store and Forward Szenarien abbilden."
+    },
+    {
+      title:"N2K RNS Gateway",
+      description:"Messenger, Mesh, Funk und Diagnose in einer Oberfläche.",
+      kicker:"DIE APP",
+      duration:10,
+      narration:"N2K RNS Gateway bringt diese Technik in Home Assistant zusammen. Messenger, Funkhardware, Netzstatus, Diagnose und Visualisierung landen in einer gemeinsamen Oberfläche."
+    },
+    {
+      title:"Living Mesh",
+      description:"Routen, Relays und Aktivität werden grafisch verständlich.",
+      kicker:"LIVING MESH",
+      duration:14,
+      narration:"Living Mesh macht sichtbar, was normalerweise im Hintergrund passiert. Nodes, Relays, Routen, Aktivität und Transportarten werden zu einem lebenden Netzwerkbild."
+    },
+    {
+      title:"RNode & LoRa",
+      description:"Reticulum-Funk direkt am Home-Assistant-Gateway.",
+      kicker:"RNODE · LORA",
+      duration:10,
+      narration:"Mit einem RNode wird LoRa zum Funkweg des Gateways. Die App zeigt Verbindung, Funkstatus und wichtige Werte direkt und verständlich an."
+    },
+    {
+      title:"Privacy Messenger",
+      description:"Die Social-Demo verwendet ausschließlich synthetische Daten.",
+      kicker:"PRIVACY SAFE",
+      duration:10,
+      narration:"Auch beim Messenger gilt Datenschutz zuerst. Im Demo Mode erscheinen keine echten Namen, keine Nachrichtentexte und keine Destination Hashes. Alles hier ist synthetisch."
+    },
+    {
+      title:"Store & Forward",
+      description:"Nachrichten können auf spätere Erreichbarkeit warten.",
+      kicker:"STORE & FORWARD",
+      duration:11,
+      narration:"Ist ein Ziel gerade nicht erreichbar, muss eine Nachricht nicht zwangsläufig verloren sein. LXMF kann Propagation Nodes für eine spätere Zustellung nutzen."
+    },
+    {
+      title:"Monitoring",
+      description:"Trends für Pfade, Verfügbarkeit und Funk statt bloßer Momentwerte.",
+      kicker:"NETWORK INTELLIGENCE",
+      duration:9,
+      narration:"Monitoring zeigt nicht nur den aktuellen Zustand. Verfügbarkeit, Pfade, Dynamik und Funkwerte werden über Zeit sichtbar und dadurch besser einschätzbar."
+    },
+    {
+      title:"Entwicklung",
+      description:"Iterativ auf echter Hardware: bauen, testen, korrigieren, pushen.",
+      kicker:"BUILD · TEST · FIX",
+      duration:10,
+      narration:"Die Entwicklung läuft iterativ auf echter Hardware. Ein Feature wird gebaut, getestet, korrigiert und erst danach in die nächste Beta übernommen."
+    },
+    {
+      title:"Ziele",
+      description:"Einfacher Einstieg, lokale Kontrolle und robuste Kommunikation.",
+      kicker:"WOHIN GEHT ES?",
+      duration:10,
+      narration:"Das Ziel ist klar: weniger Kommandozeile, mehr Verständnis, lokale Kontrolle und ein Einstieg, den auch neue Nutzer ohne Reticulum Vorwissen schaffen."
+    },
+    {
+      title:"Mach mit",
+      description:"Teste, melde Bugs, bring Ideen und Hardwareerfahrung ein.",
+      kicker:"NEUGIERIG?",
+      duration:8,
+      narration:"Du hast einen Raspberry Pi, einen RNode, Home Assistant oder einfach eine gute Idee? Teste mit, melde Bugs, probiere Hardware aus oder entwickle direkt auf GitHub mit."
+    }
   ];
 
-  const SCENE_MS=10000;
-  const TOTAL_SECONDS=150;
+  const TOTAL_SECONDS=SCENES.reduce(function(sum,scene){
+    return sum+scene.duration;
+  },0);
+
   let sceneIndex=0;
   let running=false;
   let timer=null;
@@ -5506,261 +5602,275 @@ function n2kIcon(name){
   let sceneStartedAt=0;
   let pausedElapsed=0;
   let bound=false;
+  let voiceEnabled=false;
+  let captionsEnabled=true;
+  let captureEnabled=false;
+  let transitionTimer=null;
 
-  function byId(id){
-    return document.getElementById(id);
+  function byId(id){return document.getElementById(id);}
+  function surface(){return document.querySelector("#n2k-page-demo .n2k-demo-mode");}
+  function stage(){return byId("n2k-demo-stage");}
+  function sceneDurationMs(index){
+    return Math.max(1000,Number(SCENES[index]?.duration||10)*1000);
   }
-
-  function surface(){
-    return document.querySelector("#n2k-page-demo .n2k-demo-mode");
+  function elapsedBefore(index){
+    return SCENES.slice(0,index).reduce(function(sum,scene){
+      return sum+scene.duration;
+    },0);
   }
-
-  function stage(){
-    return byId("n2k-demo-stage");
-  }
-
   function formatTime(seconds){
     seconds=Math.max(0,Math.min(TOTAL_SECONDS,Math.floor(Number(seconds)||0)));
     const min=Math.floor(seconds/60);
     const sec=seconds%60;
     return String(min).padStart(2,"0")+":"+String(sec).padStart(2,"0");
   }
-
   function currentElapsed(){
-    const base=sceneIndex*(SCENE_MS/1000);
+    const base=elapsedBefore(sceneIndex);
+    const currentDuration=SCENES[sceneIndex].duration;
     if(!running) return base+pausedElapsed;
-    return base+Math.min(SCENE_MS/1000,(performance.now()-sceneStartedAt)/1000);
+    return base+Math.min(currentDuration,(performance.now()-sceneStartedAt)/1000);
   }
-
   function updateRuntime(){
     const node=byId("n2k-demo-runtime");
-    if(node){
-      node.textContent=formatTime(currentElapsed())+" / 02:30";
-    }
-
+    if(node) node.textContent=formatTime(currentElapsed())+" / 02:30";
     const root=stage();
     if(root){
-      root.style.setProperty(
-        "--n2k-demo-progress",
-        String(Math.min(1,currentElapsed()/TOTAL_SECONDS))
-      );
+      root.style.setProperty("--n2k-demo-progress",String(Math.min(1,currentElapsed()/TOTAL_SECONDS)));
     }
   }
-
   function startTicker(){
     stopTicker();
-    ticker=setInterval(updateRuntime,250);
+    ticker=setInterval(updateRuntime,200);
     updateRuntime();
   }
-
   function stopTicker(){
-    if(ticker){
-      clearInterval(ticker);
-      ticker=null;
+    if(ticker){clearInterval(ticker);ticker=null;}
+  }
+  function clearTimer(){
+    if(timer){clearTimeout(timer);timer=null;}
+  }
+  function cancelSpeech(){
+    try{
+      if("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }catch(_ignore){}
+  }
+  function chooseGermanVoice(){
+    try{
+      const voices=window.speechSynthesis?.getVoices?.()||[];
+      return voices.find(function(v){return /^de[-_]/i.test(v.lang);}) ||
+        voices.find(function(v){return /german|deutsch/i.test(v.name);}) ||
+        null;
+    }catch(_ignore){return null;}
+  }
+  function speakScene(scene){
+    cancelSpeech();
+    if(!voiceEnabled || !scene || !("speechSynthesis" in window)) return;
+    try{
+      const utterance=new SpeechSynthesisUtterance(scene.narration);
+      utterance.lang="de-DE";
+      utterance.rate=.94;
+      utterance.pitch=1;
+      utterance.volume=1;
+      const voice=chooseGermanVoice();
+      if(voice) utterance.voice=voice;
+      window.speechSynthesis.speak(utterance);
+    }catch(_ignore){}
+  }
+  function updateControls(){
+    const toggle=document.querySelector('[data-demo-action="toggle"]');
+    const voice=document.querySelector('[data-demo-action="voice"]');
+    const captions=document.querySelector('[data-demo-action="captions"]');
+    const capture=document.querySelector('[data-demo-action="capture"]');
+    if(toggle){
+      toggle.textContent=running?"Ⅱ Pause":"▶ Start";
+      toggle.classList.toggle("active",running);
     }
+    if(voice){
+      voice.textContent=voiceEnabled?"🔊 Sprecher AN":"🔊 Sprecher AUS";
+      voice.classList.toggle("active",voiceEnabled);
+    }
+    if(captions){
+      captions.textContent=captionsEnabled?"CC Untertitel AN":"CC Untertitel AUS";
+      captions.classList.toggle("active",captionsEnabled);
+    }
+    if(capture){
+      capture.textContent=captureEnabled?"■ Aufnahme beenden":"● Aufnahme-Modus";
+      capture.classList.toggle("active",captureEnabled);
+    }
+    document.body.classList.toggle("n2k-demo-captions-off",!captionsEnabled);
+    document.body.classList.toggle("n2k-demo-capture",captureEnabled);
   }
-
-  function updateToggle(){
-    const button=document.querySelector('[data-demo-action="toggle"]');
-    if(!button) return;
-    button.textContent=running ? "Ⅱ Pause" : "▶ Start";
-    button.classList.toggle("active",running);
+  function updateSubtitles(scene){
+    const kicker=byId("n2k-demo-subtitle-kicker");
+    const text=byId("n2k-demo-subtitle-text");
+    if(kicker) kicker.textContent=scene.kicker||"N2K RNS GATEWAY";
+    if(text) text.textContent=scene.narration||scene.description||scene.title;
   }
-
+  function transition(){
+    const root=stage();
+    if(!root) return;
+    clearTimeout(transitionTimer);
+    root.classList.remove("is-transitioning");
+    void root.offsetWidth;
+    root.classList.add("is-transitioning");
+    transitionTimer=setTimeout(function(){
+      root.classList.remove("is-transitioning");
+    },760);
+  }
   function renderScene(index){
     const root=stage();
     if(!root) return;
-
     sceneIndex=((Number(index)||0)%SCENES.length+SCENES.length)%SCENES.length;
     pausedElapsed=0;
     sceneStartedAt=performance.now();
-
+    transition();
+    root.dataset.scene=String(sceneIndex);
     root.querySelectorAll("[data-demo-scene]").forEach(function(scene){
       scene.classList.remove("is-active");
     });
-
     const active=root.querySelector('[data-demo-scene="'+sceneIndex+'"]');
     if(active){
       void active.offsetWidth;
       active.classList.add("is-active");
     }
-
     const meta=SCENES[sceneIndex];
     const number=byId("n2k-demo-scene-number");
     const title=byId("n2k-demo-scene-title");
     const description=byId("n2k-demo-scene-description");
-
-    if(number){
-      number.textContent=String(sceneIndex+1).padStart(2,"0")+" / "+String(SCENES.length).padStart(2,"0");
-    }
+    if(number) number.textContent=String(sceneIndex+1).padStart(2,"0")+" / "+String(SCENES.length).padStart(2,"0");
     if(title) title.textContent=meta.title;
     if(description) description.textContent=meta.description;
-
+    updateSubtitles(meta);
     document.querySelectorAll(".n2k-demo-timeline i").forEach(function(dot,i){
       dot.classList.toggle("active",i===sceneIndex);
       dot.classList.toggle("done",i<sceneIndex);
     });
-
     root.classList.remove("n2k-demo-scene-reset");
     void root.offsetWidth;
     root.classList.add("n2k-demo-scene-reset");
-
+    speakScene(meta);
     updateRuntime();
   }
-
-  function clearTimer(){
-    if(timer){
-      clearTimeout(timer);
-      timer=null;
-    }
-  }
-
   function schedule(remaining){
     clearTimer();
     if(!running) return;
-
-    const wait=Math.max(250,Number(remaining)||SCENE_MS);
-
+    const wait=Math.max(250,Number(remaining)||sceneDurationMs(sceneIndex));
     timer=setTimeout(function(){
       sceneIndex=(sceneIndex+1)%SCENES.length;
       renderScene(sceneIndex);
-      schedule(SCENE_MS);
+      schedule(sceneDurationMs(sceneIndex));
     },wait);
   }
-
-  function start(restart){
-    bind();
-
-    if(restart){
-      sceneIndex=0;
-      pausedElapsed=0;
-    }
-
-    running=true;
-    renderScene(sceneIndex);
-    updateToggle();
-    schedule(SCENE_MS);
-    startTicker();
-    document.body.classList.add("n2k-demo-running");
-  }
-
   function resume(){
     if(running) return;
-
     running=true;
     sceneStartedAt=performance.now()-(pausedElapsed*1000);
-    updateToggle();
-    schedule(SCENE_MS-(pausedElapsed*1000));
+    updateControls();
+    speakScene(SCENES[sceneIndex]);
+    schedule(sceneDurationMs(sceneIndex)-(pausedElapsed*1000));
     startTicker();
     document.body.classList.add("n2k-demo-running");
   }
-
   function pause(){
     if(running){
-      pausedElapsed=Math.min(
-        SCENE_MS/1000,
-        (performance.now()-sceneStartedAt)/1000
-      );
+      pausedElapsed=Math.min(SCENES[sceneIndex].duration,(performance.now()-sceneStartedAt)/1000);
     }
-
     running=false;
     clearTimer();
     stopTicker();
+    cancelSpeech();
     updateRuntime();
-    updateToggle();
+    updateControls();
     document.body.classList.remove("n2k-demo-running");
   }
-
-  function toggle(){
-    running ? pause() : resume();
-  }
-
+  function toggle(){running?pause():resume();}
   function next(){
     sceneIndex=(sceneIndex+1)%SCENES.length;
     renderScene(sceneIndex);
-    if(running) schedule(SCENE_MS);
+    if(running) schedule(sceneDurationMs(sceneIndex));
   }
-
   function restart(){
     sceneIndex=0;
     pausedElapsed=0;
     running=true;
     renderScene(sceneIndex);
-    updateToggle();
-    schedule(SCENE_MS);
+    updateControls();
+    schedule(sceneDurationMs(sceneIndex));
     startTicker();
     document.body.classList.add("n2k-demo-running");
   }
-
   async function toggleFullscreen(){
     const root=stage();
     if(!root) return;
-
     try{
-      if(document.fullscreenElement){
-        await document.exitFullscreen();
-      }else if(root.requestFullscreen){
+      if(document.fullscreenElement) await document.exitFullscreen();
+      else if(root.requestFullscreen) await root.requestFullscreen();
+    }catch(_ignore){}
+  }
+  async function setCapture(enabled){
+    captureEnabled=!!enabled;
+    updateControls();
+    const root=stage();
+    if(!root) return;
+    try{
+      if(captureEnabled && !document.fullscreenElement && root.requestFullscreen){
         await root.requestFullscreen();
+      }else if(!captureEnabled && document.fullscreenElement){
+        await document.exitFullscreen();
       }
     }catch(_ignore){}
   }
-
   function setFormat(format){
     const root=stage();
     if(!root) return;
-
-    if(!["portrait","square","wide"].includes(format)){
-      format="wide";
-    }
-
+    if(!["portrait","square","wide"].includes(format)) format="wide";
     root.dataset.format=format;
-
     document.querySelectorAll("[data-demo-format]").forEach(function(button){
       button.classList.toggle("active",button.dataset.demoFormat===format);
     });
   }
-
   function bind(){
     if(bound) return;
     const root=surface();
     if(!root) return;
-
     bound=true;
-
     root.addEventListener("click",function(event){
       const action=event.target.closest("[data-demo-action]");
       if(action){
         const name=action.dataset.demoAction;
-
-        if(name==="toggle"){
-          toggle();
-        }else if(name==="next"){
-          next();
-        }else if(name==="restart"){
-          restart();
+        if(name==="toggle") toggle();
+        else if(name==="next") next();
+        else if(name==="restart") restart();
+        else if(name==="voice"){
+          voiceEnabled=!voiceEnabled;
+          updateControls();
+          if(voiceEnabled) speakScene(SCENES[sceneIndex]); else cancelSpeech();
+        }else if(name==="captions"){
+          captionsEnabled=!captionsEnabled;
+          updateControls();
+        }else if(name==="capture"){
+          setCapture(!captureEnabled);
         }else if(name==="fullscreen"){
           toggleFullscreen();
         }
         return;
       }
-
       const formatButton=event.target.closest("[data-demo-format]");
-      if(formatButton){
-        setFormat(formatButton.dataset.demoFormat);
+      if(formatButton) setFormat(formatButton.dataset.demoFormat);
+    });
+    document.addEventListener("fullscreenchange",function(){
+      if(!document.fullscreenElement && captureEnabled){
+        captureEnabled=false;
+        updateControls();
       }
     });
-
     renderScene(sceneIndex);
-    updateToggle();
+    updateControls();
   }
-
-  function enter(){
-    bind();
-    restart();
-  }
-
+  function enter(){bind();restart();}
   function exit(){
     pause();
+    if(captureEnabled) setCapture(false);
   }
 
   window.n2kDemoMode={
@@ -5771,8 +5881,9 @@ function n2kIcon(name){
     next:next,
     restart:restart,
     setFormat:setFormat,
-    duration:150,
-    scenes:15,
+    setCapture:setCapture,
+    duration:TOTAL_SECONDS,
+    scenes:SCENES.length,
     privacy:"synthetic-only"
   };
 })();
