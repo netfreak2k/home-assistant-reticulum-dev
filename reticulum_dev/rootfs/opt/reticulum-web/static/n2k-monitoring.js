@@ -1,9 +1,11 @@
 /* N2K RNS Gateway · Monitoring module
-   1.30.38-beta1
+   1.30.39-beta1
    Read-only: GET endpoints + browser-local history only. */
 (function(){
   "use strict";
 
+  var MODULE_VERSION="1.30.39-beta1";
+  var VERSION_KEY="n2k.monitor.version";
   var HISTORY_KEY="n2k.monitor.history.v1";
   var PATHS_KEY="n2k.monitor.paths.v1";
   var SAMPLE_INTERVAL=120000;
@@ -421,7 +423,31 @@
     refresh();
   }
 
+  function resetForVersionChange(){
+    try{
+      var previous=localStorage.getItem(VERSION_KEY);
+
+      if(previous!==MODULE_VERSION){
+        localStorage.removeItem(HISTORY_KEY);
+        localStorage.removeItem(PATHS_KEY);
+        localStorage.setItem(VERSION_KEY,MODULE_VERSION);
+        currentSnapshot=null;
+
+        return {
+          reset:true,
+          previous:previous||""
+        };
+      }
+    }catch(_){}
+
+    return {
+      reset:false,
+      previous:MODULE_VERSION
+    };
+  }
+
   function boot(){
+    var versionState=resetForVersionChange();
     var items=trimHistory(history(),Date.now());
     writeJson(HISTORY_KEY,items);
     if(items.length){
@@ -446,7 +472,7 @@
   window.N2KMonitoring={
     refreshNow:refresh,
     clearHistory:clearHistory,
-    version:"1.30.38-beta1"
+    version:MODULE_VERSION
   };
 
   if(document.readyState==="loading"){
