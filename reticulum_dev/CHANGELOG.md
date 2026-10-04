@@ -1,3 +1,8 @@
+## 1.30.35-beta1
+- Replace tiny messenger icon-only actions with labelled New Chat and Further Actions buttons.
+- Make own QR sharing and LXMF announce directly visible in the messenger toolbar; retain import/export in the menu.
+- Wrap toolbar actions on small screens while preserving existing messenger handlers.
+
 ## 1.30.34-beta1
 - Combine conversations and contact management under a single Chat navigation entry, with shared search and Chats, Unread, and Contacts filters.
 - Open saved contacts directly in a conversation and restore the previous list when returning.
