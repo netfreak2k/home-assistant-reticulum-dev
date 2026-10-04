@@ -7,7 +7,7 @@ This repository contains the current public beta development build.
 
 ## Current status
 
-**1.30.52-beta1 · Active public beta development**
+**1.30.53-beta1 · Active public beta development**
 
 The original public beta baseline has passed functional validation, update testing
 and a clean-install test on a second Home Assistant system. Development has since
@@ -129,6 +129,7 @@ names, but users should still review files before publishing them publicly.
 - Privacy-safe synthetic messenger demonstration
 - Browser narration enabled by default; subtitles disabled by default
 - Narrator-synchronized scene changes that wait for speech completion
+- Stream-optimized brighter Demo Mode for Twitch, YouTube and live capture
 - Capture Mode for clean screen recording
 - Production readability/contrast pass for muted-feed viewing and small mobile screens
 
