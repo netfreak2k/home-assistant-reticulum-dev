@@ -533,9 +533,14 @@ function n2kIcon(name){
     if (!chats.length) {
       root.innerHTML = `
         <div class="m97-empty">
-          Noch keine Gespräche.
+          <strong>Noch keine Chats</strong>
+          <span>Gespeicherte Kontakte öffnen oder eine LXMF-Nachricht senden, um ein Gespräch zu starten.</span>
+          <button type="button" data-n2k-empty-contacts>Kontakte öffnen</button>
         </div>
       `;
+      root.querySelector("[data-n2k-empty-contacts]")?.addEventListener("click",function(){
+        if(typeof window.n2kShowPage==="function") window.n2kShowPage("contacts");
+      });
       return;
     }
 
@@ -606,6 +611,18 @@ function n2kIcon(name){
       });
   }
 
+  function showChatLoadError(root){
+    if(!root || root.querySelector("[data-m97-chat]")) return;
+    root.innerHTML=`
+      <div class="m97-empty">
+        <strong>Chatliste gerade nicht erreichbar</strong>
+        <span>Die Gespräche konnten nicht geladen werden. Prüfe die Verbindung und versuche es erneut.</span>
+        <button type="button" data-n2k-chat-retry>Erneut laden</button>
+      </div>
+    `;
+    root.querySelector("[data-n2k-chat-retry]")?.addEventListener("click",function(){refreshChats();});
+  }
+
   async function refreshChats() {
     try {
       const response =
@@ -614,7 +631,10 @@ function n2kIcon(name){
           {cache:"no-store"}
         );
 
-      if (!response.ok) return;
+      if (!response.ok) {
+        showChatLoadError($("messenger-chat-list"));
+        return;
+      }
 
       const data =
         await response.json();
@@ -634,7 +654,18 @@ function n2kIcon(name){
           ])
         );
 
-      if (signature === lastSignature) {
+      const listRoot=$("messenger-chat-list");
+      const expectedPeers=chats.map(chat=>String(chat.peer_hash||""));
+      const renderedPeers=listRoot
+        ? Array.from(listRoot.querySelectorAll("[data-m97-chat]"),row=>String(row.dataset.m97Chat||""))
+        : [];
+      const listNeedsRepair=!listRoot ||
+        JSON.stringify(renderedPeers)!==JSON.stringify(expectedPeers) ||
+        (chats.length===0 && !listRoot.querySelector(".m97-empty"));
+
+      /* A page/router repair can empty the DOM without changing the message
+         data. Re-render in that case instead of trusting the data signature. */
+      if (signature === lastSignature && !listNeedsRepair) {
         return;
       }
 
@@ -642,6 +673,7 @@ function n2kIcon(name){
       renderChats(chats);
 
     } catch (error) {
+      showChatLoadError($("messenger-chat-list"));
       console.error(
         "[Messenger 0.97] chats",
         error
@@ -3829,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.22-beta1";
+  const VERSION="1.30.23-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;

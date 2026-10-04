@@ -241,7 +241,7 @@ body.n2k-os-ready #n2k-overview-mesh-stage:focus-visible{outline:2px solid #86e8
 }
 
 /* Bento home: real service data, active conversations and actual mesh events. */
-body.n2k-os-ready #n2k-os-overview{min-height:0 !important;gap:14px !important;}
+body.n2k-os-ready #n2k-os-overview{min-height:0 !important;gap:14px !important;container-type:inline-size;}
 body.n2k-os-ready #n2k-os-overview .n2k-bento-grid{display:grid !important;grid-template-columns:minmax(250px,1.05fr) minmax(300px,1.15fr) minmax(245px,.9fr);gap:12px;align-items:stretch;}
 body.n2k-os-ready #n2k-os-overview .n2k-bento-card{position:relative;isolation:isolate;min-width:0;overflow:hidden;padding:16px;border:1px solid rgba(143,190,220,.2);border-radius:20px;background:linear-gradient(145deg,rgba(25,39,35,.9),rgba(16,25,25,.83));box-shadow:inset 0 1px rgba(255,255,255,.06),0 14px 34px rgba(0,0,0,.2);backdrop-filter:blur(18px);}
 body.n2k-os-ready #n2k-os-overview .n2k-bento-card::before{position:absolute;z-index:-1;inset:0;content:"";pointer-events:none;background:radial-gradient(ellipse at 10% 0%,rgba(114,219,167,.12),transparent 45%);}
@@ -313,3 +313,20 @@ body.n2k-os-ready #n2k-os-overview .n2k-overview-telemetry .n2k-telemetry-head s
   body.n2k-os-ready #n2k-os-overview .n2k-telemetry-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media(prefers-reduced-motion:reduce){body.n2k-os-ready #n2k-os-overview .n2k-bento-live-dot{animation:none;}}
+
+/* Base Bento breakpoints on the available app column, not the full viewport. */
+@container (max-width:960px){
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-node{grid-row:span 2;}
+  body.n2k-os-ready #n2k-os-overview .n2k-telemetry-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+@container (max-width:680px){
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-grid{grid-template-columns:minmax(0,1fr);}
+  body.n2k-os-ready #n2k-os-overview .n2k-bento-node{grid-row:auto;}
+  body.n2k-os-ready #n2k-os-overview .n2k-telemetry-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+body.n2k-os-ready #n2k-page-chat .m97-empty{display:grid !important;justify-items:center;gap:8px;min-height:180px;padding:28px 20px !important;color:#9aaea6 !important;text-align:center;line-height:1.5;}
+body.n2k-os-ready #n2k-page-chat .m97-empty strong{color:#e5eee7;font-size:14px;}
+body.n2k-os-ready #n2k-page-chat .m97-empty span{max-width:380px;font-size:11px;}
+body.n2k-os-ready #n2k-page-chat .m97-empty button{min-height:38px;margin-top:4px;padding:8px 13px;border:1px solid rgba(114,219,167,.32);border-radius:11px;background:rgba(114,219,167,.1);color:#b9f2d1;font:700 11px system-ui,sans-serif;cursor:pointer;}
+body.n2k-os-ready #n2k-page-chat .m97-empty button:hover{background:rgba(114,219,167,.17);}

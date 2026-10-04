@@ -1,3 +1,8 @@
+## 1.30.23-beta1
+- Keep the chat list rendered when the data is unchanged but another UI transition clears its DOM.
+- Show actionable empty and load-error states, with Contacts and retry shortcuts.
+- Reflow the Bento dashboard from its available app-column width.
+
 ## 1.30.22-beta1
 - Redesign the overview as a responsive glass Bento dashboard with live gateway services, real chat previews, mesh topology and system events.
 - Link chat previews and system diagnostics to their existing full app pages.
