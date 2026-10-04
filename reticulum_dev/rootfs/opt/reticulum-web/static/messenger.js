@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.28-beta1";
+  const VERSION="1.30.29-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4109,7 +4109,8 @@ function n2kIcon(name){
   const previous=new Map();
   const events=[];
   let overviewMeshLastFetch=0;
-  let overviewMeshRequested=false;
+  let overviewMeshFetching=false;
+  let overviewMeshLoaded=false;
 
   function byId(id){return document.getElementById(id);}
 
@@ -4214,7 +4215,8 @@ function n2kIcon(name){
       return Number(item.age_seconds||0)<=120;
     }).length;
     const known=Number(data.count);
-    const paths=Number(data.rns_path_count||0);
+    const pathValue=Number(data.rns_path_count);
+    const paths=Number.isFinite(pathValue)?pathValue:null;
     const relays=contacts.filter(function(item){
       const hops=Number(item.hops);
       return item.path_known===true && Number.isFinite(hops) && hops<=2;
@@ -4222,7 +4224,7 @@ function n2kIcon(name){
     const numbers={
       "n2k-ov-live":String(live),
       "n2k-ov-seen":String(Number.isFinite(known)?known:contacts.length),
-      "n2k-ov-paths":paths.toLocaleString("de-DE"),
+      "n2k-ov-paths":paths===null?"—":paths.toLocaleString("de-DE"),
       "n2k-ov-relays":String(relays)
     };
     Object.keys(numbers).forEach(function(id){
@@ -4232,7 +4234,7 @@ function n2kIcon(name){
     if(badge) badge.textContent=live+" LIVE";
     const empty=byId("n2k-overview-mesh-empty");
     if(empty){
-      empty.hidden=contacts.length>0||paths>0;
+      empty.hidden=contacts.length>0||(paths!==null&&paths>0);
       empty.textContent="Noch keine LXMF Announces oder RNS-Pfade im letzten Tag";
     }
 
@@ -4270,77 +4272,66 @@ function n2kIcon(name){
       '<g class="n2k-overview-nodes">'+nodes.join("")+'</g>';
   }
 
-  function syncOverviewMesh(){
-    const source=byId("n2k-constellation-svg");
-    const target=byId("n2k-overview-live-svg");
-    if(!source||!target||!source.innerHTML) return false;
-    const viewBox=source.getAttribute("viewBox")||"0 0 1100 620";
-    target.setAttribute("viewBox",viewBox);
-    target.innerHTML=source.innerHTML;
-    target.dataset.n2kDashboardRendered="true";
-    return true;
-  }
-
-  function refreshOverviewMesh(){
+  async function refreshOverviewMesh(){
     const now=Date.now();
-    if(now-overviewMeshLastFetch<4500) return;
+    if(overviewMeshFetching||now-overviewMeshLastFetch<15000) return;
     overviewMeshLastFetch=now;
-    const latest=window.n2kMeshLatestData;
-    const shared=Array.isArray(latest&&latest.contacts)
-      ? latest.contacts
-      : window.n2kMeshLeaderboardContacts;
-    if(Array.isArray(shared)){
-      let paths=Number(latest&&latest.rns_path_count||0);
-      if(!paths){
-        const raw=String(textOf("net-paths","0")).replace(/[^0-9]/g,"");
-        paths=parseInt(raw,10)||0;
+    overviewMeshFetching=true;
+    try{
+      const contactsResponse=await fetch("api/messenger/contacts?ts="+now,{cache:"no-store"});
+      const contactsData=await contactsResponse.json();
+      if(!contactsResponse.ok||!contactsData||!contactsData.ok){
+        throw new Error((contactsData&&contactsData.error)||("Kontakte HTTP "+contactsResponse.status));
       }
-      const knownContacts=shared.filter(function(item){
-        return Number(item&&item.age_seconds||0)<=86400;
-      });
-      renderOverviewMesh({
-        ok:true,contacts:knownContacts,count:knownContacts.length,rns_path_count:paths
-      });
-      return;
-    }
 
-    const copied=syncOverviewMesh();
-    const source=byId("n2k-constellation-svg");
-    const mapIds={
-      "n2k-ov-live":"n2k-map-live",
-      "n2k-ov-seen":"n2k-map-visible",
-      "n2k-ov-paths":"n2k-map-paths",
-      "n2k-ov-relays":"n2k-map-relays"
-    };
-    let hasNumbers=false;
-    Object.keys(mapIds).forEach(function(id){
-      const from=byId(mapIds[id]);
-      const to=byId(id);
-      if(from&&to){
-        const value=String(from.textContent||"").trim();
-        if(value&&value!=="—"){to.textContent=value;hasNumbers=true;}
+      let networkData=null;
+      try{
+        const networkResponse=await fetch("api/network?ts="+now,{cache:"no-store"});
+        const parsed=await networkResponse.json();
+        if(networkResponse.ok&&parsed&&parsed.ok!==false) networkData=parsed;
+      }catch(_networkError){}
+
+      const currentSeconds=Math.floor(Date.now()/1000);
+      const pathItems=Array.isArray(networkData&&networkData.paths)?networkData.paths:[];
+      const pathMap=new Map();
+      pathItems.forEach(function(path){
+        const peer=String(path&&path.destination||"").trim().toLowerCase();
+        if(/^[0-9a-f]{32}$/.test(peer)) pathMap.set(peer,path);
+      });
+      const contacts=(Array.isArray(contactsData.contacts)?contactsData.contacts:[])
+        .map(function(item){
+          const peer=String(item&&item.destination_hash||"").trim().toLowerCase();
+          let lastSeen=Number(item&&item.last_seen||0);
+          if(lastSeen>1e12) lastSeen=Math.floor(lastSeen/1000);
+          const age=lastSeen>0?Math.max(0,currentSeconds-lastSeen):86401;
+          const path=pathMap.get(peer);
+          return Object.assign({},item,{
+            destination_hash:peer,
+            age_seconds:age,
+            hops:path&&path.hops,
+            interface:path&&path.interface||"",
+            path_known:!!path
+          });
+        })
+        .filter(function(item){
+          return /^[0-9a-f]{32}$/.test(item.destination_hash)&&item.age_seconds<=86400;
+        })
+        .sort(function(a,b){return a.age_seconds-b.age_seconds;});
+      const pathCount=Number(networkData&&networkData.path_count);
+      overviewMeshLoaded=true;
+      renderOverviewMesh({
+        contacts:contacts,
+        count:contacts.length,
+        rns_path_count:Number.isFinite(pathCount)?pathCount:pathItems.length
+      });
+    }catch(error){
+      if(!overviewMeshLoaded){
+        const empty=byId("n2k-overview-mesh-empty");
+        if(empty){empty.hidden=false;empty.textContent="Kontakte für die Übersicht konnten nicht geladen werden";}
       }
-    });
-    const pathNode=byId("n2k-ov-paths");
-    if(pathNode&&(!pathNode.textContent.trim()||pathNode.textContent.trim()==="0")){
-      const raw=String(textOf("net-paths","0")).replace(/[^0-9]/g,"");
-      const paths=parseInt(raw,10)||0;
-      if(paths) pathNode.textContent=paths.toLocaleString("de-DE");
-    }
-    const nodeCount=source?source.querySelectorAll(".n2k-cnode").length:0;
-    const seen=byId("n2k-ov-seen");
-    if(seen&&nodeCount>Number(String(seen.textContent||"0").replace(/[^0-9]/g,"")||0)){
-      seen.textContent=String(nodeCount);
-      hasNumbers=true;
-    }
-    const empty=byId("n2k-overview-mesh-empty");
-    if(empty){
-      empty.hidden=nodeCount>0;
-      if(!nodeCount) empty.textContent="Mesh-Daten werden geladen…";
-    }
-    if(!copied&&!hasNumbers&&typeof window.n2kRefreshMeshData==="function"&&!overviewMeshRequested){
-      overviewMeshRequested=true;
-      Promise.resolve(window.n2kRefreshMeshData()).finally(function(){overviewMeshRequested=false;});
+      console.warn("[N2K Overview] Kontakte nicht verfügbar",error);
+    }finally{
+      overviewMeshFetching=false;
     }
   }
   function watchNodeAnnounces(){

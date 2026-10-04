@@ -1,3 +1,7 @@
+## 1.30.29-beta1
+- Load overview nodes from the same contacts API used by the working Messenger, and get the path count from the network API.
+- Remove the overview dependency on hidden-page globals and the failing optional nearby enrichment request.
+
 ## 1.30.28-beta1
 - Make the overview fall back to the working Living Mesh renderer and reuse its refresh routine when shared data is not ready.
 - Populate overview counters from the existing mesh and network status fields while the shared contact data loads.
