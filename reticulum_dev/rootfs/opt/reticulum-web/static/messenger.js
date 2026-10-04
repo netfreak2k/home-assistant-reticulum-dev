@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.29-beta1";
+  const VERSION="1.30.30-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4106,6 +4106,10 @@ function n2kIcon(name){
 
   const MAX_EVENTS=5;
   let showAllEvents=false;
+  let overviewMeshContacts=[];
+  let overviewChats=[];
+  let overviewChatsLastFetch=0;
+  let overviewChatsFetching=false;
   const previous=new Map();
   const events=[];
   let overviewMeshLastFetch=0;
@@ -4127,10 +4131,10 @@ function n2kIcon(name){
     return "";
   }
 
-  function addEvent(label,kind){
+  function addEvent(label,kind,eventTime){
     if(!label) return;
     events.unshift({
-      time:new Date(),
+      time:eventTime instanceof Date ? eventTime : new Date(),
       label:String(label),
       kind:kind||""
     });
@@ -4240,9 +4244,9 @@ function n2kIcon(name){
 
     const shown=contacts.slice(0,24);
     const core='<g transform="translate(550 310)">'+
-      '<circle r="48" fill="rgba(72,199,177,.10)" stroke="rgba(112,238,213,.35)" stroke-width="1.5"/>'+
-      '<circle r="28" fill="rgba(72,199,177,.14)" stroke="#74e7cb" stroke-width="2"/>'+
-      '<circle r="8" fill="#c7fff1"/>'+
+      '<circle r="48" fill="rgba(72,199,177,.10)" stroke="rgba(112,238,213,.35)" stroke-width="1.5"><animate attributeName="r" values="46;52;46" dur="4.8s" repeatCount="indefinite"/></circle>'+
+      '<circle r="28" fill="rgba(72,199,177,.14)" stroke="#74e7cb" stroke-width="2"><animate attributeName="r" values="26;30;26" dur="3.2s" repeatCount="indefinite"/></circle>'+
+      '<circle r="8" fill="#c7fff1"><animate attributeName="r" values="7;10;7" dur="2.4s" repeatCount="indefinite"/></circle>'+
       '<text y="62" text-anchor="middle" fill="#c4d9dd" font-size="15" font-weight="700">N2K CORE</text></g>';
     const rings='<g fill="none" stroke="rgba(137,194,201,.12)" stroke-width="1">'+
       '<ellipse cx="550" cy="310" rx="210" ry="135"/><ellipse cx="550" cy="310" rx="370" ry="235"/></g>';
@@ -4258,11 +4262,11 @@ function n2kIcon(name){
       const y=310+Math.sin(angle)*Math.min(235,radius*.63);
       const name=String(item.display_name||("Node "+hash.slice(0,8))).slice(0,22);
       const route=item.path_known===true;
-      if(route) links.push('<line x1="550" y1="310" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="rgba(103,224,196,.24)" stroke-width="1.4" stroke-dasharray="4 7"/>');
+      if(route) links.push('<line x1="550" y1="310" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="rgba(103,224,196,.38)" stroke-width="1.4" stroke-dasharray="4 7"><animate attributeName="stroke-dashoffset" values="22;0" dur="'+(3.1+(index%4)*.6).toFixed(2)+'s" begin="'+(-index*.27).toFixed(2)+'s" repeatCount="indefinite"/></line>');
       nodes.push('<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')" opacity="'+(Number(item.age_seconds||0)<=120?"1":".76")+'">'+
         '<title>'+escapeSvg(name+" · "+hash+" · "+(route?"RNS-Pfad bekannt":"zuletzt gehört"))+'</title>'+
-        '<circle r="17" fill="rgba(80,210,183,.10)" stroke="'+(route?"#64e6c0":"#75bdd2")+'" stroke-width="1.5"/>'+
-        '<circle r="5" fill="'+(Number(item.age_seconds||0)<=120?"#70f2c0":"#78bfd6")+'"/>'+
+        '<circle r="17" fill="rgba(80,210,183,.10)" stroke="'+(route?"#64e6c0":"#75bdd2")+'" stroke-width="1.5"><animate attributeName="r" values="15;20;15" dur="'+(3.4+(index%5)*.55).toFixed(2)+'s" begin="'+(-index*.31).toFixed(2)+'s" repeatCount="indefinite"/></circle>'+
+        '<circle r="5" fill="'+(Number(item.age_seconds||0)<=120?"#70f2c0":"#78bfd6")+'"><animate attributeName="opacity" values=".62;1;.62" dur="'+(2.2+(index%4)*.45).toFixed(2)+'s" begin="'+(-index*.23).toFixed(2)+'s" repeatCount="indefinite"/></circle>'+
         '<text y="31" text-anchor="middle" fill="#d5e6ed" font-size="12">'+escapeSvg(name)+'</text></g>');
     });
     target.setAttribute("viewBox","0 0 1100 620");
@@ -4319,11 +4323,13 @@ function n2kIcon(name){
         .sort(function(a,b){return a.age_seconds-b.age_seconds;});
       const pathCount=Number(networkData&&networkData.path_count);
       overviewMeshLoaded=true;
+      overviewMeshContacts=contacts;
       renderOverviewMesh({
         contacts:contacts,
         count:contacts.length,
         rns_path_count:Number.isFinite(pathCount)?pathCount:pathItems.length
       });
+      watchNodeAnnounces();
     }catch(error){
       if(!overviewMeshLoaded){
         const empty=byId("n2k-overview-mesh-empty");
@@ -4335,8 +4341,10 @@ function n2kIcon(name){
     }
   }
   function watchNodeAnnounces(){
-    const contacts=window.n2kMeshLeaderboardContacts;
-    if(!Array.isArray(contacts)) return;
+    const contacts=Array.isArray(window.n2kMeshLeaderboardContacts)
+      ? window.n2kMeshLeaderboardContacts
+      : overviewMeshContacts;
+    if(!Array.isArray(contacts)||!contacts.length) return;
     const key="announce_seen";
     const seen=previous.get(key)||new Map();
     const currentSeconds=Date.now()/1000;
@@ -4346,20 +4354,24 @@ function n2kIcon(name){
       let lastSeen=Number(item&&item.last_seen||0);
       if(lastSeen>1e12) lastSeen/=1000;
       if(!/^[0-9a-f]{32}$/.test(peer)||!Number.isFinite(lastSeen)||lastSeen<=0) return;
+      const name=String(item.display_name||item.announced_name||peer.slice(0,8)+"…").trim();
       const before=seen.get(peer);
-      if(before!==undefined&&lastSeen>before&&currentSeconds-lastSeen<180){
-        const name=String(item.display_name||item.announced_name||peer.slice(0,8)+"…").trim();
+      const age=currentSeconds-lastSeen;
+      if(age>=0&&age<300&&(before===undefined||lastSeen>before)){
         updates.push({lastSeen,name});
       }
       seen.set(peer,lastSeen);
     });
     previous.set(key,seen);
-    updates.sort((a,b)=>b.lastSeen-a.lastSeen).slice(0,2).forEach(item=>addEvent("Announce · "+item.name,"ok"));
+    updates.sort((a,b)=>b.lastSeen-a.lastSeen).slice(0,3).forEach(item=>
+      addEvent("Announce · "+item.name,"ok",new Date(item.lastSeen*1000))
+    );
   }
 
   function update(){
     if(!ensureOverview()) return;
     updateChatPreview();
+    refreshOverviewChats();
     watchNodeAnnounces();
     refreshOverviewMesh();
 
@@ -4444,19 +4456,52 @@ function n2kIcon(name){
     }
   }
 
+  function overviewChatName(chat){
+    const name=String(chat&&chat.display_name||"").trim();
+    if(name&&!/^Kontakt\\s+[0-9A-F]+$/i.test(name)) return name;
+    const peer=String(chat&&chat.peer_hash||"");
+    return peer?"Kontakt "+peer.slice(0,6).toUpperCase():"Unbekannt";
+  }
+
+  function refreshOverviewChats(){
+    const now=Date.now();
+    if(overviewChatsFetching||now-overviewChatsLastFetch<10000) return;
+    overviewChatsLastFetch=now;
+    overviewChatsFetching=true;
+    fetch("api/messenger?ts="+now,{cache:"no-store"})
+      .then(function(response){
+        if(!response.ok) throw new Error("Chats HTTP "+response.status);
+        return response.json();
+      })
+      .then(function(data){
+        overviewChats=Array.isArray(data&&data.conversations)?data.conversations:[];
+        updateChatPreview();
+      })
+      .catch(function(error){
+        const target=byId("n2k-overview-chat-list");
+        if(target&&!overviewChats.length){
+          target.innerHTML='<span class="n2k-bento-empty">Letzte Chats konnten gerade nicht geladen werden.</span>';
+        }
+        console.warn("[N2K Overview] Chats nicht verfügbar",error);
+      })
+      .finally(function(){overviewChatsFetching=false;});
+  }
+
   function updateChatPreview(){
-    const target=byId("n2k-overview-chat-list"),source=byId("messenger-chat-list");
-    if(!target||!source) return;
-    const chats=Array.from(source.querySelectorAll("button[data-m97-chat]")).slice(0,3);
-    if(!chats.length){
-      target.innerHTML='<span class="n2k-bento-empty">Noch keine Gespräche. Öffne den Messenger, um einen Chat zu starten.</span>';
+    const target=byId("n2k-overview-chat-list");
+    if(!target) return;
+    if(!overviewChats.length){
+      target.innerHTML='<span class="n2k-bento-empty">Noch keine letzten Gespräche vorhanden.</span>';
       return;
     }
     target.innerHTML="";
-    chats.forEach(function(sourceButton){
-      const name=sourceButton.querySelector(".messenger-contact-name")?.textContent.trim()||"Kontakt";
-      const preview=sourceButton.querySelector(".messenger-contact-preview")?.textContent.trim()||"LXMF Gespräch";
-      const unread=sourceButton.querySelector(".m80-unread")?.textContent.trim()||"";
+    overviewChats.slice().sort(function(a,b){
+      return Number(b.last_timestamp||0)-Number(a.last_timestamp||0);
+    }).slice(0,3).forEach(function(chat){
+      const peer=String(chat.peer_hash||"");
+      const name=overviewChatName(chat);
+      const raw=String(chat.last_message||"Noch keine Nachrichten");
+      const preview=raw.startsWith("N2KPHOTO/1|image/jpeg|")?"📷 Foto":raw;
       const row=document.createElement("button");
       row.type="button";row.className="n2k-bento-chat-row";
       const avatar=document.createElement("span");avatar.className="n2k-bento-avatar";avatar.textContent=name.slice(0,1).toUpperCase();
@@ -4464,12 +4509,12 @@ function n2kIcon(name){
       const title=document.createElement("strong");title.textContent=name;
       const snippet=document.createElement("small");snippet.textContent=preview;
       body.append(title,snippet);row.append(avatar,body);
-      if(unread){const badge=document.createElement("i");badge.className="n2k-bento-unread";badge.textContent=unread;row.appendChild(badge);}
+      const unread=Number(chat.unread||0);
+      if(unread>0){const badge=document.createElement("i");badge.className="n2k-bento-unread";badge.textContent=String(unread);row.appendChild(badge);}
       row.addEventListener("click",function(){
         if(typeof window.n2kShowPage==="function") window.n2kShowPage("chat");
         setTimeout(function(){
-          const original=Array.from(source.querySelectorAll("button[data-m97-chat]")).find(button=>button.dataset.m97Chat===sourceButton.dataset.m97Chat);
-          if(original) original.click();
+          if(peer&&typeof window.openMessengerConversation==="function") window.openMessengerConversation(peer);
         },180);
       });
       target.appendChild(row);

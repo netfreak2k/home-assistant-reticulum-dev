@@ -1,3 +1,8 @@
+## 1.30.30-beta1
+- Animate the overview Living Mesh with staggered node pulses and moving route dashes.
+- Populate Live Signals from recent announces in the same overview contacts feed, including recent announces present on first load.
+- Load and display the three latest chat conversations directly from the messenger API in Overview.
+
 ## 1.30.29-beta1
 - Load overview nodes from the same contacts API used by the working Messenger, and get the path count from the network API.
 - Remove the overview dependency on hidden-page globals and the failing optional nearby enrichment request.
