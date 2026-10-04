@@ -1119,10 +1119,6 @@ body.n2k-os-ready.n2k-overview-active #n2k-mobile-real-content > :not(#n2k-os-ov
   50%{transform:rotate(180deg) scale(1.08);filter:hue-rotate(55deg) blur(42px)}
   100%{transform:rotate(360deg) scale(.92);filter:hue-rotate(0deg) blur(34px)}
 }
-@keyframes n2kOverviewScan{
-  from{transform:translateY(-30px)}
-  to{transform:translateY(430px)}
-}
 @keyframes n2kOverviewFloat{
   0%,100%{transform:translate3d(0,8px,0) scale(.7);opacity:.12}
   50%{transform:translate3d(16px,-28px,0) scale(1.45);opacity:.95}
@@ -1192,7 +1188,6 @@ body.n2k-os-ready.n2k-overview-active #n2k-mobile-real-content > :not(#n2k-os-ov
   .n2k-overview-mesh-stage::after,
   .n2k-overview-hyperfx,
   .n2k-overview-hyperfx::before,
-  .n2k-overview-hyperfx::after,
   .n2k-overview-hyperfx i,
   #n2k-overview-live-svg,
   #n2k-overview-live-svg *,
