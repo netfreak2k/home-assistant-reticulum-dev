@@ -90,6 +90,21 @@ Verify that a JSON file downloads.
 
 Do not publicly post sensitive credentials.
 
+### 6. Demo Mode
+
+Open **Demo Mode** from the navigation.
+
+Verify:
+
+- the 2:30 story starts and advances through all 15 chapters
+- Start/Pause, Next and Restart work
+- 9:16, 1:1 and 16:9 layouts work
+- subtitles remain readable
+- optional narrator can be enabled/disabled
+- Capture Mode hides app chrome and enters a clean recording view
+- leaving Demo Mode stops narration and playback
+- no real contact names or message contents appear
+
 ## What to report
 
 Please include:
