@@ -415,6 +415,7 @@ OUTBOUND_REQUEST = Path("/homeassistant/reticulum_bridge/lxmf_outbound.json")
 
 
 LXMF_OUTBOX_FILE = STATE_DIR / "lxmf-outbox.json"
+LXMF_OUTBOX_LOCK = threading.RLock()
 LXMF_OUTBOX_LIMIT = 100
 
 PROPAGATION_NODES_FILE = STATE_DIR / "propagation-nodes.json"
@@ -1363,37 +1364,38 @@ RNS.Transport.register_announce_handler(
 
 
 def append_lxmf_outbox(message):
-    try:
-        if LXMF_OUTBOX_FILE.exists():
-            data = json.loads(
-                LXMF_OUTBOX_FILE.read_text()
+    with LXMF_OUTBOX_LOCK:
+        try:
+            if LXMF_OUTBOX_FILE.exists():
+                data = json.loads(
+                    LXMF_OUTBOX_FILE.read_text()
+                )
+            else:
+                data = []
+
+            if not isinstance(data, list):
+                data = []
+
+            data.append(message)
+            data = data[-LXMF_OUTBOX_LIMIT:]
+
+            tmp = Path(str(LXMF_OUTBOX_FILE) + ".tmp")
+
+            tmp.write_text(
+                json.dumps(
+                    data,
+                    ensure_ascii=False,
+                    indent=2,
+                )
             )
-        else:
-            data = []
 
-        if not isinstance(data, list):
-            data = []
+            tmp.replace(LXMF_OUTBOX_FILE)
 
-        data.append(message)
-        data = data[-LXMF_OUTBOX_LIMIT:]
-
-        tmp = Path(str(LXMF_OUTBOX_FILE) + ".tmp")
-
-        tmp.write_text(
-            json.dumps(
-                data,
-                ensure_ascii=False,
-                indent=2,
+        except Exception as exc:
+            RNS.log(
+                "LXMF outbox history error: " + str(exc),
+                RNS.LOG_ERROR,
             )
-        )
-
-        tmp.replace(LXMF_OUTBOX_FILE)
-
-    except Exception as exc:
-        RNS.log(
-            "LXMF outbox history error: " + str(exc),
-            RNS.LOG_ERROR,
-        )
 
 
 
@@ -1402,72 +1404,73 @@ def update_lxmf_outbox_status(
     delivery_status,
     error=None,
 ):
-    try:
-        message_id = str(message_id or "").strip()
+    with LXMF_OUTBOX_LOCK:
+        try:
+            message_id = str(message_id or "").strip()
 
-        if not message_id:
-            return
+            if not message_id:
+                return
 
-        if LXMF_OUTBOX_FILE.exists():
-            data = json.loads(
-                LXMF_OUTBOX_FILE.read_text()
-            )
-        else:
-            data = []
-
-        if not isinstance(data, list):
-            return
-
-        changed = False
-        now = int(time.time())
-
-        for item in reversed(data):
-            if not isinstance(item, dict):
-                continue
-
-            if str(
-                item.get("message_id") or ""
-            ) != message_id:
-                continue
-
-            item["delivery_status"] = delivery_status
-            item["delivery_updated_at"] = now
-
-            if delivery_status == "delivered":
-                item["delivered_at"] = now
-                item["delivery_error"] = None
-
-            elif delivery_status == "failed":
-                item["delivery_error"] = str(
-                    error or "LXMF delivery failed"
+            if LXMF_OUTBOX_FILE.exists():
+                data = json.loads(
+                    LXMF_OUTBOX_FILE.read_text()
                 )
+            else:
+                data = []
 
-            changed = True
-            break
+            if not isinstance(data, list):
+                return
 
-        if not changed:
-            return
+            changed = False
+            now = int(time.time())
 
-        tmp = Path(
-            str(LXMF_OUTBOX_FILE) + ".tmp"
-        )
+            for item in reversed(data):
+                if not isinstance(item, dict):
+                    continue
 
-        tmp.write_text(
-            json.dumps(
-                data,
-                ensure_ascii=False,
-                indent=2,
+                if str(
+                    item.get("message_id") or ""
+                ) != message_id:
+                    continue
+
+                item["delivery_status"] = delivery_status
+                item["delivery_updated_at"] = now
+
+                if delivery_status == "delivered":
+                    item["delivered_at"] = now
+                    item["delivery_error"] = None
+
+                elif delivery_status == "failed":
+                    item["delivery_error"] = str(
+                        error or "LXMF delivery failed"
+                    )
+
+                changed = True
+                break
+
+            if not changed:
+                return
+
+            tmp = Path(
+                str(LXMF_OUTBOX_FILE) + ".tmp"
             )
-        )
 
-        tmp.replace(LXMF_OUTBOX_FILE)
+            tmp.write_text(
+                json.dumps(
+                    data,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
 
-    except Exception as exc:
-        RNS.log(
-            "LXMF delivery status error: "
-            + str(exc),
-            RNS.LOG_ERROR,
-        )
+            tmp.replace(LXMF_OUTBOX_FILE)
+
+        except Exception as exc:
+            RNS.log(
+                "LXMF delivery status error: "
+                + str(exc),
+                RNS.LOG_ERROR,
+            )
 
 
 def lxmf_message_id(message):
@@ -1725,6 +1728,7 @@ lxmf_destination = lxmf_router.register_delivery_identity(
 # --------------------------------------------------
 
 LXMF_INBOX_FILE = STATE_DIR / "lxmf-inbox.json"
+LXMF_INBOX_LOCK = threading.RLock()
 LXMF_INBOX_LIMIT = 50
 
 
@@ -1782,106 +1786,107 @@ def lxmf_delivery_callback(message):
     Nur lokale Persistenz.
     """
 
-    try:
-        source_hash = getattr(
-            message,
-            "source_hash",
-            None
-        )
-
-        if isinstance(source_hash, bytes):
-            source_hash = source_hash.hex()
-        else:
-            source_hash = str(
-                source_hash or ""
-            )
-
-        timestamp = getattr(
-            message,
-            "timestamp",
-            time.time()
-        )
-
+    with LXMF_INBOX_LOCK:
         try:
-            timestamp = float(timestamp)
-        except Exception:
-            timestamp = time.time()
+            source_hash = getattr(
+                message,
+                "source_hash",
+                None
+            )
 
-        content = ""
+            if isinstance(source_hash, bytes):
+                source_hash = source_hash.hex()
+            else:
+                source_hash = str(
+                    source_hash or ""
+                )
 
-        if hasattr(message, "content_as_string"):
+            timestamp = getattr(
+                message,
+                "timestamp",
+                time.time()
+            )
+
             try:
-                content = message.content_as_string()
+                timestamp = float(timestamp)
             except Exception:
-                content = ""
+                timestamp = time.time()
 
-        if not content:
-            content = _lxmf_text(
-                getattr(message, "content", "")
+            content = ""
+
+            if hasattr(message, "content_as_string"):
+                try:
+                    content = message.content_as_string()
+                except Exception:
+                    content = ""
+
+            if not content:
+                content = _lxmf_text(
+                    getattr(message, "content", "")
+                )
+
+            title = ""
+
+            if hasattr(message, "title_as_string"):
+                try:
+                    title = message.title_as_string()
+                except Exception:
+                    title = ""
+
+            if not title:
+                title = _lxmf_text(
+                    getattr(message, "title", "")
+                )
+
+            message_id = getattr(
+                message,
+                "message_id",
+                None
             )
 
-        title = ""
+            if isinstance(message_id, bytes):
+                message_id = message_id.hex()
+            else:
+                message_id = str(
+                    message_id or ""
+                )
 
-        if hasattr(message, "title_as_string"):
-            try:
-                title = message.title_as_string()
-            except Exception:
-                title = ""
+            entry = {
+                "timestamp": timestamp,
+                "received_at": time.time(),
+                "source_hash": source_hash,
+                "title": title,
+                "content": content,
+                "message_id": message_id,
+            }
 
-        if not title:
-            title = _lxmf_text(
-                getattr(message, "title", "")
+            messages = _read_lxmf_inbox()
+
+            # Doppelte Zustellung vermeiden.
+            if message_id:
+                for old in messages:
+                    if old.get("message_id") == message_id:
+                        return
+
+            messages.append(entry)
+
+            _write_lxmf_inbox(messages)
+
+            state["lxmf_received_count"] = len(messages)
+            state["lxmf_last_received"] = timestamp
+            state["lxmf_last_received_source"] = source_hash
+
+            print(
+                "LXMF RX:",
+                source_hash[:16],
+                title or "(ohne Titel)"
             )
 
-        message_id = getattr(
-            message,
-            "message_id",
-            None
-        )
-
-        if isinstance(message_id, bytes):
-            message_id = message_id.hex()
-        else:
-            message_id = str(
-                message_id or ""
+        except Exception as exc:
+            print(
+                "LXMF RX ERROR:",
+                str(exc)
             )
-
-        entry = {
-            "timestamp": timestamp,
-            "received_at": time.time(),
-            "source_hash": source_hash,
-            "title": title,
-            "content": content,
-            "message_id": message_id,
-        }
-
-        messages = _read_lxmf_inbox()
-
-        # Doppelte Zustellung vermeiden.
-        if message_id:
-            for old in messages:
-                if old.get("message_id") == message_id:
-                    return
-
-        messages.append(entry)
-
-        _write_lxmf_inbox(messages)
-
-        state["lxmf_received_count"] = len(messages)
-        state["lxmf_last_received"] = timestamp
-        state["lxmf_last_received_source"] = source_hash
-
-        print(
-            "LXMF RX:",
-            source_hash[:16],
-            title or "(ohne Titel)"
-        )
-
-    except Exception as exc:
-        print(
-            "LXMF RX ERROR:",
-            str(exc)
-        )
 
 
 # Eingehende LXMF-Nachrichten an den lokalen
@@ -2493,3 +2498,4 @@ flush_pending_contacts(force=True)
 state["ok"] = False
 state["updated"] = int(time.time())
 write_state(state)
+

@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.35-beta1";
+  const VERSION="1.30.36-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5971,6 +5971,8 @@ function n2kIcon(name){
   "use strict";
   const openClasses=".messenger-conversation:is(.n2k-unified-chat-open,.n2k-real-chat-open,.n2k-desktop-chat-open)";
   let resizeFrame=0;
+  let layoutObserver=null;
+  const layoutObserverOptions={subtree:true,attributes:true,attributeFilter:["class","hidden","style"]};
   function activeConversation(){
     return document.querySelector("#n2k-page-chat "+openClasses)||
       document.querySelector("#n2k-mobile-real-content "+openClasses)||
@@ -5979,6 +5981,9 @@ function n2kIcon(name){
   function fit(){
     const conversation=activeConversation();
     if(!conversation||conversation.hidden||getComputedStyle(conversation).display==="none") return;
+    // Layout changes must not schedule another layout pass themselves.
+    if(layoutObserver) layoutObserver.disconnect();
+    try {
     const visual=window.visualViewport;
     const viewportHeight=Math.floor(visual?visual.height:window.innerHeight);
     const viewportTop=visual?visual.offsetTop:0;
@@ -6044,6 +6049,9 @@ function n2kIcon(name){
         button.style.setProperty("min-height","40px","important");
       });
     }
+    } finally {
+      if(layoutObserver) layoutObserver.observe(document.body,layoutObserverOptions);
+    }
   }
   function schedule(){
     if(resizeFrame) cancelAnimationFrame(resizeFrame);
@@ -6051,7 +6059,13 @@ function n2kIcon(name){
   }
   window.addEventListener("resize",schedule,{passive:true});
   if(window.visualViewport) window.visualViewport.addEventListener("resize",schedule,{passive:true});
-  new MutationObserver(schedule).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class","hidden","style"]});
+  layoutObserver=new MutationObserver(function(records){
+    const conversation=activeConversation();
+    if(!conversation) return;
+    // Mesh animations outside the conversation do not resize the composer.
+    if(records.some(record=>record.target.contains(conversation)||conversation.contains(record.target))) schedule();
+  });
+  layoutObserver.observe(document.body,layoutObserverOptions);
   window.setInterval(fit,900);
   [0,120,360,900].forEach(delay=>window.setTimeout(fit,delay));
 })();

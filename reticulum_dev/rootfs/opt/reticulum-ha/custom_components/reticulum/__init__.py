@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 import uuid
 from pathlib import Path
@@ -120,17 +121,15 @@ def queue_message(
         "source": "home_assistant_mcp",
     }
 
-    temporary = QUEUE_FILE.with_suffix(".tmp")
-
-    temporary.write_text(
-        json.dumps(
-            payload,
-            ensure_ascii=False,
-        ),
-        encoding="utf-8",
-    )
-
-    temporary.replace(QUEUE_FILE)
+    temporary = QUEUE_FILE.with_name(QUEUE_FILE.name + "." + request_id + ".tmp")
+    try:
+        temporary.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        try:
+            os.link(temporary, QUEUE_FILE)
+        except FileExistsError as exc:
+            raise HomeAssistantError("Reticulum-Sendewarteschlange ist noch belegt") from exc
+    finally:
+        temporary.unlink(missing_ok=True)
 
     return {
         "ok": True,

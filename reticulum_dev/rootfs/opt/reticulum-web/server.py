@@ -3794,6 +3794,9 @@ def set_messenger_contact_alias(peer_hash, name):
 
 
 
+MESSENGER_READ_STATE = Path("/config/reticulum/homeassistant-node/messenger-read-state.json")
+
+
 def load_messenger_read_state():
     try:
         if not MESSENGER_READ_STATE.exists():
@@ -3833,73 +3836,77 @@ def save_messenger_read_state(data):
     tmp.replace(MESSENGER_READ_STATE)
 
 
+MESSENGER_READ_LOCK = threading.RLock()
+
+
 def mark_messenger_read(peer):
-    peer = str(peer or "").strip()
+    with MESSENGER_READ_LOCK:
+        peer = str(peer or "").strip().lower()
 
-    if len(peer) != 32:
-        return {
-            "ok": False,
-            "error": "Ungültiger Peer Hash",
-        }
+        if not re.fullmatch(r"[0-9a-f]{32}", peer):
+            return {
+                "ok": False,
+                "error": "Ungültiger Peer Hash",
+            }
 
-    base = Path(
-        "/config/reticulum/homeassistant-node"
-    )
+        base = Path(
+            "/config/reticulum/homeassistant-node"
+        )
 
-    inbox_file = base / "lxmf-inbox.json"
+        inbox_file = base / "lxmf-inbox.json"
 
-    newest = 0
+        newest = 0
 
-    try:
-        if inbox_file.exists():
-            inbox = json.loads(
-                inbox_file.read_text(
-                    encoding="utf-8"
+        try:
+            if inbox_file.exists():
+                inbox = json.loads(
+                    inbox_file.read_text(
+                        encoding="utf-8"
+                    )
                 )
-            )
 
-            if isinstance(inbox, list):
-                for item in inbox:
-                    if not isinstance(item, dict):
-                        continue
+                if isinstance(inbox, list):
+                    for item in inbox:
+                        if not isinstance(item, dict):
+                            continue
 
-                    if str(
-                        item.get("source_hash") or ""
-                    ).strip() != peer:
-                        continue
+                        if str(
+                            item.get("source_hash") or ""
+                        ).strip() != peer:
+                            continue
 
-                    timestamp = int(
-                        item.get("timestamp")
-                        or item.get("received_at")
-                        or 0
-                    )
+                        timestamp = int(
+                            item.get("timestamp")
+                            or item.get("received_at")
+                            or 0
+                        )
 
-                    newest = max(
-                        newest,
-                        timestamp,
-                    )
+                        newest = max(
+                            newest,
+                            timestamp,
+                        )
 
-    except Exception as exc:
+        except Exception as exc:
+            return {
+                "ok": False,
+                "error": str(exc),
+            }
+
+        state = load_messenger_read_state()
+
+        state[peer] = max(
+            int(state.get(peer) or 0),
+            newest,
+            int(time.time()) if not newest else 0,
+        )
+
+        save_messenger_read_state(state)
+
         return {
-            "ok": False,
-            "error": str(exc),
+            "ok": True,
+            "peer_hash": peer,
+            "last_read": state[peer],
         }
-
-    state = load_messenger_read_state()
-
-    state[peer] = max(
-        int(state.get(peer) or 0),
-        newest,
-        int(time.time()) if not newest else 0,
-    )
-
-    save_messenger_read_state(state)
-
-    return {
-        "ok": True,
-        "peer_hash": peer,
-        "last_read": state[peer],
-    }
 
 
 
@@ -4425,7 +4432,9 @@ class Handler(BaseHTTPRequestHandler):
                     payload.get("title", "")
                 ).strip()
 
-                if len(destination_hash) != 32:
+                destination_hash = destination_hash.lower()
+
+                if not re.fullmatch(r"[0-9a-f]{32}", destination_hash):
                     raise ValueError(
                         "Ungültiger LXMF Destination Hash"
                     )
@@ -4466,16 +4475,22 @@ class Handler(BaseHTTPRequestHandler):
                     exist_ok=True,
                 )
 
-                request_file.write_text(
-                    json.dumps({
+                temporary = request_file.with_name(request_file.name + "." + uuid.uuid4().hex + ".tmp")
+                try:
+                    temporary.write_text(json.dumps({
                         "request_id": uuid.uuid4().hex,
                         "destination_hash": destination_hash,
                         "content": content,
                         "title": title,
                         "requested_at": int(time.time()),
-                    }),
-                    encoding="utf-8",
-                )
+                    }), encoding="utf-8")
+                    # Publish a complete request without replacing one the node has not claimed.
+                    try:
+                        os.link(temporary, request_file)
+                    except FileExistsError as exc:
+                        raise ValueError("Sendewarteschlange noch belegt. Bitte kurz warten und erneut senden.") from exc
+                finally:
+                    temporary.unlink(missing_ok=True)
 
                 self.send_json({
                     "ok": True,
@@ -4670,8 +4685,6 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?", 1)[0]
 
         if path.endswith("/api/rnode/auto-configure"):
-            import os
-            import urllib.request
 
             try:
                 length = int(self.headers.get("Content-Length", "0"))
@@ -4832,8 +4845,6 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
         if path.endswith("/api/rnode/select"):
-            import os
-            import urllib.request
 
             try:
                 length = int(self.headers.get("Content-Length", "0"))

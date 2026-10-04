@@ -1,3 +1,12 @@
+## 1.30.36-beta1
+- Stop the chat viewport observer from triggering itself and ignore unrelated mesh style changes.
+- Avoid idle/replay animation frames when Living Mesh is hidden or replay is not active.
+- Define the persistent read-state file and serialize simultaneous read-marker updates.
+- Serialize LXMF inbox/outbox history and delivery-status transactions to prevent lost updates and temporary-file collisions.
+- Atomically publish web and Home Assistant send requests without overwriting a pending queue slot; report a busy queue instead.
+- Reject malformed destination hashes before queueing.
+- Add isolated storage, HTTP, shared-queue, and startup configuration regression checks. Desktop/mobile navigation and composer visibility verified with mocked API data.
+
 ## 1.30.35-beta1
 - Replace tiny messenger icon-only actions with labelled New Chat and Further Actions buttons.
 - Make own QR sharing and LXMF announce directly visible in the messenger toolbar; retain import/export in the menu.
@@ -620,3 +629,4 @@
 - amd64 support
 - aarch64 support
 - Persistent add-on configuration
+
