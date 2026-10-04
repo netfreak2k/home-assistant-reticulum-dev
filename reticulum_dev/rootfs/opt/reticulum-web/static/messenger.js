@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.45-beta1";
+  const VERSION="1.30.46-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4122,6 +4122,7 @@ function n2kIcon(name){
   let overviewMeshLastFetch=0;
   let overviewMeshFetching=false;
   let overviewMeshLoaded=false;
+  let overviewMeshLastData=null;
 
   function byId(id){return document.getElementById(id);}
 
@@ -4185,6 +4186,14 @@ function n2kIcon(name){
                 '<span><b id="n2k-ov-relays">—</b> relays</span>'+
               '</div>'+
             '</div>'+
+            '<div class="n2k-universe-toolbar n2k-overview-universe-toolbar">'+
+              '<div class="n2k-constellation-filters n2k-universe-filters" role="group" aria-label="Zeitraum">'+
+                '<button type="button" data-n2k-map-filter="live" class="active">Live</button>'+
+                '<button type="button" data-n2k-map-filter="hour">1 h</button>'+
+                '<button type="button" data-n2k-map-filter="five">5 h</button>'+
+                '<button type="button" data-n2k-map-filter="replay">Replay</button>'+
+              '</div>'+
+            '</div>'+
             '<div id="n2k-overview-mesh-stage" class="n2k-constellation-stage n2k-universe-stage n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen">'+
               '<svg id="n2k-overview-live-svg" class="n2k-universe-svg" viewBox="0 0 1100 620" role="img" aria-label="N2K Mesh Universe · Reticulum Visualisierung"></svg>'+
               '<div id="n2k-overview-mesh-empty" class="n2k-constellation-empty n2k-overview-mesh-empty" hidden>Noch keine LXMF-Nodes in diesem Zeitraum.</div>'+
@@ -4202,6 +4211,38 @@ function n2kIcon(name){
       '</div>';
 
     stage.prepend(overview);
+
+    overview.querySelectorAll("[data-n2k-map-filter]").forEach(function(btn){
+      btn.addEventListener("click",function(event){
+        event.preventDefault();
+        event.stopPropagation();
+
+        if(typeof window.n2kSetMeshFilter==="function"){
+          window.n2kSetMeshFilter(btn.dataset.n2kMapFilter||"live");
+        }
+      });
+    });
+
+    const activeFilter=typeof window.n2kGetMeshFilter==="function"
+      ? window.n2kGetMeshFilter()
+      : "live";
+
+    overview.querySelectorAll("[data-n2k-map-filter]").forEach(function(btn){
+      btn.classList.toggle(
+        "active",
+        btn.dataset.n2kMapFilter===activeFilter
+      );
+    });
+
+    if(!window.__n2kOverviewMeshFilterSync){
+      window.__n2kOverviewMeshFilterSync=true;
+
+      window.addEventListener("n2k-mesh-filter-change",function(){
+        if(overviewMeshLastData){
+          renderOverviewMesh(overviewMeshLastData);
+        }
+      });
+    }
 
     const mesh=byId("n2k-overview-mesh-stage");
     if(mesh){
@@ -4275,16 +4316,37 @@ function n2kIcon(name){
     const live=contacts.filter(function(item){
       return Number(item.age_seconds||0)<=120;
     }).length;
-    const known=Number(data.count);
+    const mode=typeof window.n2kGetMeshFilter==="function"
+      ? window.n2kGetMeshFilter()
+      : "live";
+
+    const visibleContacts=contacts.filter(function(item){
+      const age=Number(item.age_seconds||0);
+
+      if(mode==="live"){
+        return age<=120 || item.seen_during_scan===true;
+      }
+
+      if(mode==="hour" || mode==="replay"){
+        return age<=3600;
+      }
+
+      if(mode==="five"){
+        return age<=18000;
+      }
+
+      return age<=86400;
+    });
+
     const pathValue=Number(data.rns_path_count);
     const paths=Number.isFinite(pathValue)?pathValue:null;
-    const relays=contacts.filter(function(item){
+    const relays=visibleContacts.filter(function(item){
       const hops=Number(item.hops);
       return item.path_known===true && Number.isFinite(hops) && hops<=2;
     }).length;
     const numbers={
       "n2k-ov-live":String(live),
-      "n2k-ov-seen":String(Number.isFinite(known)?known:contacts.length),
+      "n2k-ov-seen":String(visibleContacts.length),
       "n2k-ov-paths":paths===null?"—":paths.toLocaleString("de-DE"),
       "n2k-ov-relays":String(relays)
     };
@@ -4394,11 +4456,12 @@ function n2kIcon(name){
       const pathCount=Number(networkData&&networkData.path_count);
       overviewMeshLoaded=true;
       overviewMeshContacts=contacts;
-      renderOverviewMesh({
+      overviewMeshLastData={
         contacts:contacts,
         count:contacts.length,
         rns_path_count:Number.isFinite(pathCount)?pathCount:pathItems.length
-      });
+      };
+      renderOverviewMesh(overviewMeshLastData);
       watchNodeAnnounces();
     }catch(error){
       if(!overviewMeshLoaded){
