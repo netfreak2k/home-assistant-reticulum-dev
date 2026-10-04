@@ -1,3 +1,7 @@
+## 1.30.22-beta1
+- Redesign the overview as a responsive glass Bento dashboard with live gateway services, real chat previews, mesh topology and system events.
+- Link chat previews and system diagnostics to their existing full app pages.
+
 ## 1.30.21-beta1
 
 - Remove the four repeated status cards from the overview; keep RNS, LXMF and NODE in the header and detailed status on the Status page.

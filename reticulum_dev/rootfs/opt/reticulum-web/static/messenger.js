@@ -3829,7 +3829,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.21-beta1";
+  const VERSION="1.30.22-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4124,42 +4124,21 @@ function n2kIcon(name){
     overview.id="n2k-os-overview";
     overview.setAttribute("aria-label","N2K Übersicht");
     overview.innerHTML=
-      '<div class="n2k-overview-grid">'+
-        '<article class="n2k-overview-card">'+
-          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("radio")+'</span>RNode</div><i id="n2k-ov-rnode-dot" class="n2k-overview-dot"></i></div>'+
-          '<div id="n2k-ov-rnode-main" class="n2k-overview-main">Prüfe…</div>'+
-          '<div id="n2k-ov-rnode-sub" class="n2k-overview-sub">Live-Funkhardware</div>'+
-        '</article>'+
-        '<article class="n2k-overview-card">'+
-          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("mesh")+'</span>Reticulum</div><i id="n2k-ov-rns-dot" class="n2k-overview-dot"></i></div>'+
-          '<div id="n2k-ov-rns-main" class="n2k-overview-main">Prüfe…</div>'+
-          '<div id="n2k-ov-rns-sub" class="n2k-overview-sub">Network Stack</div>'+
-        '</article>'+
-        '<article class="n2k-overview-card">'+
-          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("chat")+'</span>LXMF</div><i id="n2k-ov-lxmf-dot" class="n2k-overview-dot"></i></div>'+
-          '<div id="n2k-ov-lxmf-main" class="n2k-overview-main">Prüfe…</div>'+
-          '<div id="n2k-ov-lxmf-sub" class="n2k-overview-sub">Messenger</div>'+
-        '</article>'+
-        '<article class="n2k-overview-card">'+
-          '<div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("forward")+'</span>Store &amp; Forward</div><i id="n2k-ov-backbone-dot" class="n2k-overview-dot"></i></div>'+
-          '<div id="n2k-ov-backbone-main" class="n2k-overview-main">Prüfe…</div>'+
-          '<div id="n2k-ov-backbone-sub" class="n2k-overview-sub">Propagation / Sync</div>'+
-        '</article>'+
-      '</div>'+
-      '<div class="n2k-overview-lower">'+
-        '<section class="n2k-overview-mesh">'+
-          '<div class="n2k-overview-panel-head"><div><strong>Living Mesh</strong><br><small>Echtzeit-Ansicht des N2K Mesh-Netzwerks</small></div><span id="n2k-overview-live-badge" class="n2k-overview-live">LIVE</span></div>'+
-          '<div id="n2k-overview-mesh-stage" class="n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen">'+
-            '<svg id="n2k-overview-live-svg" class="n2k-overview-mesh-lines" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>'+
-            '<div id="n2k-overview-mesh-empty" class="n2k-overview-mesh-empty" hidden>Warte auf erste Announce oder bekannte RNS-Pfade</div>'+
-            '<div class="n2k-overview-mesh-stats">'+
-              '<div class="n2k-overview-mesh-stat"><small>Live</small><strong id="n2k-ov-live">—</strong></div>'+
-              '<div class="n2k-overview-mesh-stat"><small>Bekannt</small><strong id="n2k-ov-seen">—</strong></div>'+
-              '<div class="n2k-overview-mesh-stat"><small>Pfade</small><strong id="n2k-ov-paths">—</strong></div>'+
-              '<div class="n2k-overview-mesh-stat"><small>Relais</small><strong id="n2k-ov-relays">—</strong></div>'+
-            '</div>'+
+      '<div class="n2k-bento-grid">'+
+        '<section class="n2k-bento-card n2k-bento-node" aria-label="Node und Funkstatus">'+
+          '<div class="n2k-bento-head"><span class="n2k-bento-eyebrow">GATEWAY STATUS</span><span class="n2k-bento-mark">'+n2kIcon("radio")+'</span></div>'+
+          '<div class="n2k-bento-node-name" id="n2k-bento-node-name">N2K RNS Gateway</div>'+
+          '<div class="n2k-bento-services">'+
+            '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("radio")+'</span>RNode</div><i id="n2k-ov-rnode-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-rnode-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-rnode-sub" class="n2k-overview-sub">Live-Funkhardware</div></div>'+
+            '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("mesh")+'</span>RNS</div><i id="n2k-ov-rns-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-rns-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-rns-sub" class="n2k-overview-sub">Network Stack</div></div>'+
+            '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("chat")+'</span>LXMF</div><i id="n2k-ov-lxmf-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-lxmf-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-lxmf-sub" class="n2k-overview-sub">Messenger</div></div>'+
+            '<div class="n2k-overview-card"><div class="n2k-overview-card-head"><div class="n2k-overview-card-title"><span class="n2k-overview-icon">'+n2kIcon("forward")+'</span>Store &amp; Forward</div><i id="n2k-ov-backbone-dot" class="n2k-overview-dot"></i></div><div id="n2k-ov-backbone-main" class="n2k-overview-main">Prüfe…</div><div id="n2k-ov-backbone-sub" class="n2k-overview-sub">Propagation / Sync</div></div>'+
           '</div>'+
+          '<div class="n2k-bento-mesh"><div class="n2k-overview-panel-head"><div><strong>Living Mesh</strong><small>Echtzeit-Topologie</small></div><span id="n2k-overview-live-badge" class="n2k-overview-live">LIVE</span></div>'+
+            '<div id="n2k-overview-mesh-stage" class="n2k-overview-mesh-stage" role="button" tabindex="0" aria-label="Living Mesh öffnen"><svg id="n2k-overview-live-svg" class="n2k-overview-mesh-lines" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg><div id="n2k-overview-mesh-empty" class="n2k-overview-mesh-empty" hidden>Warte auf erste Announce oder bekannte RNS-Pfade</div><div class="n2k-overview-mesh-stats"><div class="n2k-overview-mesh-stat"><small>Live</small><strong id="n2k-ov-live">—</strong></div><div class="n2k-overview-mesh-stat"><small>Bekannt</small><strong id="n2k-ov-seen">—</strong></div><div class="n2k-overview-mesh-stat"><small>Pfade</small><strong id="n2k-ov-paths">—</strong></div><div class="n2k-overview-mesh-stat"><small>Relais</small><strong id="n2k-ov-relays">—</strong></div></div></div></div>'+
         '</section>'+
+        '<section class="n2k-bento-card n2k-bento-chat" aria-label="LXMF Messenger Vorschau"><div class="n2k-bento-head"><div><span class="n2k-bento-eyebrow">LXMF MESSENGER</span><h2>Deine Chats</h2></div><span class="n2k-bento-live-dot" aria-hidden="true"></span></div><p class="n2k-bento-caption">Nachrichten und ungelesene Gespräche im Blick.</p><div id="n2k-overview-chat-list" class="n2k-bento-chat-list" aria-live="polite"><span class="n2k-bento-empty">Chats werden geladen…</span></div><button type="button" class="n2k-bento-action" data-n2k-overview-page="chat">Messenger öffnen <span aria-hidden="true">↗</span></button></section>'+
+        '<aside class="n2k-bento-card n2k-bento-system" aria-label="Systemcheck und Netzprotokoll"><div class="n2k-bento-matrix" aria-hidden="true">01 · RNS · LXMF<br>7A 03 · MESH · 91<br>LINK · 0F · ROUTE<br>DATA · 42 · LIVE</div><div class="n2k-bento-head"><div><span class="n2k-bento-eyebrow">SYSTEM &amp; MESH</span><h2>Live-Signale</h2></div><span class="n2k-bento-live-dot" aria-hidden="true"></span></div><p id="n2k-bento-selftest" class="n2k-bento-selftest">Systemcheck öffnen für den aktuellen Prüfbericht.</p><div id="n2k-live-event-list" class="n2k-live-event-list"><span class="n2k-event-empty">Warte auf Status- oder Announce-Ereignisse</span></div><button type="button" class="n2k-bento-action n2k-bento-action-secondary" data-n2k-overview-page="status">Systemcheck ansehen <span aria-hidden="true">↗</span></button></aside>'+
       '</div>'+
       '<section class="n2k-overview-telemetry" aria-label="Live Netzwerk- und Funkwerte">'+
         '<div class="n2k-telemetry-head"><strong>Netzwerk · Livewerte</strong><small>Verlauf seit Öffnen</small></div>'+
@@ -4171,8 +4150,7 @@ function n2kIcon(name){
           '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">↓</span><div><small>RX</small><strong id="n2k-telemetry-rx">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-rx" points=""></polyline></svg></article>'+
           '<article class="n2k-telemetry-cell"><span class="n2k-telemetry-icon">↑</span><div><small>TX</small><strong id="n2k-telemetry-tx">—</strong></div><svg viewBox="0 0 100 24" aria-hidden="true"><polyline id="n2k-spark-tx" points=""></polyline></svg></article>'+
         '</div>'+
-      '</section>'+
-      '<section class="n2k-overview-events" aria-label="Letzte Netzereignisse"><div class="n2k-telemetry-head"><strong>Letzte Signale</strong><small>Announces · Pfade · Synchronisation</small></div><div id="n2k-live-event-list" class="n2k-live-event-list"><span class="n2k-event-empty">Warte auf Status- oder Announce-Ereignisse</span></div></section>';
+      '</section>';
 
     stage.prepend(overview);
 
@@ -4194,6 +4172,12 @@ function n2kIcon(name){
         if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}
       });
     }
+
+    overview.querySelectorAll("[data-n2k-overview-page]").forEach(function(button){
+      button.addEventListener("click",function(){
+        if(typeof window.n2kShowPage==="function") window.n2kShowPage(button.dataset.n2kOverviewPage);
+      });
+    });
 
     return overview;
   }
@@ -4287,6 +4271,7 @@ function n2kIcon(name){
   function update(){
     if(!ensureOverview()) return;
     updateTelemetry();
+    updateChatPreview();
     watchNodeAnnounces();
     syncOverviewMesh();
 
@@ -4295,6 +4280,12 @@ function n2kIcon(name){
     const rns=textOf("hero-rns",textOf("n2k-status-rns","—"));
     const rnsSub=textOf("shared-name","Reticulum Network Stack");
     const lxmf=textOf("n2k-status-lxmf",textOf("messenger-status-text","—"));
+    const nodeName=byId("node-status")?.getAttribute("data-node-name")||"N2K RNS Gateway";
+    const nodeNameTarget=byId("n2k-bento-node-name");
+    if(nodeNameTarget) nodeNameTarget.textContent=nodeName;
+    const selftestTarget=byId("n2k-bento-selftest");
+    const selftestText=textOf("n2k-selftest-summary","").trim();
+    if(selftestTarget && selftestText) selftestTarget.textContent=selftestText;
     const propagation=textOf("n2k-propagation-runtime","—");
     const propagationDetail=textOf("n2k-propagation-last-sync","Propagation / Sync");
     const selectedNode=textOf("n2k-propagation-selected","");
@@ -4366,6 +4357,38 @@ function n2kIcon(name){
         badge.textContent=(num && num!=="—") ? num+" KNOTEN ONLINE" : "LIVE";
       }
     }
+  }
+
+  function updateChatPreview(){
+    const target=byId("n2k-overview-chat-list"),source=byId("messenger-chat-list");
+    if(!target||!source) return;
+    const chats=Array.from(source.querySelectorAll("button[data-m97-chat]")).slice(0,3);
+    if(!chats.length){
+      target.innerHTML='<span class="n2k-bento-empty">Noch keine Gespräche. Öffne den Messenger, um einen Chat zu starten.</span>';
+      return;
+    }
+    target.innerHTML="";
+    chats.forEach(function(sourceButton){
+      const name=sourceButton.querySelector(".messenger-contact-name")?.textContent.trim()||"Kontakt";
+      const preview=sourceButton.querySelector(".messenger-contact-preview")?.textContent.trim()||"LXMF Gespräch";
+      const unread=sourceButton.querySelector(".m80-unread")?.textContent.trim()||"";
+      const row=document.createElement("button");
+      row.type="button";row.className="n2k-bento-chat-row";
+      const avatar=document.createElement("span");avatar.className="n2k-bento-avatar";avatar.textContent=name.slice(0,1).toUpperCase();
+      const body=document.createElement("span");body.className="n2k-bento-chat-body";
+      const title=document.createElement("strong");title.textContent=name;
+      const snippet=document.createElement("small");snippet.textContent=preview;
+      body.append(title,snippet);row.append(avatar,body);
+      if(unread){const badge=document.createElement("i");badge.className="n2k-bento-unread";badge.textContent=unread;row.appendChild(badge);}
+      row.addEventListener("click",function(){
+        if(typeof window.n2kShowPage==="function") window.n2kShowPage("chat");
+        setTimeout(function(){
+          const original=Array.from(source.querySelectorAll("button[data-m97-chat]")).find(button=>button.dataset.m97Chat===sourceButton.dataset.m97Chat);
+          if(original) original.click();
+        },180);
+      });
+      target.appendChild(row);
+    });
   }
 
   function renderEvents(){
