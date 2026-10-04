@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.47-beta1";
+  const VERSION="1.30.48-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4992,7 +4992,7 @@ function n2kIcon(name){
     overview:{title:"Übersicht",sub:"Live-Status, Living Mesh und aktuelle Aktivitäten"},
     chat:{title:"Chat",sub:"Nachrichten und Kontakte · LXMF Messenger"},
     mesh:{title:"Living Mesh",sub:"Live-Aktivität, Routen und Relays"},
-    demo:{title:"Demo Mode",sub:"Social Showcase · Privacy Safe · 30 Sekunden"},
+    demo:{title:"Demo Mode",sub:"2:30 Social Story · Reticulum erklärt · Privacy Safe"},
     status:{title:"Status",sub:"Systemzustand, Funkstatus und Diagnose"},
     settings:{title:"Einstellungen",sub:"Identity, Netzwerk und Store & Forward"},
     setup:{title:"Setup",sub:"Gateway und RNode Schritt für Schritt einrichten"},
@@ -5044,8 +5044,8 @@ function n2kIcon(name){
 
     surface.innerHTML=
       '<div class="n2k-demo-meta">'+
-        '<div><span class="n2k-demo-kicker">SOCIAL SHOWCASE</span><strong>30s Auto Demo</strong><small>Intro · Mesh · Messenger · Monitoring · Finale</small></div>'+
-        '<div class="n2k-demo-badges"><span class="privacy">PRIVACY SAFE</span><span>SYNTHETIC DATA</span></div>'+
+        '<div><span class="n2k-demo-kicker">SOCIAL STORY</span><strong>2:30 Auto Demo</strong><small>Warum · Entstehung · Reticulum · LXMF · Mesh · Nutzen · Zukunft · Mitmachen</small></div>'+
+        '<div class="n2k-demo-badges"><span class="privacy">PRIVACY SAFE</span><span>SYNTHETIC DATA</span><span>15 KAPITEL</span></div>'+
       '</div>'+
       '<div class="n2k-demo-controls">'+
         '<div class="n2k-demo-controls-main">'+
@@ -5054,6 +5054,7 @@ function n2kIcon(name){
           '<button type="button" data-demo-action="restart">↺ Neustart</button>'+
           '<button type="button" data-demo-action="fullscreen">⛶ Vollbild</button>'+
         '</div>'+
+        '<div class="n2k-demo-runtime" id="n2k-demo-runtime">00:00 / 02:30</div>'+
         '<div class="n2k-demo-formats" role="group" aria-label="Social Format">'+
           '<button type="button" data-demo-format="portrait">9:16</button>'+
           '<button type="button" data-demo-format="square">1:1</button>'+
@@ -5065,63 +5066,104 @@ function n2kIcon(name){
           '<div class="n2k-demo-grid" aria-hidden="true"></div>'+
           '<div class="n2k-demo-glow g1" aria-hidden="true"></div>'+
           '<div class="n2k-demo-glow g2" aria-hidden="true"></div>'+
+
           '<section class="n2k-demo-scene n2k-demo-scene-intro is-active" data-demo-scene="0">'+
             '<div class="n2k-demo-intro-core"><i></i><i></i><i></i><b>N2K</b></div>'+
-            '<div class="n2k-demo-intro-copy"><span>N2K RNS GATEWAY</span><h3>Reticulum. LXMF.<br>Local Intelligence.</h3><p>Home Assistant · Offgrid · Mesh</p></div>'+
+            '<div class="n2k-demo-intro-copy"><span>N2K RNS GATEWAY</span><h3>Was passiert,<br>wenn das Netz weg ist?</h3><p>Reticulum · LXMF · Home Assistant · Offgrid</p></div>'+
           '</section>'+
-          '<section class="n2k-demo-scene n2k-demo-scene-mesh" data-demo-scene="1">'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-problem" data-demo-scene="1">'+
+            '<div class="n2k-demo-story-copy"><span>WARUM?</span><h3>Kommunikation sollte nicht an einer Cloud hängen.</h3><p>Mobilfunk kann ausfallen. Internet kann fehlen. Lokale Infrastruktur kann trotzdem weiterarbeiten.</p></div>'+
+            '<div class="n2k-demo-story-grid three"><article><b>01</b><strong>Kein Mobilfunk</strong><small>Funkwege können lokal weiter existieren.</small></article><article><b>02</b><strong>Internet weg</strong><small>Lokale Reticulum-Verbindungen bleiben möglich.</small></article><article><b>03</b><strong>Local First</strong><small>Eigene Hardware. Eigene Wege. Eigene Kontrolle.</small></article></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-origin" data-demo-scene="2">'+
+            '<div class="n2k-demo-story-copy"><span>ENTSTEHUNG</span><h3>Aus einem Add-on wurde ein komplettes Gateway.</h3><p>Schritt für Schritt: Reticulum sichtbar machen, LXMF nutzbar machen und Funkhardware direkt in Home Assistant bringen.</p></div>'+
+            '<div class="n2k-demo-devline"><i></i><div><b>01</b><strong>Reticulum Node</strong><small>Basis im Home-Assistant-Add-on</small></div><div><b>02</b><strong>LXMF Messenger</strong><small>Senden, Empfangen, Delivery Status</small></div><div><b>03</b><strong>Living Mesh</strong><small>Routen und Nodes visuell verstehen</small></div><div><b>04</b><strong>Monitoring</strong><small>Funk, Pfade und Systemzustand</small></div></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-reticulum" data-demo-scene="3">'+
+            '<div class="n2k-demo-story-copy"><span>RETICULUM · TEIL 1</span><h3>Reticulum ist kein Messenger. Es ist das Netzwerk darunter.</h3><p>Ein Netzwerk-Stack für robuste Kommunikation über sehr unterschiedliche Transportwege.</p></div>'+
+            '<div class="n2k-demo-explain-stack"><article><b>IDENTITY</b><span>Kryptografische Identitäten statt klassischer Benutzerkonten.</span></article><article><b>PATHS</b><span>Das Netz lernt, über welchen Weg ein Ziel erreichbar ist.</span></article><article><b>TRANSPORT</b><span>LoRa, LAN oder Internet können Teil desselben logischen Netzes sein.</span></article></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-transport" data-demo-scene="4">'+
+            '<div class="n2k-demo-story-copy"><span>RETICULUM · TEIL 2</span><h3>Ein Ziel. Unterschiedliche Wege.</h3><p>Die Anwendung muss nicht wissen, ob der nächste Hop über Funk, LAN oder einen Internet-Backbone läuft.</p></div>'+
+            '<div class="n2k-demo-transport-map"><div class="hub">RNS</div><div class="transport radio">LoRa<br><small>RNode</small></div><div class="transport lan">LAN<br><small>AutoInterface</small></div><div class="transport tcp">TCP<br><small>Backbone</small></div><div class="transport peer">Peer<br><small>Destination</small></div><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-lxmf" data-demo-scene="5">'+
+            '<div class="n2k-demo-story-copy"><span>LXMF</span><h3>Darauf baut der Messenger auf.</h3><p>LXMF übernimmt Nachrichten, Zustellung und Store-&-Forward-Funktionen auf Reticulum.</p></div>'+
+            '<div class="n2k-demo-lxmf-flow"><div><b>TEXT</b><span>Nachricht entsteht lokal</span></div><i>→</i><div><b>LXMF</b><span>Adressierung & Zustellung</span></div><i>→</i><div><b>RNS</b><span>findet den Transportweg</span></div><i>→</i><div><b>PEER</b><span>direkt oder später erreichbar</span></div></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-architecture" data-demo-scene="6">'+
+            '<div class="n2k-demo-story-copy"><span>DIE APP</span><h3>Alles an einem Ort.</h3><p>Home Assistant wird zur Oberfläche für Messenger, Funkhardware, Netzstatus und Reticulum-Diagnose.</p></div>'+
+            '<div class="n2k-demo-architecture"><div class="app">N2K RNS Gateway</div><div class="layer"><b>Messenger</b><span>LXMF</span></div><div class="layer"><b>Living Mesh</b><span>Topologie</span></div><div class="layer"><b>Monitoring</b><span>Status</span></div><div class="layer"><b>RNode</b><span>LoRa</span></div><div class="foundation">RETICULUM</div></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-scene-mesh" data-demo-scene="7">'+
             '<div class="n2k-demo-scene-label">LIVING MESH · CINEMATIC</div>'+
             '<svg class="n2k-demo-mesh-svg" viewBox="0 0 1000 560" aria-hidden="true">'+
               '<defs><filter id="n2k-demo-glow-filter" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+
-              '<g class="routes">'+
-                '<path id="dm-r1" d="M500 280 Q385 120 205 150"/><path id="dm-r2" d="M500 280 Q650 110 805 165"/><path id="dm-r3" d="M500 280 Q700 330 850 390"/><path id="dm-r4" d="M500 280 Q350 420 185 410"/><path id="dm-r5" d="M500 280 Q520 455 610 490"/><path id="dm-r6" d="M500 280 Q430 245 330 270"/>'+
-              '</g>'+
-              '<g class="particles">'+
-                '<circle r="4"><animateMotion dur="3.6s" repeatCount="indefinite"><mpath href="#dm-r1"/></animateMotion></circle>'+
-                '<circle r="4"><animateMotion dur="4.1s" begin="-1.4s" repeatCount="indefinite"><mpath href="#dm-r2"/></animateMotion></circle>'+
-                '<circle r="3.4"><animateMotion dur="3.1s" begin="-.8s" repeatCount="indefinite"><mpath href="#dm-r4"/></animateMotion></circle>'+
-              '</g>'+
+              '<g class="routes"><path id="dm-r1" d="M500 280 Q385 120 205 150"/><path id="dm-r2" d="M500 280 Q650 110 805 165"/><path id="dm-r3" d="M500 280 Q700 330 850 390"/><path id="dm-r4" d="M500 280 Q350 420 185 410"/><path id="dm-r5" d="M500 280 Q520 455 610 490"/><path id="dm-r6" d="M500 280 Q430 245 330 270"/></g>'+
+              '<g class="particles"><circle r="4"><animateMotion dur="3.6s" repeatCount="indefinite"><mpath href="#dm-r1"/></animateMotion></circle><circle r="4"><animateMotion dur="4.1s" begin="-1.4s" repeatCount="indefinite"><mpath href="#dm-r2"/></animateMotion></circle><circle r="3.4"><animateMotion dur="3.1s" begin="-.8s" repeatCount="indefinite"><mpath href="#dm-r4"/></animateMotion></circle></g>'+
               '<g class="core" transform="translate(500 280)"><circle class="aura" r="52"/><circle class="pulse" r="36"/><polygon points="0,-25 25,0 0,25 -25,0"/><circle class="dot" r="5"/><text y="70" text-anchor="middle">N2K CORE</text></g>'+
-              '<g class="node radio" transform="translate(205 150)"><circle class="halo" r="24"/><circle class="orb" r="10"/><text x="18" y="4">RADIO</text></g>'+
-              '<g class="node internet" transform="translate(805 165)"><circle class="halo" r="23"/><circle class="orb" r="9"/><text x="18" y="4">INTERNET</text></g>'+
-              '<g class="node local" transform="translate(850 390)"><circle class="halo" r="22"/><circle class="orb" r="9"/><text x="18" y="4">LOCAL</text></g>'+
-              '<g class="node ghost" transform="translate(185 410)"><circle class="halo" r="20"/><circle class="orb" r="8"/><text x="18" y="4">GHOST</text></g>'+
-              '<g class="node internet" transform="translate(610 490)"><circle class="halo" r="18"/><circle class="orb" r="8"/><text x="18" y="4">RELAY</text></g>'+
-              '<g class="node radio" transform="translate(330 270)"><circle class="halo" r="18"/><circle class="orb" r="8"/><text x="18" y="4">RNode</text></g>'+
+              '<g class="node radio" transform="translate(205 150)"><circle class="halo" r="24"/><circle class="orb" r="10"/><text x="18" y="4">RADIO</text></g><g class="node internet" transform="translate(805 165)"><circle class="halo" r="23"/><circle class="orb" r="9"/><text x="18" y="4">INTERNET</text></g><g class="node local" transform="translate(850 390)"><circle class="halo" r="22"/><circle class="orb" r="9"/><text x="18" y="4">LOCAL</text></g><g class="node ghost" transform="translate(185 410)"><circle class="halo" r="20"/><circle class="orb" r="8"/><text x="18" y="4">GHOST</text></g><g class="node internet" transform="translate(610 490)"><circle class="halo" r="18"/><circle class="orb" r="8"/><text x="18" y="4">RELAY</text></g><g class="node radio" transform="translate(330 270)"><circle class="halo" r="18"/><circle class="orb" r="8"/><text x="18" y="4">RNode</text></g>'+
             '</svg>'+
             '<div class="n2k-demo-mesh-status"><span><b>12</b> live</span><span><b>186</b> seen</span><span><b>16.8k</b> paths</span><span><b>24</b> relays</span></div>'+
+            '<div class="n2k-demo-bottom-explain"><b>Living Mesh</b><span>macht unsichtbare Routen, Relays und Aktivität verständlich.</span></div>'+
           '</section>'+
-          '<section class="n2k-demo-scene n2k-demo-scene-message" data-demo-scene="2">'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-rnode" data-demo-scene="8">'+
+            '<div class="n2k-demo-story-copy"><span>RNODE · LORA</span><h3>Der Funkweg wird Teil des Gateways.</h3><p>Ein RNode verbindet Reticulum mit LoRa-Hardware. Die App zeigt Status, Verbindung und Funkmetriken direkt an.</p></div>'+
+            '<div class="n2k-demo-rnode-visual"><div class="device"><b>RNode</b><small>USB · LoRa</small></div><div class="waves"><i></i><i></i><i></i><i></i></div><div class="air"><span>-94 dBm</span><b>RADIO LINK</b></div></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-scene-message" data-demo-scene="9">'+
             '<div class="n2k-demo-scene-label">LXMF MESSENGER · PRIVACY SAFE</div>'+
-            '<div class="n2k-demo-phone">'+
-              '<div class="n2k-demo-phone-head"><span class="avatar">A</span><div><strong>Node A</strong><small>LXMF · verbunden</small></div><i></i></div>'+
-              '<div class="n2k-demo-chat-row in"><span>Neue LXMF-Nachricht empfangen</span><small>Inhalt geschützt · gerade eben</small></div>'+
-              '<div class="n2k-demo-chat-row out"><span>Antwort über Reticulum</span><small>zugestellt ✓✓</small></div>'+
-              '<div class="n2k-demo-privacy-card"><b>PRIVACY SAFE</b><span>Keine echten Namen · keine Nachrichtentexte · keine Destination Hashes</span></div>'+
-            '</div>'+
+            '<div class="n2k-demo-phone"><div class="n2k-demo-phone-head"><span class="avatar">A</span><div><strong>Node A</strong><small>LXMF · verbunden</small></div><i></i></div><div class="n2k-demo-chat-row in"><span>Neue LXMF-Nachricht empfangen</span><small>Inhalt geschützt · gerade eben</small></div><div class="n2k-demo-chat-row out"><span>Antwort über Reticulum</span><small>zugestellt ✓✓</small></div><div class="n2k-demo-privacy-card"><b>PRIVACY SAFE</b><span>Keine echten Namen · keine Nachrichtentexte · keine Destination Hashes</span></div></div>'+
           '</section>'+
-          '<section class="n2k-demo-scene n2k-demo-scene-monitor" data-demo-scene="3">'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-forward" data-demo-scene="10">'+
+            '<div class="n2k-demo-story-copy"><span>STORE & FORWARD</span><h3>Nicht gleichzeitig online? Trotzdem nicht das Ende.</h3><p>LXMF kann Propagation Nodes nutzen, damit Nachrichten zwischengespeichert und später zugestellt werden können.</p></div>'+
+            '<div class="n2k-demo-forward-flow"><div class="sender">A</div><i></i><div class="store"><b>PROPAGATION</b><span>STORE</span></div><i></i><div class="receiver">B</div><em>offline → später online → Zustellung</em></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-scene-monitor" data-demo-scene="11">'+
             '<div class="n2k-demo-scene-label">NETWORK MONITOR · RNODE</div>'+
-            '<div class="n2k-demo-monitor-grid">'+
-              '<article><small>VERFÜGBARKEIT</small><strong>100%</strong><svg viewBox="0 0 180 50"><path d="M0 38 L25 34 L48 35 L70 23 L93 28 L115 18 L140 20 L180 10"/></svg></article>'+
-              '<article><small>RETICULUM-PFADE</small><strong>16.8k</strong><svg viewBox="0 0 180 50"><path d="M0 42 L25 39 L48 30 L70 33 L93 24 L115 21 L140 13 L180 8"/></svg></article>'+
-              '<article><small>PFAD-DYNAMIK</small><strong>+18</strong><svg viewBox="0 0 180 50"><path d="M0 35 L25 27 L48 36 L70 17 L93 31 L115 15 L140 22 L180 9"/></svg></article>'+
-              '<article><small>RNODE FUNK</small><strong>-94 dBm</strong><svg viewBox="0 0 180 50"><path d="M0 31 L25 30 L48 33 L70 25 L93 28 L115 21 L140 25 L180 19"/></svg></article>'+
-            '</div>'+
+            '<div class="n2k-demo-monitor-grid"><article><small>VERFÜGBARKEIT</small><strong>100%</strong><svg viewBox="0 0 180 50"><path d="M0 38 L25 34 L48 35 L70 23 L93 28 L115 18 L140 20 L180 10"/></svg></article><article><small>RETICULUM-PFADE</small><strong>16.8k</strong><svg viewBox="0 0 180 50"><path d="M0 42 L25 39 L48 30 L70 33 L93 24 L115 21 L140 13 L180 8"/></svg></article><article><small>PFAD-DYNAMIK</small><strong>+18</strong><svg viewBox="0 0 180 50"><path d="M0 35 L25 27 L48 36 L70 17 L93 31 L115 15 L140 22 L180 9"/></svg></article><article><small>RNODE FUNK</small><strong>-94 dBm</strong><svg viewBox="0 0 180 50"><path d="M0 31 L25 30 L48 33 L70 25 L93 28 L115 21 L140 25 L180 19"/></svg></article></div>'+
             '<div class="n2k-demo-radio-wave"><i></i><i></i><i></i><b>RNode · LoRa</b></div>'+
+            '<div class="n2k-demo-bottom-explain"><b>Monitoring</b><span>zeigt Trends statt nur Momentaufnahmen.</span></div>'+
           '</section>'+
-          '<section class="n2k-demo-scene n2k-demo-scene-finale" data-demo-scene="4">'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-development" data-demo-scene="12">'+
+            '<div class="n2k-demo-story-copy"><span>ENTWICKLUNG</span><h3>Gebaut auf echter Hardware. Iteriert in kleinen Schritten.</h3><p>UI, Messenger, QR, RNode-Automatik, Store & Forward, Living Mesh und Monitoring wurden Stück für Stück zusammengeführt.</p></div>'+
+            '<div class="n2k-demo-progress-stack"><div><b>BUILD</b><span>Feature entwickeln</span></div><i>→</i><div><b>TEST</b><span>auf Home Assistant & Hardware</span></div><i>→</i><div><b>FIX</b><span>Fehler und UX verbessern</span></div><i>→</i><div><b>PUSH</b><span>neue Beta</span></div></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-goals" data-demo-scene="13">'+
+            '<div class="n2k-demo-story-copy"><span>ZIELE</span><h3>Kommunikation verständlich, lokal und widerstandsfähig machen.</h3><p>Weniger Kommandozeile. Mehr Übersicht. Einfacher Einstieg. Mehr echte Offgrid-Möglichkeiten.</p></div>'+
+            '<div class="n2k-demo-goals"><article><b>01</b><strong>Einfach</strong><span>Einsteiger sollen Nodes und Messenger ohne Spezialwissen bedienen können.</span></article><article><b>02</b><strong>Resilient</strong><span>Lokale Wege sollen auch ohne klassische Cloud funktionieren.</span></article><article><b>03</b><strong>Offen</strong><span>Hardware, Transportwege und Ideen sollen kombinierbar bleiben.</span></article><article><b>04</b><strong>Sichtbar</strong><span>Mesh, Funk und Routen werden grafisch begreifbar.</span></article></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-scene-finale n2k-demo-join" data-demo-scene="14">'+
             '<div class="n2k-demo-finale-orbit"><i></i><i></i><i></i><b>N2K</b></div>'+
-            '<span>OFFGRID · MESH · LOCAL INTELLIGENCE</span>'+
-            '<h3>KEIN NETZ.<br>KEIN PROBLEM.</h3>'+
-            '<p>N2K RNS Gateway · Reticulum · LXMF</p>'+
+            '<span>OPEN DEVELOPMENT · MITMACHEN</span>'+
+            '<h3>NEUGIERIG?<br>BAU MIT.</h3>'+
+            '<p>Teste die App · melde Bugs · bring Ideen · teste Hardware · übersetze · entwickle mit</p>'+
+            '<div class="n2k-demo-join-box"><b>GitHub</b><span>netfreak2k/home-assistant-reticulum-dev</span><small>Issues · Feedback · Code · reale Feldtests</small></div>'+
+            '<div class="n2k-demo-claim">KEIN NETZ · KEIN PROBLEM</div>'+
           '</section>'+
-          '<div class="n2k-demo-watermark">N2K RNS GATEWAY · DEMO MODE</div>'+
+
+          '<div class="n2k-demo-watermark">N2K RNS GATEWAY · DEMO MODE · PRIVACY SAFE</div>'+
         '</div>'+
       '</div>'+
       '<div class="n2k-demo-caption">'+
-        '<div><span id="n2k-demo-scene-number">01 / 05</span><strong id="n2k-demo-scene-title">Gateway Intro</strong><p id="n2k-demo-scene-description">Marken-Intro für Social Media. Rein visuell, ohne Live-Daten.</p></div>'+
-        '<div class="n2k-demo-timeline" aria-label="Demo Fortschritt"><i class="active"></i><i></i><i></i><i></i><i></i></div>'+
+        '<div><span id="n2k-demo-scene-number">01 / 15</span><strong id="n2k-demo-scene-title">Was passiert, wenn das Netz weg ist?</strong><p id="n2k-demo-scene-description">Intro: Warum lokale, unabhängige Kommunikation überhaupt interessant ist.</p></div>'+
+        '<div class="n2k-demo-timeline" aria-label="Demo Fortschritt">'+
+          '<i class="active"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>'+
+        '</div>'+
       '</div>';
 
     page.appendChild(surface);
@@ -5184,7 +5226,7 @@ function n2kIcon(name){
       grid.innerHTML=
         '<button class="n2k-os-more-card" type="button" data-page="settings"><b>'+n2kIcon("settings")+'Einstellungen</b><span>Identity, Netzwerk und Store & Forward</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-page="setup"><b>'+n2kIcon("setup")+'Setup</b><span>Gateway und RNode einrichten</span></button>'+
-        '<button class="n2k-os-more-card n2k-demo-more-card" type="button" data-page="demo"><b><span class="n2k-demo-more-icon">▶</span>Demo Mode</b><span>30s Social Showcase · Privacy Safe</span></button>'+
+        '<button class="n2k-os-more-card n2k-demo-more-card" type="button" data-page="demo"><b><span class="n2k-demo-more-icon">▶</span>Demo Mode</b><span>2:30 Social Story · Privacy Safe</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-page="about"><b>'+n2kIcon("about")+'Über / Lizenz</b><span>Version und Lizenzinformationen</span></button>';
       grid.addEventListener("click",function(e){
         const b=e.target.closest("[data-page]");
@@ -5429,40 +5471,40 @@ function n2kIcon(name){
 
 
 /* =========================================================
-   N2K Demo Mode 1.30.47-beta1
-   Privacy rule: synthetic-only. This controller intentionally
-   performs no fetch() calls and never reads chat/contact content.
+   N2K Demo Mode 1.30.48-beta1
+   2:30 social story · 15 chapters · 10 seconds each.
+   Privacy rule: synthetic-only. The demo controller makes no
+   network requests and never reads chat/contact content.
    ========================================================= */
 (function(){
   "use strict";
 
   const SCENES=[
-    {
-      title:"Gateway Intro",
-      description:"Marken-Intro für Social Media. Rein visuell, ohne Live-Daten."
-    },
-    {
-      title:"Living Mesh",
-      description:"Cinematic Mesh mit synthetischen Nodes, Routen und Partikeln."
-    },
-    {
-      title:"Privacy Messenger",
-      description:"LXMF-Messenger-Demo ohne echte Namen, Inhalte oder Destination Hashes."
-    },
-    {
-      title:"Monitoring & RNode",
-      description:"Animierte Netzwerk- und Funkmetriken als Social-Media-Showcase."
-    },
-    {
-      title:"Finale",
-      description:"N2K Abschlussbild mit Claim für Reels, TikTok und Instagram."
-    }
+    {title:"Was passiert, wenn das Netz weg ist?",description:"Intro: Warum lokale, unabhängige Kommunikation überhaupt interessant ist."},
+    {title:"Warum Local First?",description:"Cloud und Mobilfunk sind nützlich – aber sie sollten nicht der einzige mögliche Kommunikationsweg sein."},
+    {title:"Wie das Gateway entstanden ist",description:"Vom Home-Assistant-Reticulum-Node zum Messenger, Living Mesh und Monitoring."},
+    {title:"Reticulum erklärt · Netzwerk",description:"Reticulum stellt Identitäten, Pfade und Transport bereit. Anwendungen bauen darauf auf."},
+    {title:"Reticulum erklärt · Transport",description:"LoRa, LAN und Internet können unterschiedliche Wege innerhalb desselben logischen Netzes sein."},
+    {title:"LXMF erklärt",description:"LXMF bringt Nachrichten und Zustellung auf Reticulum – inklusive Store-&-Forward-Konzepten."},
+    {title:"N2K RNS Gateway",description:"Messenger, Mesh, Funkstatus und Diagnose werden in Home Assistant zusammengeführt."},
+    {title:"Living Mesh",description:"Unsichtbare Reticulum-Pfade werden als Nodes, Relays, Routen und Aktivität sichtbar."},
+    {title:"RNode & LoRa",description:"Funkhardware wird direkt Teil des Gateways und lässt sich verständlich überwachen."},
+    {title:"Privacy Messenger",description:"Die Social-Demo zeigt ausschließlich synthetische Texte und keinerlei echte Kontakt- oder Nachrichtendaten."},
+    {title:"Store & Forward",description:"Wenn ein Ziel nicht direkt erreichbar ist, kann LXMF Propagation Nodes zur späteren Zustellung nutzen."},
+    {title:"Monitoring",description:"Verfügbarkeit, Pfade, Dynamik und Funkwerte werden als Verlauf statt nur als Momentaufnahme gezeigt."},
+    {title:"Entwicklung",description:"Build, testen, korrigieren, wieder testen – die App wächst iterativ auf echter Hardware."},
+    {title:"Ziele",description:"Einfacher Einstieg, lokale Kontrolle, robuste Kommunikation und ein verständliches Interface."},
+    {title:"Mach mit",description:"Teste, melde Bugs, bring Ideen, probiere Hardware aus oder entwickle direkt auf GitHub mit."}
   ];
 
-  const SCENE_MS=6000;
+  const SCENE_MS=10000;
+  const TOTAL_SECONDS=150;
   let sceneIndex=0;
   let running=false;
   let timer=null;
+  let ticker=null;
+  let sceneStartedAt=0;
+  let pausedElapsed=0;
   let bound=false;
 
   function byId(id){
@@ -5477,6 +5519,47 @@ function n2kIcon(name){
     return byId("n2k-demo-stage");
   }
 
+  function formatTime(seconds){
+    seconds=Math.max(0,Math.min(TOTAL_SECONDS,Math.floor(Number(seconds)||0)));
+    const min=Math.floor(seconds/60);
+    const sec=seconds%60;
+    return String(min).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+  }
+
+  function currentElapsed(){
+    const base=sceneIndex*(SCENE_MS/1000);
+    if(!running) return base+pausedElapsed;
+    return base+Math.min(SCENE_MS/1000,(performance.now()-sceneStartedAt)/1000);
+  }
+
+  function updateRuntime(){
+    const node=byId("n2k-demo-runtime");
+    if(node){
+      node.textContent=formatTime(currentElapsed())+" / 02:30";
+    }
+
+    const root=stage();
+    if(root){
+      root.style.setProperty(
+        "--n2k-demo-progress",
+        String(Math.min(1,currentElapsed()/TOTAL_SECONDS))
+      );
+    }
+  }
+
+  function startTicker(){
+    stopTicker();
+    ticker=setInterval(updateRuntime,250);
+    updateRuntime();
+  }
+
+  function stopTicker(){
+    if(ticker){
+      clearInterval(ticker);
+      ticker=null;
+    }
+  }
+
   function updateToggle(){
     const button=document.querySelector('[data-demo-action="toggle"]');
     if(!button) return;
@@ -5489,6 +5572,8 @@ function n2kIcon(name){
     if(!root) return;
 
     sceneIndex=((Number(index)||0)%SCENES.length+SCENES.length)%SCENES.length;
+    pausedElapsed=0;
+    sceneStartedAt=performance.now();
 
     root.querySelectorAll("[data-demo-scene]").forEach(function(scene){
       scene.classList.remove("is-active");
@@ -5519,6 +5604,8 @@ function n2kIcon(name){
     root.classList.remove("n2k-demo-scene-reset");
     void root.offsetWidth;
     root.classList.add("n2k-demo-scene-reset");
+
+    updateRuntime();
   }
 
   function clearTimer(){
@@ -5528,43 +5615,81 @@ function n2kIcon(name){
     }
   }
 
-  function schedule(){
+  function schedule(remaining){
     clearTimer();
     if(!running) return;
+
+    const wait=Math.max(250,Number(remaining)||SCENE_MS);
 
     timer=setTimeout(function(){
       sceneIndex=(sceneIndex+1)%SCENES.length;
       renderScene(sceneIndex);
-      schedule();
-    },SCENE_MS);
+      schedule(SCENE_MS);
+    },wait);
   }
 
   function start(restart){
     bind();
-    if(restart) sceneIndex=0;
+
+    if(restart){
+      sceneIndex=0;
+      pausedElapsed=0;
+    }
+
     running=true;
     renderScene(sceneIndex);
     updateToggle();
-    schedule();
+    schedule(SCENE_MS);
+    startTicker();
+    document.body.classList.add("n2k-demo-running");
+  }
+
+  function resume(){
+    if(running) return;
+
+    running=true;
+    sceneStartedAt=performance.now()-(pausedElapsed*1000);
+    updateToggle();
+    schedule(SCENE_MS-(pausedElapsed*1000));
+    startTicker();
     document.body.classList.add("n2k-demo-running");
   }
 
   function pause(){
+    if(running){
+      pausedElapsed=Math.min(
+        SCENE_MS/1000,
+        (performance.now()-sceneStartedAt)/1000
+      );
+    }
+
     running=false;
     clearTimer();
+    stopTicker();
+    updateRuntime();
     updateToggle();
     document.body.classList.remove("n2k-demo-running");
+  }
+
+  function toggle(){
+    running ? pause() : resume();
   }
 
   function next(){
     sceneIndex=(sceneIndex+1)%SCENES.length;
     renderScene(sceneIndex);
-    if(running) schedule();
+    if(running) schedule(SCENE_MS);
   }
 
   function restart(){
     sceneIndex=0;
-    start(false);
+    pausedElapsed=0;
+    running=true;
+    renderScene(sceneIndex);
+    updateToggle();
+    schedule(SCENE_MS);
+    startTicker();
+    document.body.classList.add("n2k-demo-running");
   }
 
   async function toggleFullscreen(){
@@ -5606,8 +5731,9 @@ function n2kIcon(name){
       const action=event.target.closest("[data-demo-action]");
       if(action){
         const name=action.dataset.demoAction;
+
         if(name==="toggle"){
-          running ? pause() : start(false);
+          toggle();
         }else if(name==="next"){
           next();
         }else if(name==="restart"){
@@ -5630,7 +5756,7 @@ function n2kIcon(name){
 
   function enter(){
     bind();
-    start(true);
+    restart();
   }
 
   function exit(){
@@ -5640,11 +5766,13 @@ function n2kIcon(name){
   window.n2kDemoMode={
     enter:enter,
     exit:exit,
-    start:function(){start(false);},
+    start:resume,
     pause:pause,
     next:next,
     restart:restart,
     setFormat:setFormat,
+    duration:150,
+    scenes:15,
     privacy:"synthetic-only"
   };
 })();
