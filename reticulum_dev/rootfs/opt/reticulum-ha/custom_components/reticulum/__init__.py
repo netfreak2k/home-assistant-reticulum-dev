@@ -23,6 +23,8 @@ _LOGGER = logging.getLogger(__name__)
 
 QUEUE_DIR = Path("/config/reticulum_bridge")
 QUEUE_FILE = QUEUE_DIR / "lxmf_outbound.json"
+CONTROL_FILE = QUEUE_DIR / "n2k_control.json"
+N2K_DOMAIN = "n2k"
 
 
 SNAPSHOT_FILES = {
@@ -136,6 +138,50 @@ def queue_message(
         "state": "QUEUED",
         "request_id": request_id,
         "destination_hash": destination_hash,
+    }
+
+
+def queue_control(action: str) -> dict:
+    """Queue a control request for the add-on backend."""
+
+    action = str(action or "").strip().lower()
+
+    if action not in ("announce", "refresh"):
+        raise HomeAssistantError(
+            f"Unbekannte N2K-Aktion: {action}"
+        )
+
+    QUEUE_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    request_id = uuid.uuid4().hex
+    payload = {
+        "request_id": request_id,
+        "action": action,
+        "requested_at": int(time.time()),
+        "source": "home_assistant_service",
+    }
+
+    temporary = CONTROL_FILE.with_name(
+        CONTROL_FILE.name + "." + request_id + ".tmp"
+    )
+
+    try:
+        temporary.write_text(
+            json.dumps(payload, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        os.replace(temporary, CONTROL_FILE)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+    return {
+        "ok": True,
+        "state": "QUEUED",
+        "request_id": request_id,
+        "action": action,
     }
 
 
@@ -382,6 +428,22 @@ async def async_setup_entry(
         vol.Optional("title", default=""): str,
     })
 
+    async def handle_send_announce(
+        call: ServiceCall,
+    ) -> None:
+        await hass.async_add_executor_job(
+            queue_control,
+            "announce",
+        )
+
+    async def handle_refresh_status(
+        call: ServiceCall,
+    ) -> None:
+        await hass.async_add_executor_job(
+            queue_control,
+            "refresh",
+        )
+
     if not hass.services.has_service(
         DOMAIN,
         "send_message",
@@ -391,6 +453,58 @@ async def async_setup_entry(
             "send_message",
             handle_send_message,
             schema=schema,
+        )
+
+    if not hass.services.has_service(
+        DOMAIN,
+        "send_announce",
+    ):
+        hass.services.async_register(
+            DOMAIN,
+            "send_announce",
+            handle_send_announce,
+        )
+
+    if not hass.services.has_service(
+        DOMAIN,
+        "refresh_status",
+    ):
+        hass.services.async_register(
+            DOMAIN,
+            "refresh_status",
+            handle_refresh_status,
+        )
+
+    # Branded aliases for Home Assistant automations.
+    if not hass.services.has_service(
+        N2K_DOMAIN,
+        "send_message",
+    ):
+        hass.services.async_register(
+            N2K_DOMAIN,
+            "send_message",
+            handle_send_message,
+            schema=schema,
+        )
+
+    if not hass.services.has_service(
+        N2K_DOMAIN,
+        "send_announce",
+    ):
+        hass.services.async_register(
+            N2K_DOMAIN,
+            "send_announce",
+            handle_send_announce,
+        )
+
+    if not hass.services.has_service(
+        N2K_DOMAIN,
+        "refresh_status",
+    ):
+        hass.services.async_register(
+            N2K_DOMAIN,
+            "refresh_status",
+            handle_refresh_status,
         )
 
     unregister_api = llm.async_register_api(
@@ -415,13 +529,19 @@ async def async_unload_entry(
 ) -> bool:
     """Unload Reticulum."""
 
-    if hass.services.has_service(
-        DOMAIN,
-        "send_message",
-    ):
-        hass.services.async_remove(
-            DOMAIN,
+    for service_domain in (DOMAIN, N2K_DOMAIN):
+        for service_name in (
             "send_message",
-        )
+            "send_announce",
+            "refresh_status",
+        ):
+            if hass.services.has_service(
+                service_domain,
+                service_name,
+            ):
+                hass.services.async_remove(
+                    service_domain,
+                    service_name,
+                )
 
     return True
