@@ -4580,11 +4580,109 @@ def publish_n2k_home_assistant_entities():
     }
 
 
+N2K_CONTROL_FILE = Path(
+    "/homeassistant/reticulum_bridge/n2k_control.json"
+)
+
+
+def process_n2k_control_request():
+    """Consume one control request queued by the HA integration."""
+
+    if not N2K_CONTROL_FILE.exists():
+        return None
+
+    try:
+        payload = json.loads(
+            N2K_CONTROL_FILE.read_text(
+                encoding="utf-8"
+            )
+        )
+    except Exception as exc:
+        N2K_CONTROL_FILE.unlink(
+            missing_ok=True
+        )
+        return {
+            "ok": False,
+            "error": str(exc),
+        }
+
+    action = str(
+        payload.get("action") or ""
+    ).strip().lower()
+
+    result = {
+        "ok": False,
+        "action": action,
+    }
+
+    try:
+        if action == "announce":
+            result = request_lxmf_announce()
+
+        elif action == "refresh":
+            with STATUS_REFRESH_LOCK:
+                STATUS_CACHE["data"] = None
+                STATUS_CACHE["updated"] = 0.0
+
+            publish_reticulum_status_to_home_assistant()
+            result = publish_n2k_home_assistant_entities()
+
+        else:
+            result = {
+                "ok": False,
+                "error":
+                    "Unknown N2K control action",
+                "action": action,
+            }
+
+    except Exception as exc:
+        result = {
+            "ok": False,
+            "error": str(exc),
+            "action": action,
+        }
+
+    finally:
+        N2K_CONTROL_FILE.unlink(
+            missing_ok=True
+        )
+
+    try:
+        publish_home_assistant_event(
+            "n2k_control_result",
+            {
+                "action": action,
+                "ok": bool(
+                    result.get("ok")
+                ),
+                "error": str(
+                    result.get("error") or ""
+                ),
+            },
+        )
+    except Exception:
+        pass
+
+    return result
+
+
 def home_assistant_publisher_loop():
 
     while True:
 
         try:
+            control_result = process_n2k_control_request()
+
+            if control_result is not None:
+                print(
+                    "[HA] N2K control: "
+                    + json.dumps(
+                        control_result,
+                        ensure_ascii=False,
+                    ),
+                    flush=True,
+                )
+
             publish_reticulum_status_to_home_assistant()
 
             result = publish_n2k_home_assistant_entities()
