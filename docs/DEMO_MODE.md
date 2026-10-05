@@ -14,7 +14,7 @@ It is designed for screen recording in:
 
 ## N2K Mesh Plaza
 
-Version 1.30.58-beta1 turns Demo Mode into a continuous **N2K Mesh Plaza** stream loop: a living digital meeting place built around Reticulum, LXMF and Home Assistant.
+Version 1.30.59-beta1 turns Demo Mode into a continuous **N2K Mesh Plaza** stream loop: a living digital meeting place built around Reticulum, LXMF and Home Assistant.
 
 The background is no longer static. Every scene changes the behaviour of a common animated Reticulum environment:
 
@@ -43,6 +43,32 @@ Scene examples:
 The concept is an original tribute to the idea of participatory network television and a shared digital plaza. The implementation uses its own N2K visual language, graphics and animations.
 
 The visual layer remains synthetic-only and never consumes live chats, contacts or Home Assistant event payloads.
+
+## TV Safe broadcast mode
+
+Version 1.30.59-beta1 adds a dedicated **TV SAFE** mode for long-running broadcast and studio use.
+
+When enabled:
+
+- the demo switches to wide format
+- the loop starts automatically
+- navigation, page headers, metadata and controls are hidden
+- the stage expands to the full viewport
+- watermark and optional subtitles remain visible
+- the Mesh Plaza ambient layer keeps running continuously
+
+The loop from scene 17 back to scene 1 uses a soft visual wash instead of a hard restart.
+
+The Mesh Plaza ticker now rotates synthetic status phrases such as:
+
+- RNS PATH LEARNED
+- LXMF DELIVERED
+- RNODE ACTIVE
+- HA EVENT
+- STORE & FORWARD READY
+- ROUTE DISCOVERED
+
+Synthetic presence points also appear and move around the plaza. They represent abstract network presence only and never correspond to real users or contacts.
 
 ## Story structure
 
@@ -118,7 +144,7 @@ reticulum_dev/rootfs/opt/reticulum-web/static/messenger.js
 
 ## Home Assistant chapters
 
-Version 1.30.58-beta1 adds two synthetic chapters to explain the native Home Assistant bridge.
+Version 1.30.59-beta1 adds two synthetic chapters to explain the native Home Assistant bridge.
 
 ### Home Assistant automation
 
