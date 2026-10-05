@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.30.55-beta1 — Home Assistant Actions
+
+### Home Assistant
+
+- Add `n2k.send_message` for HA → LXMF automation messages.
+- Add `n2k.send_announce` for manual LXMF presence announces.
+- Add `n2k.refresh_status` for immediate N2K state refresh.
+- Keep matching `reticulum.*` service names for compatibility.
+- Add privacy-safe `n2k_control_result` events for queued control outcomes.
+- Reuse the existing atomic LXMF outbound queue; no parallel send path was introduced.
+- Demo/stream baseline remains unchanged.
+
 ## 1.30.54-beta1 — Home Assistant Native Entity Bridge
 
 ### Home Assistant
