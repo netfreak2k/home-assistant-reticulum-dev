@@ -5,6 +5,12 @@ and LXMF messaging.
 
 This repository contains the current public beta development build.
 
+## Frozen demo baseline
+
+**1.30.53-beta1 is frozen as the approved Demo/Stream baseline.**
+
+Do not change Demo Mode visuals, narration defaults, speech synchronization, scene timing or stream brightness in this baseline. Any future Demo Mode changes must use a new version and be treated as a new development iteration.
+
 ## Current status
 
 **1.30.53-beta1 · Active public beta development**
