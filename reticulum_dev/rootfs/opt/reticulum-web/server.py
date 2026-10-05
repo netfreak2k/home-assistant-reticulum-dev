@@ -4216,6 +4216,370 @@ def publish_reticulum_status_to_home_assistant():
     )
 
 
+HA_RUNTIME_STATE = {
+    "reticulum_online": None,
+    "rnode_online": None,
+    "lxmf_ready": None,
+    "inbox_count": None,
+}
+
+
+def publish_home_assistant_event(
+    event_type,
+    event_data=None,
+):
+    token = os.environ.get("SUPERVISOR_TOKEN")
+
+    if not token:
+        raise RuntimeError(
+            "SUPERVISOR_TOKEN nicht vorhanden"
+        )
+
+    body = json.dumps(
+        event_data or {}
+    ).encode("utf-8")
+
+    request = urllib.request.Request(
+        HA_API_BASE + "/events/" + event_type,
+        data=body,
+        method="POST",
+        headers={
+            "Authorization":
+                "Bearer " + token,
+            "Content-Type":
+                "application/json",
+        },
+    )
+
+    with urllib.request.urlopen(
+        request,
+        timeout=5,
+    ) as response:
+        return response.status in (200, 201)
+
+
+def _find_rnode_interface(status):
+    interfaces = (
+        status.get("interfaces") or []
+        if isinstance(status, dict)
+        else []
+    )
+
+    for item in interfaces:
+        if not isinstance(item, dict):
+            continue
+
+        interface_type = str(
+            item.get("type") or ""
+        ).lower()
+
+        interface_name = str(
+            item.get("name") or ""
+        ).lower()
+
+        if (
+            "rnode" in interface_type
+            or "rnode" in interface_name
+        ):
+            return item
+
+    return {}
+
+
+def _ha_binary_state(value):
+    return "on" if bool(value) else "off"
+
+
+def publish_n2k_home_assistant_entities():
+    status = get_status()
+    identity = get_node_identity_status()
+    messenger = get_messenger_data()
+    inbox = get_lxmf_inbox()
+    outbox = get_lxmf_outbox()
+    propagation = get_propagation_config()
+
+    rnode = _find_rnode_interface(status)
+
+    reticulum_online = bool(
+        status.get("online")
+    )
+
+    rnode_status = str(
+        rnode.get("status") or ""
+    ).strip().lower()
+
+    rnode_online = bool(rnode) and (
+        rnode_status in (
+            "up",
+            "online",
+            "active",
+            "connected",
+        )
+    )
+
+    identity_state = str(
+        identity.get("state") or ""
+    ).strip().upper()
+
+    lxmf_ready = bool(
+        identity.get("destination_hash")
+    ) and identity_state not in (
+        "ERROR",
+        "STARTING",
+        "OFFLINE",
+    )
+
+    conversations = (
+        messenger.get("conversations") or []
+        if isinstance(messenger, dict)
+        else []
+    )
+
+    unread = 0
+    for item in conversations:
+        if isinstance(item, dict):
+            try:
+                unread += int(
+                    item.get("unread") or 0
+                )
+            except Exception:
+                pass
+
+    internet = (
+        status.get("internet_health") or {}
+        if isinstance(status, dict)
+        else {}
+    )
+
+    common = {
+        "integration": "N2K RNS Gateway",
+        "source": "reticulum_dev",
+    }
+
+    entities = [
+        (
+            "binary_sensor.n2k_reticulum_online",
+            _ha_binary_state(reticulum_online),
+            {
+                **common,
+                "friendly_name": "N2K Reticulum Online",
+                "icon": "mdi:radio-tower",
+                "device_class": "connectivity",
+                "interface_count": len(
+                    status.get("interfaces") or []
+                ),
+                "version": status.get("version") or "",
+            },
+        ),
+        (
+            "binary_sensor.n2k_rnode_online",
+            _ha_binary_state(rnode_online),
+            {
+                **common,
+                "friendly_name": "N2K RNode Online",
+                "icon": "mdi:access-point",
+                "device_class": "connectivity",
+                "interface": rnode.get("name") or "",
+                "interface_status": rnode.get("status") or "",
+                "rate": rnode.get("rate"),
+                "mtu": rnode.get("mtu"),
+            },
+        ),
+        (
+            "binary_sensor.n2k_lxmf_ready",
+            _ha_binary_state(lxmf_ready),
+            {
+                **common,
+                "friendly_name": "N2K LXMF Ready",
+                "icon": "mdi:message-text-fast",
+                "device_class": "connectivity",
+                "node_state": identity.get("state") or "",
+                "persistent_identity": bool(
+                    identity.get("persistent")
+                ),
+            },
+        ),
+        (
+            "sensor.n2k_reticulum_interfaces",
+            len(status.get("interfaces") or []),
+            {
+                **common,
+                "friendly_name": "N2K Reticulum Interfaces",
+                "icon": "mdi:lan-connect",
+            },
+        ),
+        (
+            "sensor.n2k_internet_peers",
+            int(internet.get("peer_count") or 0),
+            {
+                **common,
+                "friendly_name": "N2K Internet Peers",
+                "icon": "mdi:transit-connection-variant",
+                "path_state":
+                    internet.get("path_state") or "UNKNOWN",
+                "reachable_peers":
+                    internet.get("reachable_peers") or 0,
+            },
+        ),
+        (
+            "sensor.n2k_rnode_noise_floor",
+            (
+                rnode.get("noise_floor_dbm")
+                if rnode.get("noise_floor_dbm")
+                is not None
+                else "unknown"
+            ),
+            {
+                **common,
+                "friendly_name": "N2K RNode Noise Floor",
+                "icon": "mdi:signal",
+                "unit_of_measurement": "dBm",
+            },
+        ),
+        (
+            "sensor.n2k_rnode_airtime_15s",
+            (
+                rnode.get("airtime_15s_percent")
+                if rnode.get("airtime_15s_percent")
+                is not None
+                else "unknown"
+            ),
+            {
+                **common,
+                "friendly_name": "N2K RNode Airtime 15s",
+                "icon": "mdi:chart-timeline-variant",
+                "unit_of_measurement": "%",
+            },
+        ),
+        (
+            "sensor.n2k_lxmf_conversations",
+            len(conversations),
+            {
+                **common,
+                "friendly_name": "N2K LXMF Conversations",
+                "icon": "mdi:message-processing",
+            },
+        ),
+        (
+            "sensor.n2k_lxmf_unread",
+            unread,
+            {
+                **common,
+                "friendly_name": "N2K LXMF Unread",
+                "icon": "mdi:message-badge",
+            },
+        ),
+        (
+            "sensor.n2k_lxmf_inbox",
+            int(inbox.get("count") or 0),
+            {
+                **common,
+                "friendly_name": "N2K LXMF Inbox",
+                "icon": "mdi:inbox-arrow-down",
+            },
+        ),
+        (
+            "sensor.n2k_lxmf_outbox",
+            int(outbox.get("count") or 0),
+            {
+                **common,
+                "friendly_name": "N2K LXMF Outbox",
+                "icon": "mdi:outbox",
+            },
+        ),
+        (
+            "sensor.n2k_store_forward_status",
+            (
+                propagation.get("transfer_state")
+                or (
+                    "ready"
+                    if propagation.get("runtime_enabled")
+                    else "disabled"
+                )
+            ),
+            {
+                **common,
+                "friendly_name": "N2K Store & Forward",
+                "icon": "mdi:store-clock",
+                "enabled": bool(
+                    propagation.get("enabled")
+                ),
+                "runtime_enabled": bool(
+                    propagation.get("runtime_enabled")
+                ),
+                "selected_hops":
+                    propagation.get("selected_hops") or 0,
+                "last_success":
+                    propagation.get("last_success") or 0,
+            },
+        ),
+    ]
+
+    for entity_id, state, attributes in entities:
+        publish_home_assistant_state(
+            entity_id,
+            state,
+            attributes,
+        )
+
+    current = {
+        "reticulum_online": reticulum_online,
+        "rnode_online": rnode_online,
+        "lxmf_ready": lxmf_ready,
+        "inbox_count": int(
+            inbox.get("count") or 0
+        ),
+    }
+
+    for key in (
+        "reticulum_online",
+        "rnode_online",
+        "lxmf_ready",
+    ):
+        previous = HA_RUNTIME_STATE.get(key)
+        value = current[key]
+
+        if (
+            previous is not None
+            and previous != value
+        ):
+            publish_home_assistant_event(
+                "n2k_status_changed",
+                {
+                    "component": key,
+                    "state":
+                        "on" if value else "off",
+                },
+            )
+
+    previous_inbox = HA_RUNTIME_STATE.get(
+        "inbox_count"
+    )
+
+    if (
+        previous_inbox is not None
+        and current["inbox_count"] > previous_inbox
+    ):
+        publish_home_assistant_event(
+            "n2k_lxmf_message_received",
+            {
+                "new_messages":
+                    current["inbox_count"]
+                    - previous_inbox,
+                "inbox_count":
+                    current["inbox_count"],
+            },
+        )
+
+    HA_RUNTIME_STATE.update(current)
+
+    return {
+        "ok": True,
+        "entities": len(entities),
+        **current,
+    }
+
+
 def home_assistant_publisher_loop():
 
     while True:
@@ -4223,10 +4587,13 @@ def home_assistant_publisher_loop():
         try:
             publish_reticulum_status_to_home_assistant()
 
+            result = publish_n2k_home_assistant_entities()
+
             publish_mcp_snapshots()
 
             print(
-                "[HA] sensor.reticulum_status published",
+                "[HA] N2K entities published: "
+                + str(result.get("entities", 0)),
                 flush=True
             )
 
