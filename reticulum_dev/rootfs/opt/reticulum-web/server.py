@@ -4584,6 +4584,10 @@ N2K_CONTROL_FILE = Path(
     "/homeassistant/reticulum_bridge/n2k_control.json"
 )
 
+N2K_COMMAND_QUEUE_DIR = Path(
+    "/homeassistant/reticulum_bridge/commands"
+)
+
 
 def process_n2k_control_request():
     """Consume one control request queued by the HA integration."""
@@ -4666,11 +4670,103 @@ def process_n2k_control_request():
     return result
 
 
+def process_lxmf_command_queue():
+    """Forward sanitized, pre-authorized LXMF commands as HA events."""
+
+    if not N2K_COMMAND_QUEUE_DIR.exists():
+        return 0
+
+    processed = 0
+
+    for path in sorted(
+        N2K_COMMAND_QUEUE_DIR.glob("*.json")
+    )[:50]:
+        try:
+            payload = json.loads(
+                path.read_text(
+                    encoding="utf-8"
+                )
+            )
+
+            command = str(
+                payload.get("command") or ""
+            ).strip().upper()
+
+            alias = str(
+                payload.get("alias") or ""
+            ).strip().upper()
+
+            source_hash = str(
+                payload.get("source_hash") or ""
+            ).strip().lower()
+
+            if command not in {
+                "PING",
+                "STATUS",
+                "HELP",
+                "RUN",
+            }:
+                raise ValueError(
+                    "Unsupported command"
+                )
+
+            if command == "RUN":
+                if not re.fullmatch(
+                    r"[A-Z0-9_-]{1,32}",
+                    alias,
+                ):
+                    raise ValueError(
+                        "Invalid command alias"
+                    )
+            else:
+                alias = ""
+
+            publish_home_assistant_event(
+                "n2k_lxmf_command",
+                {
+                    "command": command,
+                    "alias": alias,
+                    "source_id":
+                        source_hash[:8],
+                    "received_at": int(
+                        payload.get(
+                            "received_at"
+                        ) or time.time()
+                    ),
+                },
+            )
+
+            processed += 1
+
+        except Exception as exc:
+            print(
+                "[HA] LXMF command rejected: "
+                + str(exc),
+                flush=True,
+            )
+
+        finally:
+            path.unlink(
+                missing_ok=True
+            )
+
+    return processed
+
+
 def home_assistant_publisher_loop():
 
     while True:
 
         try:
+            command_count = process_lxmf_command_queue()
+
+            if command_count:
+                print(
+                    "[HA] LXMF commands published: "
+                    + str(command_count),
+                    flush=True,
+                )
+
             control_result = process_n2k_control_request()
 
             if control_result is not None:
