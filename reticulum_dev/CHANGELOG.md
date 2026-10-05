@@ -1,3 +1,9 @@
+## 1.30.57-beta1
+- Add docs/SYSTEMHANDBUCH.md with the complete Home Assistant/Reticulum operating model.
+- Extend Demo Mode to 17 chapters and ≥03:47 minimum runtime.
+- Add synthetic Home Assistant automation and secure LXMF -> HA command chapters.
+- Preserve the frozen stream look and narrator synchronization behavior.
+
 ## 1.30.56-beta1
 - Add secure LXMF -> Home Assistant command events.
 - Disabled by default; only explicitly trusted source hashes are accepted.
