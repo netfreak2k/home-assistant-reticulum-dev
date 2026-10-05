@@ -13,7 +13,7 @@ Do not change Demo Mode visuals, narration defaults, speech synchronization, sce
 
 ## Current status
 
-**1.30.58-beta1 · Active public beta development**
+**1.30.59-beta1 · Active public beta development**
 
 The original public beta baseline has passed functional validation, update testing
 and a clean-install test on a second Home Assistant system. Development has since
@@ -132,6 +132,7 @@ names, but users should still review files before publishing them publicly.
 - Read-only network monitoring with 24 h local history
 - Social Demo Mode with narrator-safe ≥3:47 scripted story and 17 chapters
 - N2K Mesh Plaza continuous animated stream backdrop with scene-specific Reticulum motion
+- TV-safe broadcast mode with clean fullscreen loop, dynamic ticker and synthetic plaza presence
 - 9:16 / 1:1 / 16:9 capture layouts
 - Privacy-safe synthetic messenger demonstration
 - Browser narration enabled by default; subtitles disabled by default
