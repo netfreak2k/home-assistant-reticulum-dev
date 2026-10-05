@@ -156,11 +156,41 @@ Check:
 Restart the updated add-on and hard-refresh/reload the Home Assistant Web UI
 to clear cached frontend content.
 
+## 10A. Home Assistant automation
+
+The add-on publishes N2K state directly into Home Assistant.
+
+Important entities include:
+
+- `binary_sensor.n2k_reticulum_online`
+- `binary_sensor.n2k_rnode_online`
+- `binary_sensor.n2k_lxmf_ready`
+- `sensor.n2k_rnode_noise_floor`
+- `sensor.n2k_lxmf_unread`
+- `sensor.n2k_store_forward_status`
+
+Available actions:
+
+- `n2k.send_message`
+- `n2k.send_announce`
+- `n2k.refresh_status`
+
+Available automation events include:
+
+- `n2k_status_changed`
+- `n2k_lxmf_message_received`
+- `n2k_control_result`
+- `n2k_lxmf_command`
+
+The secure LXMF → Home Assistant command bridge is disabled by default and only accepts explicitly trusted source hashes.
+
+See [Systemhandbuch](SYSTEMHANDBUCH.md) for architecture, configuration, security model and complete examples.
+
 ## 10. Demo Mode
 
 The left navigation contains **Demo Mode**, a privacy-safe social showcase.
 
-Demo Mode runs a 2:30 scripted presentation explaining:
+Demo Mode runs a narrator-synchronized ≥3:47 scripted presentation explaining:
 
 - why local-first communication is useful
 - how N2K RNS Gateway evolved
@@ -169,6 +199,8 @@ Demo Mode runs a 2:30 scripted presentation explaining:
 - Living Mesh
 - RNode / LoRa
 - monitoring
+- Home Assistant sensors, events and N2K actions
+- secure LXMF → Home Assistant command events
 - project goals and contribution options
 
 ### Privacy
