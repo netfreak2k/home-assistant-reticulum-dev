@@ -1,4 +1,6 @@
 send_message:
+  name: Send LXMF message
+  description: Send a text message over Reticulum using LXMF.
   fields:
     destination_hash:
       required: true
@@ -16,3 +18,11 @@ send_message:
       example: "Home Assistant"
       selector:
         text:
+
+send_announce:
+  name: Send LXMF announce
+  description: Request an LXMF presence announce from N2K RNS Gateway.
+
+refresh_status:
+  name: Refresh N2K status
+  description: Force an immediate refresh of the N2K Home Assistant state bridge.
