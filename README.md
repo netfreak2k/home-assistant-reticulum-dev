@@ -13,7 +13,7 @@ Do not change Demo Mode visuals, narration defaults, speech synchronization, sce
 
 ## Current status
 
-**1.30.55-beta1 · Active public beta development**
+**1.30.56-beta1 · Active public beta development**
 
 The original public beta baseline has passed functional validation, update testing
 and a clean-install test on a second Home Assistant system. Development has since
@@ -139,6 +139,61 @@ names, but users should still review files before publishing them publicly.
 - Home Assistant native state bridge with N2K sensors, binary sensors and automation events
 - Capture Mode for clean screen recording
 - Production readability/contrast pass for muted-feed viewing and small mobile screens
+
+## LXMF → Home Assistant commands
+
+Version 1.30.56-beta1 adds an opt-in, whitelist-only command bridge from LXMF into Home Assistant.
+
+Security model:
+
+- disabled by default
+- only explicitly configured full LXMF source hashes are trusted
+- no incoming message can call an arbitrary Home Assistant service
+- accepted commands are reduced to a fixed grammar and emitted only as a sanitized Home Assistant event
+- Home Assistant automations decide what a `RUN` alias actually does
+- the Home Assistant event contains only the command, alias, an 8-character source identifier and timestamp; raw message text and the full source hash are not forwarded
+
+Add-on options:
+
+```yaml
+ha_commands_enabled: true
+ha_trusted_sources: "0123456789abcdef0123456789abcdef"
+```
+
+Multiple trusted sources can be comma-separated.
+
+Accepted LXMF messages:
+
+```text
+!HA PING
+!HA STATUS
+!HA HELP
+!HA RUN LIGHT_ON
+```
+
+All accepted commands emit:
+
+```text
+n2k_lxmf_command
+```
+
+Example Home Assistant automation:
+
+```yaml
+trigger:
+  - platform: event
+    event_type: n2k_lxmf_command
+    event_data:
+      command: RUN
+      alias: LIGHT_ON
+
+action:
+  - service: light.turn_on
+    target:
+      entity_id: light.example
+```
+
+The alias is only a label. The N2K bridge never accepts a service name, entity ID, YAML fragment or free-form command payload from LXMF.
 
 ## Home Assistant actions
 
