@@ -22,20 +22,26 @@ PROPAGATION_AUTO_DISCOVERY="$(bashio::config 'propagation_auto_discovery' 2>/dev
 PROPAGATION_NODE="$(bashio::config 'propagation_node' 2>/dev/null || true)"
 PROPAGATION_AUTO_SYNC="$(bashio::config 'propagation_auto_sync' 2>/dev/null || true)"
 PROPAGATION_SYNC_INTERVAL="$(bashio::config 'propagation_sync_interval' 2>/dev/null || true)"
+HA_COMMANDS_ENABLED="$(bashio::config 'ha_commands_enabled' 2>/dev/null || true)"
+HA_TRUSTED_SOURCES="$(bashio::config 'ha_trusted_sources' 2>/dev/null || true)"
 
 [ -n "${PROPAGATION_ENABLED}" ] || PROPAGATION_ENABLED="false"
 [ -n "${PROPAGATION_AUTO_DISCOVERY}" ] || PROPAGATION_AUTO_DISCOVERY="true"
 [ -n "${PROPAGATION_AUTO_SYNC}" ] || PROPAGATION_AUTO_SYNC="true"
 [ -n "${PROPAGATION_SYNC_INTERVAL}" ] || PROPAGATION_SYNC_INTERVAL="900"
+[ -n "${HA_COMMANDS_ENABLED}" ] || HA_COMMANDS_ENABLED="false"
 
 export RETICULUM_PROPAGATION_ENABLED="${PROPAGATION_ENABLED}"
 export RETICULUM_PROPAGATION_AUTO_DISCOVERY="${PROPAGATION_AUTO_DISCOVERY}"
 export RETICULUM_PROPAGATION_NODE="${PROPAGATION_NODE}"
 export RETICULUM_PROPAGATION_AUTO_SYNC="${PROPAGATION_AUTO_SYNC}"
 export RETICULUM_PROPAGATION_SYNC_INTERVAL="${PROPAGATION_SYNC_INTERVAL}"
+export RETICULUM_HA_COMMANDS_ENABLED="${HA_COMMANDS_ENABLED}"
+export RETICULUM_HA_TRUSTED_SOURCES="${HA_TRUSTED_SOURCES}"
 
 bashio::log.info "Messenger name: ${MESSENGER_NAME}"
 bashio::log.info "LXMF propagation: ${PROPAGATION_ENABLED}"
 bashio::log.info "LXMF propagation auto discovery: ${PROPAGATION_AUTO_DISCOVERY}"
+bashio::log.info "LXMF -> Home Assistant commands: ${HA_COMMANDS_ENABLED}"
 
 exec python3 /opt/reticulum-node/node.py
