@@ -1,3 +1,10 @@
+## 1.30.58-beta1
+- Transform Demo Mode into N2K Mesh Plaza for continuous Twitch/YouTube demo loops.
+- Add scene-specific Reticulum route, packet, node and broadcast-panel animations.
+- Give Living Mesh, RNode, HA automation, Store & Forward and finale distinct movement profiles.
+- Keep narration synchronization, privacy behaviour and 17-scene timing unchanged.
+- Respect prefers-reduced-motion.
+
 ## 1.30.57-beta1
 - Add docs/SYSTEMHANDBUCH.md with the complete Home Assistant/Reticulum operating model.
 - Extend Demo Mode to 17 chapters and ≥03:47 minimum runtime.
