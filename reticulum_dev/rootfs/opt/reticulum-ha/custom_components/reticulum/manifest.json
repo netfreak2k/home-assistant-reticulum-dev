@@ -1,7 +1,7 @@
 {
   "domain": "reticulum",
   "name": "Netfreak2k Reticulum Bridge",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "documentation": "https://github.com/netfreak2k/home-assistant-reticulum-dev",
   "config_flow": true,
   "single_config_entry": true,
