@@ -13,7 +13,7 @@ Do not change Demo Mode visuals, narration defaults, speech synchronization, sce
 
 ## Current status
 
-**1.30.53-beta1 · Active public beta development**
+**1.30.54-beta1 · Active public beta development**
 
 The original public beta baseline has passed functional validation, update testing
 and a clean-install test on a second Home Assistant system. Development has since
@@ -136,8 +136,49 @@ names, but users should still review files before publishing them publicly.
 - Browser narration enabled by default; subtitles disabled by default
 - Narrator-synchronized scene changes that wait for speech completion
 - Stream-optimized brighter Demo Mode for Twitch, YouTube and live capture
+- Home Assistant native state bridge with N2K sensors, binary sensors and automation events
 - Capture Mode for clean screen recording
 - Production readability/contrast pass for muted-feed viewing and small mobile screens
+
+## Home Assistant entities
+
+Starting with 1.30.54-beta1 the add-on publishes native Home Assistant state entities every 15 seconds through the Home Assistant Core API.
+
+Published entities:
+
+- `binary_sensor.n2k_reticulum_online`
+- `binary_sensor.n2k_rnode_online`
+- `binary_sensor.n2k_lxmf_ready`
+- `sensor.n2k_reticulum_interfaces`
+- `sensor.n2k_internet_peers`
+- `sensor.n2k_rnode_noise_floor`
+- `sensor.n2k_rnode_airtime_15s`
+- `sensor.n2k_lxmf_conversations`
+- `sensor.n2k_lxmf_unread`
+- `sensor.n2k_lxmf_inbox`
+- `sensor.n2k_lxmf_outbox`
+- `sensor.n2k_store_forward_status`
+
+Automation events:
+
+- `n2k_status_changed` — emitted when Reticulum, RNode or LXMF readiness changes after the initial snapshot.
+- `n2k_lxmf_message_received` — emitted when the LXMF inbox count increases. Message content and contact identity are not included in the event payload.
+
+The existing `sensor.reticulum_status` remains available for backward compatibility.
+
+Example automation trigger:
+
+```yaml
+trigger:
+  - platform: event
+    event_type: n2k_lxmf_message_received
+
+action:
+  - service: notify.mobile_app
+    data:
+      title: "N2K RNS Gateway"
+      message: "Neue LXMF-Nachricht empfangen."
+```
 
 ## Documentation
 
