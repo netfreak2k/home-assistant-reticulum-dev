@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.30.59-beta1 — TV Safe Broadcast Loop
+
+### Demo Mode
+
+- Add dedicated TV SAFE mode for full-screen studio and broadcast use.
+- Auto-select wide layout and auto-start the demo loop.
+- Hide navigation, headers, metadata and controls in TV SAFE mode.
+- Keep watermark and optional subtitles visible.
+- Add a soft loop transition from the finale back to scene 1.
+- Add rotating synthetic broadcast ticker messages.
+- Add synthetic Mesh Plaza presence points that never map to real users.
+- Preserve narration synchronization, privacy rules and 17-scene runtime.
+
 ## 1.30.58-beta1 — N2K Mesh Plaza Stream Loop
 
 ### Demo Mode
