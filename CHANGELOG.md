@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.30.56-beta1 — Secure LXMF → Home Assistant Commands
+
+### Home Assistant
+
+- Add opt-in LXMF command bridge, disabled by default.
+- Require explicit full destination-hash allowlist via `ha_trusted_sources`.
+- Accept only `!HA PING`, `!HA STATUS`, `!HA HELP` and `!HA RUN <ALIAS>`.
+- Emit sanitized `n2k_lxmf_command` events instead of calling arbitrary Home Assistant services.
+- Restrict RUN aliases to `[A-Z0-9_-]{1,32}`.
+- Do not forward raw LXMF message text or full source hashes to the HA event bus.
+- Keep Demo/Stream behavior unchanged.
+
 ## 1.30.55-beta1 — Home Assistant Actions
 
 ### Home Assistant
