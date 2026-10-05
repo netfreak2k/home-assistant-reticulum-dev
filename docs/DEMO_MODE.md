@@ -12,6 +12,38 @@ It is designed for screen recording in:
 - 1:1 — square social posts
 - 16:9 — desktop / YouTube / presentations
 
+## N2K Mesh Plaza
+
+Version 1.30.58-beta1 turns Demo Mode into a continuous **N2K Mesh Plaza** stream loop: a living digital meeting place built around Reticulum, LXMF and Home Assistant.
+
+The background is no longer static. Every scene changes the behaviour of a common animated Reticulum environment:
+
+- flowing Reticulum routes
+- moving signal packets
+- pulsing mesh nodes
+- floating RNS/LXMF/Home Assistant broadcast panels
+- continuous N2K Mesh Plaza ticker
+- scene-specific motion, brightness and routing behaviour
+
+Scene examples:
+
+- **Local First:** nodes visually gather and connect
+- **Reticulum Paths:** routes flow faster and become more visible
+- **Transport:** LoRa, LAN, TCP and backbone routes use distinct accents
+- **LXMF:** message packets dominate the background
+- **Living Mesh:** strongest cinematic movement and route activity
+- **RNode:** faster radio-like node pulsing
+- **Store & Forward:** packet movement pauses and resumes
+- **Monitoring:** denser status-wall activity
+- **Home Assistant:** the HA broadcast panel and event flow move forward visually
+- **Secure LXMF → HA:** the trusted-event side is emphasized
+- **Development:** a stepped cyclic motion represents build/test/fix/push
+- **Finale:** all plaza layers become active together as the digital Mesh meeting place
+
+The concept is an original tribute to the idea of participatory network television and a shared digital plaza. The implementation uses its own N2K visual language, graphics and animations.
+
+The visual layer remains synthetic-only and never consumes live chats, contacts or Home Assistant event payloads.
+
 ## Story structure
 
 The current production story contains 17 chapters with variable pacing and a narrator-safe minimum runtime of 227 seconds:
@@ -86,7 +118,7 @@ reticulum_dev/rootfs/opt/reticulum-web/static/messenger.js
 
 ## Home Assistant chapters
 
-Version 1.30.57-beta1 adds two synthetic chapters to explain the native Home Assistant bridge.
+Version 1.30.58-beta1 adds two synthetic chapters to explain the native Home Assistant bridge.
 
 ### Home Assistant automation
 
