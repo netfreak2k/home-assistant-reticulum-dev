@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.55-beta1";
+  const VERSION="1.30.56-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5476,7 +5476,7 @@ function n2kIcon(name){
 
 
 /* =========================================================
-   N2K Demo Mode 1.30.55-beta1
+   N2K Demo Mode 1.30.56-beta1
    Production social story · narrator-safe variable pacing.
    Privacy rule: synthetic-only. No API/chat/contact access.
    ========================================================= */
