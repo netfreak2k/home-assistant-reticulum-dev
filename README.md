@@ -13,7 +13,7 @@ Do not change Demo Mode visuals, narration defaults, speech synchronization, sce
 
 ## Current status
 
-**1.30.54-beta1 · Active public beta development**
+**1.30.55-beta1 · Active public beta development**
 
 The original public beta baseline has passed functional validation, update testing
 and a clean-install test on a second Home Assistant system. Development has since
@@ -139,6 +139,45 @@ names, but users should still review files before publishing them publicly.
 - Home Assistant native state bridge with N2K sensors, binary sensors and automation events
 - Capture Mode for clean screen recording
 - Production readability/contrast pass for muted-feed viewing and small mobile screens
+
+## Home Assistant actions
+
+Version 1.30.55-beta1 adds callable Home Assistant services for automations.
+
+Preferred N2K aliases:
+
+- `n2k.send_message`
+- `n2k.send_announce`
+- `n2k.refresh_status`
+
+The integration-native `reticulum.send_message`, `reticulum.send_announce` and `reticulum.refresh_status` names are also registered for compatibility.
+
+Send an LXMF message:
+
+```yaml
+action:
+  - service: n2k.send_message
+    data:
+      destination_hash: "0123456789abcdef0123456789abcdef"
+      title: "Home Assistant"
+      content: "WARNUNG: Netzstrom ausgefallen"
+```
+
+Send an LXMF announce:
+
+```yaml
+action:
+  - service: n2k.send_announce
+```
+
+Force a status refresh:
+
+```yaml
+action:
+  - service: n2k.refresh_status
+```
+
+Control requests emit a privacy-safe `n2k_control_result` event with action, success state and error text only.
 
 ## Home Assistant entities
 
