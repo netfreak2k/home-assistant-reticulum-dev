@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.57-beta1";
+  const VERSION="1.30.58-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5044,7 +5044,7 @@ function n2kIcon(name){
 
     surface.innerHTML=
       '<div class="n2k-demo-meta">'+
-        '<div><span class="n2k-demo-kicker">SOCIAL STORY</span><strong>≥3:47 Auto Demo</strong><small>Reticulum · LXMF · Home Assistant · Automationen · Offgrid · Mitmachen</small></div>'+
+        '<div><span class="n2k-demo-kicker">N2K MESH PLAZA</span><strong>≥3:47 Stream Loop</strong><small>Reticulum · LXMF · Home Assistant · Offgrid · Community Broadcast</small></div>'+
         '<div class="n2k-demo-badges"><span class="privacy">PRIVACY SAFE</span><span>SYNTHETIC DATA</span><span>17 KAPITEL</span></div>'+
       '</div>'+
       '<div class="n2k-demo-controls">'+
@@ -5069,6 +5069,34 @@ function n2kIcon(name){
           '<div class="n2k-demo-grid" aria-hidden="true"></div>'+
           '<div class="n2k-demo-glow g1" aria-hidden="true"></div>'+
           '<div class="n2k-demo-glow g2" aria-hidden="true"></div>'+
+          '<div class="n2k-plaza-ambient" aria-hidden="true">'+
+            '<svg class="n2k-plaza-network" viewBox="0 0 1200 675" preserveAspectRatio="xMidYMid slice">'+
+              '<defs><filter id="n2k-plaza-soft"><feGaussianBlur stdDeviation="2.8"/></filter></defs>'+
+              '<g class="plaza-routes">'+
+                '<path id="plaza-p1" d="M60 500 C220 310 360 380 520 210 S860 100 1140 240"/>'+
+                '<path id="plaza-p2" d="M20 160 C220 260 380 70 590 190 S920 420 1180 330"/>'+
+                '<path id="plaza-p3" d="M120 620 C360 500 520 610 690 420 S930 230 1160 560"/>'+
+                '<path id="plaza-p4" d="M130 80 C300 210 500 300 680 120 S940 40 1090 150"/>'+
+              '</g>'+
+              '<g class="plaza-packets">'+
+                '<circle r="4"><animateMotion dur="6.5s" repeatCount="indefinite"><mpath href="#plaza-p1"/></animateMotion></circle>'+
+                '<circle r="3.4"><animateMotion dur="5.2s" begin="-1.7s" repeatCount="indefinite"><mpath href="#plaza-p2"/></animateMotion></circle>'+
+                '<circle r="3.8"><animateMotion dur="7.1s" begin="-3.1s" repeatCount="indefinite"><mpath href="#plaza-p3"/></animateMotion></circle>'+
+                '<circle r="3.2"><animateMotion dur="4.8s" begin="-.9s" repeatCount="indefinite"><mpath href="#plaza-p4"/></animateMotion></circle>'+
+              '</g>'+
+              '<g class="plaza-nodes">'+
+                '<g transform="translate(150 145)"><circle r="24"/><circle class="core" r="5"/></g>'+
+                '<g transform="translate(350 500)"><circle r="18"/><circle class="core" r="4"/></g>'+
+                '<g transform="translate(610 165)"><circle r="22"/><circle class="core" r="5"/></g>'+
+                '<g transform="translate(820 485)"><circle r="20"/><circle class="core" r="4"/></g>'+
+                '<g transform="translate(1040 185)"><circle r="25"/><circle class="core" r="5"/></g>'+
+              '</g>'+
+            '</svg>'+
+            '<div class="n2k-plaza-window plaza-a"><small>RNS FEED</small><b>PATHS</b><span>dynamic routing</span></div>'+
+            '<div class="n2k-plaza-window plaza-b"><small>LXMF LIVE</small><b>MESSAGES</b><span>store · route · deliver</span></div>'+
+            '<div class="n2k-plaza-window plaza-c"><small>HOME ASSISTANT</small><b>EVENTS</b><span>sensors · actions</span></div>'+
+            '<div class="n2k-plaza-marquee"><span>N2K MESH PLAZA · RETICULUM · LXMF · LOCAL INTELLIGENCE · KEIN NETZ KEIN PROBLEM · </span></div>'+
+          '</div>'+
 
           '<section class="n2k-demo-scene n2k-demo-scene-intro is-active" data-demo-scene="0">'+
             '<div class="n2k-demo-intro-core"><i></i><i></i><i></i><b>N2K</b></div>'+
@@ -5162,7 +5190,7 @@ function n2kIcon(name){
 
           '<section class="n2k-demo-scene n2k-demo-scene-finale n2k-demo-join" data-demo-scene="16">'+
             '<div class="n2k-demo-finale-orbit"><i></i><i></i><i></i><b>N2K</b></div>'+
-            '<span>OPEN DEVELOPMENT · MITMACHEN</span>'+
+            '<span>MESH PLAZA · OPEN DEVELOPMENT · MITMACHEN</span>'+
             '<h3>NEUGIERIG?<br>BAU MIT.</h3>'+
             '<p>Teste die App · melde Bugs · bring Ideen · teste Hardware · übersetze · entwickle mit</p>'+
             '<div class="n2k-demo-join-box"><b>GitHub</b><span>netfreak2k/home-assistant-reticulum-dev</span><small>Issues · Feedback · Code · reale Feldtests</small></div>'+
@@ -5171,7 +5199,7 @@ function n2kIcon(name){
 
           '<div class="n2k-demo-transition" aria-hidden="true"><i></i><i></i></div>'+
           '<div id="n2k-demo-subtitles" class="n2k-demo-subtitles" aria-live="polite"><small id="n2k-demo-subtitle-kicker">N2K RNS GATEWAY</small><strong id="n2k-demo-subtitle-text">Was passiert, wenn das Netz weg ist?</strong></div>'+
-          '<div class="n2k-demo-watermark">N2K RNS GATEWAY · DEMO MODE · PRIVACY SAFE</div>'+
+          '<div class="n2k-demo-watermark">N2K MESH PLAZA · DEMO LOOP · PRIVACY SAFE</div>'+
         '</div>'+
       '</div>'+
       '<div class="n2k-demo-caption">'+
@@ -5486,7 +5514,7 @@ function n2kIcon(name){
 
 
 /* =========================================================
-   N2K Demo Mode 1.30.57-beta1
+   N2K Demo Mode 1.30.58-beta1
    Production social story · narrator-safe variable pacing.
    Privacy rule: synthetic-only. No API/chat/contact access.
    ========================================================= */
@@ -5611,7 +5639,7 @@ function n2kIcon(name){
       description:"Teste, melde Bugs, bring Ideen und Hardwareerfahrung ein.",
       kicker:"NEUGIERIG?",
       duration:16,
-      narration:"Du hast einen Raspberry Pi, einen RNode, Home Assistant oder einfach eine gute Idee? Teste mit, melde Bugs, probiere Hardware aus oder entwickle direkt auf GitHub mit."
+      narration:"N2K Mesh Plaza ist unser digitaler Mesh Treffpunkt. Du hast einen Raspberry Pi, einen RNode, Home Assistant oder eine gute Idee? Teste mit, bring Hardware und Erfahrungen ein oder entwickle auf GitHub mit."
     }
   ];
 
