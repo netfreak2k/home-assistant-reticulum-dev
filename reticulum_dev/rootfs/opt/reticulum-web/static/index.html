@@ -3614,6 +3614,8 @@ code {
         <div><b>Identity</b><span>Deine dauerhafte lokale Identität. Sie sollte nicht ohne Grund gelöscht werden.</span></div>
         <div><b>Announce</b><span>Eine kurze Bekanntmachung, damit andere Geräte deine Destination kennenlernen können.</span></div>
         <div><b>Store &amp; Forward</b><span>Nachrichten können zwischengespeichert werden, wenn kein direkter Weg vorhanden ist.</span></div>
+        <div><b>HA Event</b><span>Ein Ereignis in Home Assistant, das als sicherer Trigger für Automationen verwendet werden kann.</span></div>
+        <div><b>N2K Command</b><span>Ein streng begrenzter LXMF-Befehl, der nur als geprüftes Event an Home Assistant weitergegeben wird.</span></div>
       </div>
     </details>
 
@@ -3715,6 +3717,33 @@ code {
           <p>Im empfohlenen Modus „automatisch suchen“ lauscht N2K passiv auf gültige <code>lxmf.propagation</code>-Announces. Aktive Nodes werden nach Hop-Anzahl, Aktualität und Stamp Cost bewertet. Ein weiterhin brauchbarer Node wird bevorzugt beibehalten, um unnötige Wechsel zu vermeiden.</p>
           <p>Alternativ kann unter „manuell“ weiterhin ein 32-stelliger Propagation-Destination-Hash eingetragen werden. Geparkte Nachrichten können automatisch in einem konfigurierbaren Intervall abgerufen werden.</p>
           <p><strong>Wichtig:</strong> Die automatische Suche sendet keine zusätzlichen Discovery-Anfragen. Nach Änderungen an der Propagation-Konfiguration ist ein Add-on-Neustart erforderlich.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="home assistant automation sensor event service aktion n2k send message announce refresh">
+        <summary>13 · Home Assistant Automationen</summary>
+        <div class="n2k-help-body">
+          <p>N2K veröffentlicht Reticulum-, RNode- und LXMF-Zustände direkt in Home Assistant. Dazu gehören Online-Status, Funkwerte, Inbox/Outbox und Store-&amp;-Forward-Status.</p>
+          <p>Für Automationen stehen unter anderem <code>n2k.send_message</code>, <code>n2k.send_announce</code> und <code>n2k.refresh_status</code> zur Verfügung. Neue LXMF-Nachrichten und Statuswechsel können außerdem als Home-Assistant-Events verwendet werden.</p>
+          <p><strong>Beispiel:</strong> Ein Stromausfall kann in Home Assistant eine Automation auslösen, die eine LXMF-Warnmeldung über Reticulum versendet.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="lxmf home assistant command steuerung whitelist trusted source status run sicherheit event">
+        <summary>14 · Sichere LXMF → Home-Assistant-Steuerung</summary>
+        <div class="n2k-help-body">
+          <p>Die Fernsteuerung ist standardmäßig ausgeschaltet. Sie muss mit <code>ha_commands_enabled</code> aktiviert werden und akzeptiert ausschließlich vollständig eingetragene vertrauenswürdige LXMF-Absender.</p>
+          <p>Erlaubt sind nur feste Befehle wie <code>!HA STATUS</code> oder <code>!HA RUN LIGHT_ON</code>. Ein RUN-Befehl erzeugt lediglich ein geprüftes <code>n2k_lxmf_command</code>-Event mit einem Alias.</p>
+          <p><strong>Sicherheitsregel:</strong> LXMF darf niemals freie Home-Assistant-Services, Entity-IDs, YAML oder Code ausführen. Die lokale Home-Assistant-Automation entscheidet, was ein Alias tatsächlich macht.</p>
+        </div>
+      </details>
+
+      <details class="n2k-help-item" data-help="demo mode social twitch youtube stream sprecher untertitel privacy home assistant automation">
+        <summary>15 · Demo Mode / Social Stream</summary>
+        <div class="n2k-help-body">
+          <p>Der Demo Mode zeigt eine synthetische 17-Kapitel-Präsentation zu Reticulum, LXMF, Living Mesh, RNode, Store &amp; Forward und den neuen Home-Assistant-Automationen.</p>
+          <p>Neu erklärt die Demo auch HA → LXMF Aktionen und die sichere LXMF → HA Event-Brücke. Sie greift dabei niemals auf echte Nachrichten, Kontakte, Hashes oder reale Automationsereignisse zu.</p>
+          <p>Der Sprecher ist standardmäßig aktiv, Untertitel standardmäßig aus. Die Mindestlaufzeit liegt bei etwa 3:47; bei längerer Sprachausgabe wartet die Szene automatisch.</p>
         </div>
       </details>
 
