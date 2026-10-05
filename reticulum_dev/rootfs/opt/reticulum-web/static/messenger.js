@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.56-beta1";
+  const VERSION="1.30.57-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -4992,7 +4992,7 @@ function n2kIcon(name){
     overview:{title:"Übersicht",sub:"Live-Status, Living Mesh und aktuelle Aktivitäten"},
     chat:{title:"Chat",sub:"Nachrichten und Kontakte · LXMF Messenger"},
     mesh:{title:"Living Mesh",sub:"Live-Aktivität, Routen und Relays"},
-    demo:{title:"Demo Mode",sub:"2:30 Social Story · Reticulum erklärt · Privacy Safe"},
+    demo:{title:"Demo Mode",sub:"Social Story · Reticulum + Home Assistant · Privacy Safe"},
     status:{title:"Status",sub:"Systemzustand, Funkstatus und Diagnose"},
     settings:{title:"Einstellungen",sub:"Identity, Netzwerk und Store & Forward"},
     setup:{title:"Setup",sub:"Gateway und RNode Schritt für Schritt einrichten"},
@@ -5044,8 +5044,8 @@ function n2kIcon(name){
 
     surface.innerHTML=
       '<div class="n2k-demo-meta">'+
-        '<div><span class="n2k-demo-kicker">SOCIAL STORY</span><strong>3:18 Auto Demo</strong><small>Warum · Entstehung · Reticulum · LXMF · Mesh · Nutzen · Zukunft · Mitmachen</small></div>'+
-        '<div class="n2k-demo-badges"><span class="privacy">PRIVACY SAFE</span><span>SYNTHETIC DATA</span><span>15 KAPITEL</span></div>'+
+        '<div><span class="n2k-demo-kicker">SOCIAL STORY</span><strong>≥3:47 Auto Demo</strong><small>Reticulum · LXMF · Home Assistant · Automationen · Offgrid · Mitmachen</small></div>'+
+        '<div class="n2k-demo-badges"><span class="privacy">PRIVACY SAFE</span><span>SYNTHETIC DATA</span><span>17 KAPITEL</span></div>'+
       '</div>'+
       '<div class="n2k-demo-controls">'+
         '<div class="n2k-demo-controls-main">'+
@@ -5057,7 +5057,7 @@ function n2kIcon(name){
           '<button type="button" data-demo-action="capture">● Aufnahme-Modus</button>'+
           '<button type="button" data-demo-action="fullscreen">⛶ Vollbild</button>'+
         '</div>'+
-        '<div class="n2k-demo-runtime" id="n2k-demo-runtime">00:00 / ≥03:18</div>'+
+        '<div class="n2k-demo-runtime" id="n2k-demo-runtime">00:00 / ≥03:47</div>'+
         '<div class="n2k-demo-formats" role="group" aria-label="Social Format">'+
           '<button type="button" data-demo-format="portrait">9:16</button>'+
           '<button type="button" data-demo-format="square">1:1</button>'+
@@ -5140,17 +5140,27 @@ function n2kIcon(name){
             '<div class="n2k-demo-bottom-explain"><b>Monitoring</b><span>zeigt Trends statt nur Momentaufnahmen.</span></div>'+
           '</section>'+
 
-          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-development" data-demo-scene="12">'+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-ha-automation" data-demo-scene="12">'+
+            '<div class="n2k-demo-story-copy"><span>HOME ASSISTANT · AUTOMATION</span><h3>Das Mesh wird Teil deiner Automationen.</h3><p>RNode, Reticulum und LXMF liefern Zustände an Home Assistant. Home Assistant kann im Gegenzug Nachrichten und Announces über N2K auslösen.</p></div>'+
+            '<div class="n2k-demo-story-grid three"><article><b>01</b><strong>Sensoren</strong><small>RNode, RNS, LXMF, Funkwerte und Store & Forward.</small></article><article><b>02</b><strong>Events</strong><small>Neue Nachrichten und Statuswechsel werden zu HA-Triggern.</small></article><article><b>03</b><strong>Aktionen</strong><small>Home Assistant sendet LXMF, Announce oder aktualisiert Status.</small></article></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-ha-command" data-demo-scene="13">'+
+            '<div class="n2k-demo-story-copy"><span>LXMF → HOME ASSISTANT</span><h3>Offgrid-Nachricht rein. Sichere Automation raus.</h3><p>Nur freigegebene Absender und eine feste Befehlssprache werden akzeptiert. Keine freien Services, keine Entity-IDs, kein beliebiger Code.</p></div>'+
+            '<div class="n2k-demo-explain-stack"><article><b>!HA STATUS</b><span>Statusabfrage über einen vertrauenswürdigen LXMF-Absender.</span></article><article><b>!HA RUN LIGHT_ON</b><span>Erzeugt nur den Alias LIGHT_ON als sicheres HA-Event.</span></article><article><b>WHITELIST</b><span>Home Assistant entscheidet selbst, welche Automation hinter einem Alias liegt.</span></article></div>'+
+          '</section>'+
+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-development" data-demo-scene="14">'+
             '<div class="n2k-demo-story-copy"><span>ENTWICKLUNG</span><h3>Gebaut auf echter Hardware. Iteriert in kleinen Schritten.</h3><p>UI, Messenger, QR, RNode-Automatik, Store & Forward, Living Mesh und Monitoring wurden Stück für Stück zusammengeführt.</p></div>'+
             '<div class="n2k-demo-progress-stack"><div><b>BUILD</b><span>Feature entwickeln</span></div><i>→</i><div><b>TEST</b><span>auf Home Assistant & Hardware</span></div><i>→</i><div><b>FIX</b><span>Fehler und UX verbessern</span></div><i>→</i><div><b>PUSH</b><span>neue Beta</span></div></div>'+
           '</section>'+
 
-          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-goals" data-demo-scene="13">'+
+          '<section class="n2k-demo-scene n2k-demo-story n2k-demo-story-goals" data-demo-scene="15">'+
             '<div class="n2k-demo-story-copy"><span>ZIELE</span><h3>Kommunikation verständlich, lokal und widerstandsfähig machen.</h3><p>Weniger Kommandozeile. Mehr Übersicht. Einfacher Einstieg. Mehr echte Offgrid-Möglichkeiten.</p></div>'+
             '<div class="n2k-demo-goals"><article><b>01</b><strong>Einfach</strong><span>Einsteiger sollen Nodes und Messenger ohne Spezialwissen bedienen können.</span></article><article><b>02</b><strong>Resilient</strong><span>Lokale Wege sollen auch ohne klassische Cloud funktionieren.</span></article><article><b>03</b><strong>Offen</strong><span>Hardware, Transportwege und Ideen sollen kombinierbar bleiben.</span></article><article><b>04</b><strong>Sichtbar</strong><span>Mesh, Funk und Routen werden grafisch begreifbar.</span></article></div>'+
           '</section>'+
 
-          '<section class="n2k-demo-scene n2k-demo-scene-finale n2k-demo-join" data-demo-scene="14">'+
+          '<section class="n2k-demo-scene n2k-demo-scene-finale n2k-demo-join" data-demo-scene="16">'+
             '<div class="n2k-demo-finale-orbit"><i></i><i></i><i></i><b>N2K</b></div>'+
             '<span>OPEN DEVELOPMENT · MITMACHEN</span>'+
             '<h3>NEUGIERIG?<br>BAU MIT.</h3>'+
@@ -5165,9 +5175,9 @@ function n2kIcon(name){
         '</div>'+
       '</div>'+
       '<div class="n2k-demo-caption">'+
-        '<div><span id="n2k-demo-scene-number">01 / 15</span><strong id="n2k-demo-scene-title">Was passiert, wenn das Netz weg ist?</strong><p id="n2k-demo-scene-description">Intro: Warum lokale, unabhängige Kommunikation überhaupt interessant ist.</p></div>'+
+        '<div><span id="n2k-demo-scene-number">01 / 17</span><strong id="n2k-demo-scene-title">Was passiert, wenn das Netz weg ist?</strong><p id="n2k-demo-scene-description">Intro: Warum lokale, unabhängige Kommunikation überhaupt interessant ist.</p></div>'+
         '<div class="n2k-demo-timeline" aria-label="Demo Fortschritt">'+
-          '<i class="active"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>'+
+          '<i class="active"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>'+
         '</div>'+
       '</div>';
 
@@ -5231,7 +5241,7 @@ function n2kIcon(name){
       grid.innerHTML=
         '<button class="n2k-os-more-card" type="button" data-page="settings"><b>'+n2kIcon("settings")+'Einstellungen</b><span>Identity, Netzwerk und Store & Forward</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-page="setup"><b>'+n2kIcon("setup")+'Setup</b><span>Gateway und RNode einrichten</span></button>'+
-        '<button class="n2k-os-more-card n2k-demo-more-card" type="button" data-page="demo"><b><span class="n2k-demo-more-icon">▶</span>Demo Mode</b><span>2:30 Social Story · Privacy Safe</span></button>'+
+        '<button class="n2k-os-more-card n2k-demo-more-card" type="button" data-page="demo"><b><span class="n2k-demo-more-icon">▶</span>Demo Mode</b><span>≥3:47 Social Story · Privacy Safe</span></button>'+
         '<button class="n2k-os-more-card" type="button" data-page="about"><b>'+n2kIcon("about")+'Über / Lizenz</b><span>Version und Lizenzinformationen</span></button>';
       grid.addEventListener("click",function(e){
         const b=e.target.closest("[data-page]");
@@ -5476,7 +5486,7 @@ function n2kIcon(name){
 
 
 /* =========================================================
-   N2K Demo Mode 1.30.56-beta1
+   N2K Demo Mode 1.30.57-beta1
    Production social story · narrator-safe variable pacing.
    Privacy rule: synthetic-only. No API/chat/contact access.
    ========================================================= */
@@ -5567,6 +5577,20 @@ function n2kIcon(name){
       kicker:"NETWORK INTELLIGENCE",
       duration:12,
       narration:"Monitoring zeigt nicht nur den aktuellen Zustand. Verfügbarkeit, Pfade, Dynamik und Funkwerte werden über Zeit sichtbar und dadurch besser einschätzbar."
+    },
+    {
+      title:"Home Assistant wird Teil des Netzes",
+      description:"Reticulum-Zustände werden zu Sensoren, Events und Automationen in Home Assistant.",
+      kicker:"HOME ASSISTANT · AUTOMATION",
+      duration:14,
+      narration:"Jetzt arbeitet das Gateway nicht nur in Home Assistant, sondern mit Home Assistant. Reticulum, RNode und LXMF liefern Sensoren und Events, und Automationen können Nachrichten über Reticulum senden."
+    },
+    {
+      title:"Sichere Steuerung über LXMF",
+      description:"Vertrauenswürdige LXMF-Befehle lösen nur freigegebene Home-Assistant-Automationen aus.",
+      kicker:"LXMF → HOME ASSISTANT",
+      duration:15,
+      narration:"Auch die Gegenrichtung ist möglich. Vertrauenswürdige Absender können klar begrenzte Befehle senden. Das Gateway führt niemals beliebigen Code aus, sondern erzeugt sichere Events, die Home Assistant kontrolliert verarbeitet."
     },
     {
       title:"Entwicklung",
