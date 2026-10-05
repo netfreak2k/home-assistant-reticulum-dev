@@ -1,3 +1,9 @@
+## 1.30.55-beta1
+- Add Home Assistant services n2k.send_message, n2k.send_announce and n2k.refresh_status.
+- Keep reticulum.* aliases for compatibility with the existing bridge integration.
+- Add n2k_control_result event for announce/refresh outcomes.
+- Preserve the frozen Demo/Stream behavior.
+
 ## 1.30.54-beta1
 - Publish native N2K Home Assistant sensors and binary sensors every 15 seconds.
 - Add Home Assistant automation events for N2K connectivity changes and new LXMF inbox messages.
