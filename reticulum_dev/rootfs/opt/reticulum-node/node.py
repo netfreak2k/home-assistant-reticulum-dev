@@ -1731,6 +1731,33 @@ LXMF_INBOX_FILE = STATE_DIR / "lxmf-inbox.json"
 LXMF_INBOX_LOCK = threading.RLock()
 LXMF_INBOX_LIMIT = 50
 
+# Safe LXMF -> Home Assistant command bridge.
+# Incoming messages never call Home Assistant services directly.
+# Only explicitly trusted senders and a small command grammar can
+# create sanitized command events for Home Assistant automations.
+HA_COMMAND_QUEUE_DIR = Path(
+    "/homeassistant/reticulum_bridge/commands"
+)
+
+LXMF_HA_COMMANDS_ENABLED = (
+    os.environ.get(
+        "RETICULUM_HA_COMMANDS_ENABLED",
+        "false",
+    ).strip().lower()
+    in ("1", "true", "yes", "on")
+)
+
+LXMF_HA_TRUSTED_SOURCES = {
+    item.strip().lower()
+    for item in os.environ.get(
+        "RETICULUM_HA_TRUSTED_SOURCES",
+        "",
+    ).split(",")
+    if item.strip()
+}
+
+LXMF_HA_COMMAND_PREFIX = "!HA "
+
 
 def _read_lxmf_inbox():
     if not LXMF_INBOX_FILE.exists():
@@ -1775,6 +1802,143 @@ def _lxmf_text(value):
         )
 
     return str(value)
+
+
+def queue_home_assistant_command(
+    source_hash,
+    content,
+    message_id,
+):
+    """Queue one sanitized LXMF command for Home Assistant."""
+
+    if not LXMF_HA_COMMANDS_ENABLED:
+        return {
+            "accepted": False,
+            "reason": "disabled",
+        }
+
+    source_hash = str(
+        source_hash or ""
+    ).strip().lower()
+
+    if (
+        not source_hash
+        or source_hash
+        not in LXMF_HA_TRUSTED_SOURCES
+    ):
+        return {
+            "accepted": False,
+            "reason": "untrusted_source",
+        }
+
+    text = str(
+        content or ""
+    ).strip()
+
+    if not text.upper().startswith(
+        LXMF_HA_COMMAND_PREFIX
+    ):
+        return {
+            "accepted": False,
+            "reason": "not_command",
+        }
+
+    body = text[
+        len(LXMF_HA_COMMAND_PREFIX):
+    ].strip()
+
+    parts = body.split(None, 1)
+    command = (
+        parts[0].upper()
+        if parts else ""
+    )
+    argument = (
+        parts[1].strip().upper()
+        if len(parts) > 1 else ""
+    )
+
+    allowed = {
+        "PING",
+        "STATUS",
+        "HELP",
+        "RUN",
+    }
+
+    if command not in allowed:
+        return {
+            "accepted": False,
+            "reason": "command_not_allowed",
+        }
+
+    if command == "RUN":
+        if not argument:
+            return {
+                "accepted": False,
+                "reason": "missing_alias",
+            }
+
+        if not re.fullmatch(
+            r"[A-Z0-9_-]{1,32}",
+            argument,
+        ):
+            return {
+                "accepted": False,
+                "reason": "invalid_alias",
+            }
+    else:
+        argument = ""
+
+    HA_COMMAND_QUEUE_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    safe_id = re.sub(
+        r"[^a-zA-Z0-9_-]",
+        "",
+        str(message_id or ""),
+    )[:64]
+
+    if not safe_id:
+        safe_id = str(
+            int(time.time() * 1000)
+        )
+
+    target = (
+        HA_COMMAND_QUEUE_DIR
+        / (safe_id + ".json")
+    )
+
+    temporary = target.with_suffix(
+        ".json.tmp"
+    )
+
+    payload = {
+        "command": command,
+        "alias": argument,
+        "source_hash": source_hash,
+        "message_id": safe_id,
+        "received_at": int(time.time()),
+    }
+
+    temporary.write_text(
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    os.replace(
+        temporary,
+        target,
+    )
+
+    return {
+        "accepted": True,
+        "command": command,
+        "alias": argument,
+    }
 
 
 def lxmf_delivery_callback(message):
@@ -1871,6 +2035,21 @@ def lxmf_delivery_callback(message):
             messages.append(entry)
 
             _write_lxmf_inbox(messages)
+
+            command_result = queue_home_assistant_command(
+                source_hash,
+                content,
+                message_id,
+            )
+
+            if command_result.get("accepted"):
+                print(
+                    "LXMF HA COMMAND:",
+                    command_result.get("command"),
+                    command_result.get("alias") or "",
+                    "from",
+                    source_hash[:8],
+                )
 
             state["lxmf_received_count"] = len(messages)
             state["lxmf_last_received"] = timestamp
