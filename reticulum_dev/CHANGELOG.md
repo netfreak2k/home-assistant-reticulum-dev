@@ -1,3 +1,8 @@
+## 1.30.59-beta1
+- Add TV SAFE broadcast mode for clean full-screen demo loops.
+- Add seamless finale-to-intro wash, dynamic status ticker and synthetic plaza presence.
+- Keep speaker synchronization and privacy-safe synthetic data unchanged.
+
 ## 1.30.58-beta1
 - Transform Demo Mode into N2K Mesh Plaza for continuous Twitch/YouTube demo loops.
 - Add scene-specific Reticulum route, packet, node and broadcast-panel animations.
