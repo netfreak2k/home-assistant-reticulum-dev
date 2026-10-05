@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Demo Mode is a built-in approximately 3 minute 18 second social-media presentation for
+Demo Mode is a built-in approximately 3 minute 47 second social-media presentation for
 explaining N2K RNS Gateway, Reticulum and LXMF to people who may have no prior
 mesh-network knowledge.
 
@@ -14,8 +14,7 @@ It is designed for screen recording in:
 
 ## Story structure
 
-The current production story contains 15 chapters with variable pacing and a
-narrator-safe total runtime of 198 seconds:
+The current production story contains 17 chapters with variable pacing and a narrator-safe minimum runtime of 227 seconds:
 
 1. Hook — what happens when the network disappears?
 2. Why local-first communication?
@@ -29,9 +28,11 @@ narrator-safe total runtime of 198 seconds:
 10. Privacy-safe Messenger
 11. Store & Forward / Propagation Nodes
 12. Monitoring
-13. Development workflow
-14. Project goals
-15. Community call-to-action
+13. Home Assistant automation bridge
+14. Secure LXMF → Home Assistant commands
+15. Development workflow
+16. Project goals
+17. Community call-to-action
 
 ## Recording workflow
 
@@ -42,7 +43,7 @@ narrator-safe total runtime of 198 seconds:
 5. Press **Capture Mode**.
 6. Start the screen recorder.
 7. Press **Restart** if you need the story from frame zero.
-8. Record the full 03:18 sequence.
+8. Record the full ≥ 03:47 sequence.
 
 Capture Mode hides navigation, page headers, controls and the external scene
 caption. The in-video subtitles and N2K watermark stay visible.
@@ -82,6 +83,27 @@ Important:
 The canonical narration text lives in the Demo Mode scene definitions in:
 
 reticulum_dev/rootfs/opt/reticulum-web/static/messenger.js
+
+## Home Assistant chapters
+
+Version 1.30.57-beta1 adds two synthetic chapters to explain the native Home Assistant bridge.
+
+### Home Assistant automation
+
+The demo explains that N2K publishes Reticulum, RNode and LXMF state into Home Assistant as sensors and events. It also shows that Home Assistant can trigger N2K actions such as LXMF messaging, announce and status refresh.
+
+### Secure LXMF → Home Assistant
+
+The demo shows the fixed command model:
+
+- `!HA STATUS`
+- `!HA RUN LIGHT_ON`
+- explicit sender whitelist
+- sanitized `n2k_lxmf_command` event
+
+The scene deliberately does not demonstrate arbitrary services, entity IDs or free-form code. Home Assistant remains the local policy and execution layer.
+
+Both chapters use synthetic values only. The Demo Mode does not read live Home Assistant entities or real LXMF commands.
 
 ## Privacy model
 
@@ -126,7 +148,7 @@ The social capture UI now deliberately prioritizes legibility over decorative de
 - 9:16 mode receives dedicated portrait typography overrides
 - high-contrast OS/browser preferences receive an additional contrast boost
 
-The story controller, 15-scene order and scene order is unchanged; runtime is now 198 seconds so narration can finish naturally.
+The visual design and narrator-synchronization controller remain unchanged; the story now contains 17 scenes; runtime is now 227 seconds so narration can finish naturally.
 This means existing recording workflows remain compatible while compressed TikTok,
 Reels and Shorts playback is easier to read.
 
