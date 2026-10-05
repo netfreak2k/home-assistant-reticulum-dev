@@ -1,3 +1,10 @@
+## 1.30.56-beta1
+- Add secure LXMF -> Home Assistant command events.
+- Disabled by default; only explicitly trusted source hashes are accepted.
+- Fixed command grammar: PING, STATUS, HELP and RUN <ALIAS>.
+- No arbitrary Home Assistant service execution from incoming messages.
+- Preserve the frozen Demo/Stream behavior.
+
 ## 1.30.55-beta1
 - Add Home Assistant services n2k.send_message, n2k.send_announce and n2k.refresh_status.
 - Keep reticulum.* aliases for compatibility with the existing bridge integration.
