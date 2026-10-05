@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.30.57-beta1 — System Handbook + Extended Demo
+
+### Documentation
+
+- Add a complete German system handbook covering architecture, RNS/LXMF, RNode, Home Assistant entities, events, actions, security, diagnosis and rollback.
+- Extend the user guide with the native Home Assistant automation layer.
+
+### Demo Mode
+
+- Extend the production story from 15 to 17 chapters.
+- Add a Home Assistant automation chapter covering sensors, events and HA → LXMF actions.
+- Add a secure LXMF → Home Assistant chapter covering sender whitelist, fixed command grammar and sanitized events.
+- Increase the narrator-safe minimum runtime from 03:18 to 03:47.
+- Preserve the approved stream look, speaker defaults and narration synchronization engine.
+- Keep all demo Home Assistant and LXMF command data synthetic.
+
 ## 1.30.56-beta1 — Secure LXMF → Home Assistant Commands
 
 ### Home Assistant
