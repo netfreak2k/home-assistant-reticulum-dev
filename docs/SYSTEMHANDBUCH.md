@@ -1,6 +1,6 @@
 # N2K RNS Gateway — Systemhandbuch
 
-Stand: **1.30.57-beta1**
+Stand: **1.30.58-beta1**
 
 Dieses Handbuch beschreibt Aufbau, Betrieb und Home-Assistant-Anbindung des N2K RNS Gateway. Es richtet sich an Anwender, Administratoren und Tester, die Reticulum/LXMF in Home Assistant betreiben und automatisieren möchten.
 
@@ -358,6 +358,22 @@ Aktuell zeigt sie 17 Kapitel, darunter:
 - Entwicklung und Projektziele
 
 Die Mindestlaufzeit beträgt etwa **3:47**. Bei aktivem Sprecher wartet jede Szene auf das tatsächliche Ende der Sprachausgabe.
+
+### N2K Mesh Plaza
+
+Seit 1.30.58-beta1 läuft der Demo Mode als dauerhafte Stream-Schleife mit eigenem Mesh-Plaza-Hintergrund.
+
+Gemeinsame Elemente:
+
+- animierte Reticulum-Pfade
+- laufende Signalpakete
+- pulsierende Nodes
+- RNS-, LXMF- und Home-Assistant-Broadcastfenster
+- kontinuierlicher Mesh-Plaza-Lauftext
+
+Die Bewegungscharakteristik wird pro Szene verändert. Dadurch bleibt ein Twitch-/YouTube-Dauerstream auch bei wiederholten Loops visuell aktiv.
+
+Die Gestaltung ist eine eigenständige Hommage an die Idee eines offenen digitalen Treffpunkts und partizipativen Netzfernsehens. Sie verwendet ausschließlich eigene N2K-Grafiken und Animationen.
 
 ## 18. Grenzen
 
