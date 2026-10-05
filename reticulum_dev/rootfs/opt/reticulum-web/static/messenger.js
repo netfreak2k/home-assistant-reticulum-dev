@@ -3861,7 +3861,7 @@ function n2kIcon(name){
 (function(){
   "use strict";
 
-  const VERSION="1.30.58-beta1";
+  const VERSION="1.30.59-beta1";
 
   function addStylesheet(){
     if(document.getElementById("n2k-os-css")) return;
@@ -5095,7 +5095,7 @@ function n2kIcon(name){
             '<div class="n2k-plaza-window plaza-a"><small>RNS FEED</small><b>PATHS</b><span>dynamic routing</span></div>'+
             '<div class="n2k-plaza-window plaza-b"><small>LXMF LIVE</small><b>MESSAGES</b><span>store · route · deliver</span></div>'+
             '<div class="n2k-plaza-window plaza-c"><small>HOME ASSISTANT</small><b>EVENTS</b><span>sensors · actions</span></div>'+
-            '<div class="n2k-plaza-marquee"><span>N2K MESH PLAZA · RETICULUM · LXMF · LOCAL INTELLIGENCE · KEIN NETZ KEIN PROBLEM · </span></div>'+
+            '<div class="n2k-plaza-marquee"><span id="n2k-plaza-marquee-text">N2K MESH PLAZA · RETICULUM · LXMF · LOCAL INTELLIGENCE · KEIN NETZ KEIN PROBLEM · </span></div><div class="n2k-plaza-presence" id="n2k-plaza-presence" aria-hidden="true"></div>'+
           '</div>'+
 
           '<section class="n2k-demo-scene n2k-demo-scene-intro is-active" data-demo-scene="0">'+
@@ -5514,7 +5514,7 @@ function n2kIcon(name){
 
 
 /* =========================================================
-   N2K Demo Mode 1.30.58-beta1
+   N2K Demo Mode 1.30.59-beta1
    Production social story · narrator-safe variable pacing.
    Privacy rule: synthetic-only. No API/chat/contact access.
    ========================================================= */
@@ -5659,7 +5659,11 @@ function n2kIcon(name){
   let speechActive=false;
   let speechRunId=0;
   let captureEnabled=false;
+  let tvSafeEnabled=false;
   let transitionTimer=null;
+  let plazaTickerTimer=null;
+  let plazaPresenceTimer=null;
+  let plazaTickerIndex=0;
 
   function byId(id){return document.getElementById(id);}
   function surface(){return document.querySelector("#n2k-page-demo .n2k-demo-mode");}
@@ -5745,11 +5749,84 @@ function n2kIcon(name){
       speechActive=false;
     }
   }
+  const PLAZA_TICKER_MESSAGES=[
+    "RNS PATH LEARNED",
+    "LXMF DELIVERED",
+    "RNODE ACTIVE",
+    "HA EVENT",
+    "STORE & FORWARD READY",
+    "LOCAL FIRST",
+    "MESH PRESENCE",
+    "ROUTE DISCOVERED",
+    "ANNOUNCE SEEN",
+    "N2K MESH PLAZA"
+  ];
+
+  function updatePlazaTicker(){
+    const node=byId("n2k-plaza-marquee-text");
+    if(!node) return;
+    const items=[];
+    for(let i=0;i<5;i++){
+      items.push(PLAZA_TICKER_MESSAGES[(plazaTickerIndex+i)%PLAZA_TICKER_MESSAGES.length]);
+    }
+    node.textContent=items.join(" · ")+" · ";
+    plazaTickerIndex=(plazaTickerIndex+1)%PLAZA_TICKER_MESSAGES.length;
+  }
+
+  function renderPlazaPresence(){
+    const root=byId("n2k-plaza-presence");
+    if(!root) return;
+    const count=7;
+    let html="";
+    for(let i=0;i<count;i++){
+      const seed=(sceneIndex*17+i*29+plazaTickerIndex*7)%97;
+      const left=8+((seed*13)%84);
+      const top=8+((seed*19+i*11)%72);
+      const size=4+((seed+i)%5);
+      const delay=((seed%10)/10).toFixed(1);
+      html+='<i style="left:'+left+'%;top:'+top+'%;width:'+size+'px;height:'+size+'px;animation-delay:-'+delay+'s"></i>';
+    }
+    root.innerHTML=html;
+  }
+
+  function startPlazaAmbientLoop(){
+    stopPlazaAmbientLoop();
+    updatePlazaTicker();
+    renderPlazaPresence();
+    plazaTickerTimer=setInterval(function(){
+      updatePlazaTicker();
+      renderPlazaPresence();
+    },7000);
+    plazaPresenceTimer=setInterval(renderPlazaPresence,3500);
+  }
+
+  function stopPlazaAmbientLoop(){
+    if(plazaTickerTimer){clearInterval(plazaTickerTimer);plazaTickerTimer=null;}
+    if(plazaPresenceTimer){clearInterval(plazaPresenceTimer);plazaPresenceTimer=null;}
+  }
+
+  function setTvSafe(enabled){
+    tvSafeEnabled=!!enabled;
+    document.body.classList.toggle("n2k-demo-tv-safe",tvSafeEnabled);
+    updateControls();
+    if(tvSafeEnabled){
+      setFormat("wide");
+      if(!running) resume();
+      const root=stage();
+      try{
+        if(root && !document.fullscreenElement && root.requestFullscreen){
+          root.requestFullscreen();
+        }
+      }catch(_ignore){}
+    }
+  }
+
   function updateControls(){
     const toggle=document.querySelector('[data-demo-action="toggle"]');
     const voice=document.querySelector('[data-demo-action="voice"]');
     const captions=document.querySelector('[data-demo-action="captions"]');
     const capture=document.querySelector('[data-demo-action="capture"]');
+    const tv=document.querySelector('[data-demo-action="tv"]');
     if(toggle){
       toggle.textContent=running?"Ⅱ Pause":"▶ Start";
       toggle.classList.toggle("active",running);
@@ -5765,6 +5842,10 @@ function n2kIcon(name){
     if(capture){
       capture.textContent=captureEnabled?"■ Aufnahme beenden":"● Aufnahme-Modus";
       capture.classList.toggle("active",captureEnabled);
+    }
+    if(tv){
+      tv.textContent=tvSafeEnabled?"▣ TV SAFE AN":"▣ TV SAFE";
+      tv.classList.toggle("active",tvSafeEnabled);
     }
     document.body.classList.toggle("n2k-demo-captions-off",!captionsEnabled);
     document.body.classList.toggle("n2k-demo-capture",captureEnabled);
@@ -5818,11 +5899,18 @@ function n2kIcon(name){
     void root.offsetWidth;
     root.classList.add("n2k-demo-scene-reset");
     speakScene(meta);
+    renderPlazaPresence();
     updateRuntime();
   }
   function advanceScene(){
     if(!running) return;
-    sceneIndex=(sceneIndex+1)%SCENES.length;
+    const next=(sceneIndex+1)%SCENES.length;
+    const root=stage();
+    if(root && next===0){
+      root.classList.add("n2k-demo-soft-loop");
+      setTimeout(function(){root.classList.remove("n2k-demo-soft-loop");},1400);
+    }
+    sceneIndex=next;
     renderScene(sceneIndex);
     schedule(sceneDurationMs(sceneIndex));
   }
@@ -5853,6 +5941,7 @@ function n2kIcon(name){
     speakScene(SCENES[sceneIndex]);
     schedule(sceneDurationMs(sceneIndex)-(pausedElapsed*1000));
     startTicker();
+    startPlazaAmbientLoop();
     document.body.classList.add("n2k-demo-running");
   }
   function pause(){
@@ -5862,6 +5951,7 @@ function n2kIcon(name){
     running=false;
     clearTimer();
     stopTicker();
+    stopPlazaAmbientLoop();
     cancelSpeech();
     updateRuntime();
     updateControls();
@@ -5934,6 +6024,8 @@ function n2kIcon(name){
           updateControls();
         }else if(name==="capture"){
           setCapture(!captureEnabled);
+        }else if(name==="tv"){
+          setTvSafe(!tvSafeEnabled);
         }else if(name==="fullscreen"){
           toggleFullscreen();
         }
@@ -5947,14 +6039,19 @@ function n2kIcon(name){
         captureEnabled=false;
         updateControls();
       }
+      if(!document.fullscreenElement && tvSafeEnabled){
+        document.body.classList.add("n2k-demo-tv-safe");
+      }
     });
     renderScene(sceneIndex);
     updateControls();
   }
-  function enter(){bind();restart();}
+  function enter(){bind();restart();startPlazaAmbientLoop();}
   function exit(){
     pause();
+    stopPlazaAmbientLoop();
     if(captureEnabled) setCapture(false);
+    if(tvSafeEnabled) setTvSafe(false);
   }
 
   window.n2kDemoMode={
@@ -5966,6 +6063,7 @@ function n2kIcon(name){
     restart:restart,
     setFormat:setFormat,
     setCapture:setCapture,
+    setTvSafe:setTvSafe,
     duration:TOTAL_SECONDS,
     scenes:SCENES.length,
     privacy:"synthetic-only"
