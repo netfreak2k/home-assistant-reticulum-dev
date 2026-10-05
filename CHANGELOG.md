@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.30.54-beta1 — Home Assistant Native Entity Bridge
+
+### Home Assistant
+
+- Publish 12 N2K entities directly to Home Assistant every 15 seconds.
+- Add connectivity binary sensors for Reticulum, RNode and LXMF readiness.
+- Add RNode noise-floor and airtime sensors.
+- Add LXMF conversation, unread, inbox and outbox counters.
+- Add Store & Forward status and Reticulum interface/internet peer sensors.
+- Fire `n2k_status_changed` when core connectivity state changes.
+- Fire privacy-safe `n2k_lxmf_message_received` when the inbox count increases; no message body or contact identity is exposed.
+- Keep the legacy `sensor.reticulum_status` for compatibility.
+- Demo/stream baseline remains visually and behaviorally unchanged from the frozen 1.30.53-beta1 snapshot.
+
 ## 1.30.53-beta1 — Brighter Stream Demo
 
 ### Freeze status
