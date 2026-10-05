@@ -49,6 +49,8 @@ options:
   propagation_auto_sync: true
   propagation_sync_interval: 900
   loglevel: "info"
+  ha_commands_enabled: false
+  ha_trusted_sources: ""
 
 schema:
   messenger_name: "str"
@@ -71,4 +73,6 @@ schema:
   propagation_auto_sync: "bool"
   propagation_sync_interval: "int(300,86400)"
   loglevel: "list(error|warning|notice|info|verbose|debug|path|extreme)"
+  ha_commands_enabled: "bool"
+  ha_trusted_sources: "str?"
 
