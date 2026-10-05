@@ -5431,7 +5431,7 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
 
 
 /* =========================================================
-   1.30.53-beta1 · DEMO PRODUCTION PASS
+   1.30.54-beta1 · DEMO PRODUCTION PASS
    High contrast · capture mode · subtitles · transitions.
    ========================================================= */
 
@@ -5656,7 +5656,7 @@ body.n2k-demo-capture .n2k-demo-watermark{
 }
 
 
-/* 1.30.53-beta1 · preserve social aspect ratios in fullscreen capture */
+/* 1.30.54-beta1 · preserve social aspect ratios in fullscreen capture */
 .n2k-demo-stage::backdrop{
   background:#000;
 }
@@ -5689,7 +5689,7 @@ body.n2k-demo-capture .n2k-demo-watermark{
 }
 
 
-/* 1.30.53-beta1 · SOCIAL DEMO READABILITY / CONTRAST PRODUCTION PASS */
+/* 1.30.54-beta1 · SOCIAL DEMO READABILITY / CONTRAST PRODUCTION PASS */
 .n2k-demo-meta small{
   color:rgba(222,232,236,.82);
   font-size:10px;
@@ -5847,7 +5847,7 @@ body.n2k-demo-capture .n2k-demo-watermark{
 }
 
 
-/* 1.30.53-beta1 · STREAM BRIGHT / LIVELY DEMO PASS */
+/* 1.30.54-beta1 · STREAM BRIGHT / LIVELY DEMO PASS */
 .n2k-demo-mode{
   background:
     linear-gradient(180deg,rgba(255,255,255,.045),rgba(10,22,34,.10)),
