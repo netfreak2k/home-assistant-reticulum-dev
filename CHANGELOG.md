@@ -2,6 +2,12 @@
 
 ## 1.30.53-beta1 — Brighter Stream Demo
 
+### Freeze status
+
+- FROZEN: approved Demo/Stream baseline.
+- No further changes to Demo visuals, narration defaults, speech synchronization, scene timing or stream brightness inside 1.30.53-beta1.
+- Future Demo changes require a new version.
+
 ### Demo Mode
 
 - Brighten the entire Demo stage for Twitch, YouTube and live-stream capture.
