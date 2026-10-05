@@ -1,3 +1,9 @@
+## 1.30.54-beta1
+- Publish native N2K Home Assistant sensors and binary sensors every 15 seconds.
+- Add Home Assistant automation events for N2K connectivity changes and new LXMF inbox messages.
+- Keep event payloads privacy-safe: no LXMF message body or contact identity is exposed.
+- Preserve the frozen Demo/Stream behavior from 1.30.53-beta1.
+
 ## 1.30.53-beta1
 - Brighten Demo Mode for Twitch/YouTube/social live capture with stronger ambient lighting, mesh glow and livelier moving light.
 - Improve card separation and visual energy while preserving readable dark text surfaces.
