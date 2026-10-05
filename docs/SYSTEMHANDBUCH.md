@@ -1,6 +1,6 @@
 # N2K RNS Gateway — Systemhandbuch
 
-Stand: **1.30.58-beta1**
+Stand: **1.30.59-beta1**
 
 Dieses Handbuch beschreibt Aufbau, Betrieb und Home-Assistant-Anbindung des N2K RNS Gateway. Es richtet sich an Anwender, Administratoren und Tester, die Reticulum/LXMF in Home Assistant betreiben und automatisieren möchten.
 
@@ -374,6 +374,23 @@ Gemeinsame Elemente:
 Die Bewegungscharakteristik wird pro Szene verändert. Dadurch bleibt ein Twitch-/YouTube-Dauerstream auch bei wiederholten Loops visuell aktiv.
 
 Die Gestaltung ist eine eigenständige Hommage an die Idee eines offenen digitalen Treffpunkts und partizipativen Netzfernsehens. Sie verwendet ausschließlich eigene N2K-Grafiken und Animationen.
+
+### TV Safe
+
+Der Schalter **TV SAFE** ist für Studio-, Fernseh- und Dauerstream-Betrieb gedacht.
+
+Er bewirkt:
+
+- automatische 16:9-Darstellung
+- Vollbildversuch
+- automatische Wiedergabe
+- Ausblenden von Navigation und Bedienelementen
+- Beibehaltung von Watermark und optionalen Untertiteln
+- nahtloseren Übergang vom Finale zurück zum Intro
+- dynamischen Broadcast-Ticker
+- synthetische Plaza-Presence
+
+TV Safe ändert keine Live-Daten- oder Datenschutzregeln. Alle Presence-Punkte und Ticker-Meldungen bleiben synthetisch.
 
 ## 18. Grenzen
 
