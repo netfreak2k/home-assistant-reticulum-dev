@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.30.58-beta1 — N2K Mesh Plaza Stream Loop
+
+### Demo Mode
+
+- Turn Demo Mode into the continuously moving N2K Mesh Plaza.
+- Add a shared animated Reticulum background with flowing routes, signal packets and pulsing mesh nodes.
+- Add floating RNS, LXMF and Home Assistant broadcast panels.
+- Add a continuous Mesh Plaza ticker for stream ambience.
+- Give all 17 scenes distinct background motion and emphasis.
+- Increase cinematic activity in Living Mesh, RNode, Store & Forward, Monitoring and Home Assistant scenes.
+- Turn the finale into a full digital Mesh meeting-place composition.
+- Preserve narration synchronization, speaker defaults, captions behaviour, privacy rules and 17-scene runtime.
+- Respect reduced-motion accessibility settings.
+
 ## 1.30.57-beta1 — System Handbook + Extended Demo
 
 ### Documentation
