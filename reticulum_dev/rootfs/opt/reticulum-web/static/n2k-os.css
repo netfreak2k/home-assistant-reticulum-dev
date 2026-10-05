@@ -5431,7 +5431,7 @@ body.n2k-os-mobile-page-overview #n2k-mobile-real-content > #n2k-os-overview{
 
 
 /* =========================================================
-   1.30.57-beta1 · DEMO PRODUCTION PASS
+   1.30.58-beta1 · DEMO PRODUCTION PASS
    High contrast · capture mode · subtitles · transitions.
    ========================================================= */
 
@@ -5656,7 +5656,7 @@ body.n2k-demo-capture .n2k-demo-watermark{
 }
 
 
-/* 1.30.57-beta1 · preserve social aspect ratios in fullscreen capture */
+/* 1.30.58-beta1 · preserve social aspect ratios in fullscreen capture */
 .n2k-demo-stage::backdrop{
   background:#000;
 }
@@ -5689,7 +5689,7 @@ body.n2k-demo-capture .n2k-demo-watermark{
 }
 
 
-/* 1.30.57-beta1 · SOCIAL DEMO READABILITY / CONTRAST PRODUCTION PASS */
+/* 1.30.58-beta1 · SOCIAL DEMO READABILITY / CONTRAST PRODUCTION PASS */
 .n2k-demo-meta small{
   color:rgba(222,232,236,.82);
   font-size:10px;
@@ -5847,7 +5847,7 @@ body.n2k-demo-capture .n2k-demo-watermark{
 }
 
 
-/* 1.30.57-beta1 · STREAM BRIGHT / LIVELY DEMO PASS */
+/* 1.30.58-beta1 · STREAM BRIGHT / LIVELY DEMO PASS */
 .n2k-demo-mode{
   background:
     linear-gradient(180deg,rgba(255,255,255,.045),rgba(10,22,34,.10)),
@@ -6061,4 +6061,354 @@ body.n2k-demo-capture .n2k-demo-watermark{
 @keyframes n2kStreamOrbB{
   from{transform:translate3d(2%,-4%,0) scale(.9);opacity:.38}
   to{transform:translate3d(18%,-12%,0) scale(1.16);opacity:.68}
+}
+
+
+/* 1.30.58-beta1 · N2K MESH PLAZA STREAM LOOP */
+.n2k-demo-stage{
+  overflow:hidden;
+}
+.n2k-plaza-ambient{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  overflow:hidden;
+  opacity:.78;
+  mix-blend-mode:screen;
+}
+.n2k-plaza-network{
+  position:absolute;
+  inset:-4%;
+  width:108%;
+  height:108%;
+  opacity:.58;
+  transform-origin:center;
+  animation:n2kPlazaDrift 18s ease-in-out infinite alternate;
+}
+.n2k-plaza-network .plaza-routes path{
+  fill:none;
+  stroke:rgba(123,214,255,.32);
+  stroke-width:1.5;
+  stroke-dasharray:8 16;
+  filter:drop-shadow(0 0 7px rgba(82,180,255,.32));
+  animation:n2kPlazaRouteFlow 5s linear infinite;
+}
+.n2k-plaza-network .plaza-routes path:nth-child(2n){
+  stroke:rgba(119,242,188,.34);
+  animation-duration:6.4s;
+}
+.n2k-plaza-network .plaza-packets circle{
+  fill:#dff9ff;
+  filter:drop-shadow(0 0 10px rgba(109,213,255,.95));
+}
+.n2k-plaza-network .plaza-nodes circle:first-child{
+  fill:rgba(31,111,154,.18);
+  stroke:rgba(139,222,255,.34);
+  stroke-width:1.2;
+  animation:n2kPlazaNodePulse 3.8s ease-in-out infinite;
+}
+.n2k-plaza-network .plaza-nodes .core{
+  fill:#8ff2c7;
+  stroke:none;
+  filter:drop-shadow(0 0 8px rgba(122,241,194,.85));
+}
+.n2k-plaza-window{
+  position:absolute;
+  min-width:120px;
+  padding:8px 10px;
+  border:1px solid rgba(143,220,255,.20);
+  border-radius:12px;
+  background:linear-gradient(160deg,rgba(11,33,47,.58),rgba(8,20,30,.38));
+  box-shadow:0 12px 34px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(6px);
+  opacity:.62;
+}
+.n2k-plaza-window small{
+  display:block;
+  font-size:6.8px;
+  letter-spacing:.16em;
+  color:#8feec5;
+}
+.n2k-plaza-window b{
+  display:block;
+  margin-top:2px;
+  font-size:11px;
+  letter-spacing:.07em;
+  color:#f7fbff;
+}
+.n2k-plaza-window span{
+  display:block;
+  margin-top:2px;
+  font-size:7px;
+  color:#bcd1dc;
+}
+.n2k-plaza-window.plaza-a{left:4%;top:12%;animation:n2kPlazaFloatA 8s ease-in-out infinite alternate}
+.n2k-plaza-window.plaza-b{right:5%;top:24%;animation:n2kPlazaFloatB 10s ease-in-out infinite alternate}
+.n2k-plaza-window.plaza-c{left:8%;bottom:12%;animation:n2kPlazaFloatC 11s ease-in-out infinite alternate}
+.n2k-plaza-marquee{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:1.2%;
+  overflow:hidden;
+  white-space:nowrap;
+  opacity:.34;
+  font-size:6.5px;
+  letter-spacing:.18em;
+  color:#bfefff;
+}
+.n2k-plaza-marquee span{
+  display:inline-block;
+  min-width:200%;
+  animation:n2kPlazaMarquee 24s linear infinite;
+}
+
+.n2k-demo-scene{
+  z-index:5;
+}
+.n2k-demo-subtitles,
+.n2k-demo-watermark{
+  z-index:9;
+}
+
+/* Scene personalities: the common plaza changes mood instead of behaving like a static wallpaper. */
+.n2k-demo-stage[data-scene="0"] .n2k-plaza-network{
+  transform:scale(1.05);
+  animation-duration:9s;
+}
+.n2k-demo-stage[data-scene="0"] .n2k-plaza-network .plaza-routes path{
+  stroke-dasharray:2 18;
+  opacity:.62;
+}
+.n2k-demo-stage[data-scene="0"] .n2k-plaza-window{
+  opacity:.28;
+  filter:saturate(.55);
+}
+
+.n2k-demo-stage[data-scene="1"] .n2k-plaza-network .plaza-nodes g{
+  animation:n2kPlazaGather 5.5s ease-in-out infinite alternate;
+}
+.n2k-demo-stage[data-scene="1"] .n2k-plaza-network .plaza-routes path{
+  stroke:rgba(119,242,188,.45);
+}
+
+.n2k-demo-stage[data-scene="2"] .n2k-plaza-network{
+  animation:n2kPlazaOrbit 16s linear infinite;
+}
+.n2k-demo-stage[data-scene="2"] .n2k-plaza-window{
+  opacity:.72;
+}
+
+.n2k-demo-stage[data-scene="3"] .n2k-plaza-network .plaza-routes path{
+  stroke-dasharray:4 8;
+  animation-duration:3.8s;
+}
+.n2k-demo-stage[data-scene="3"] .n2k-plaza-window.plaza-a{
+  opacity:.88;
+}
+
+.n2k-demo-stage[data-scene="4"] .n2k-plaza-network{
+  animation:n2kPlazaTransport 10s ease-in-out infinite alternate;
+}
+.n2k-demo-stage[data-scene="4"] .n2k-plaza-network .plaza-routes path:nth-child(1){stroke:#8fdcff}
+.n2k-demo-stage[data-scene="4"] .n2k-plaza-network .plaza-routes path:nth-child(2){stroke:#8ff0be}
+.n2k-demo-stage[data-scene="4"] .n2k-plaza-network .plaza-routes path:nth-child(3){stroke:#ffd17c}
+.n2k-demo-stage[data-scene="4"] .n2k-plaza-network .plaza-routes path:nth-child(4){stroke:#c6a5ff}
+
+.n2k-demo-stage[data-scene="5"] .n2k-plaza-network .plaza-packets circle{
+  animation:n2kPlazaPacketBlink 1.7s ease-in-out infinite;
+}
+.n2k-demo-stage[data-scene="5"] .n2k-plaza-window.plaza-b{
+  opacity:.95;
+  transform:scale(1.06);
+}
+
+.n2k-demo-stage[data-scene="6"] .n2k-plaza-window{
+  opacity:.78;
+}
+.n2k-demo-stage[data-scene="6"] .n2k-plaza-window.plaza-a{left:7%;top:15%}
+.n2k-demo-stage[data-scene="6"] .n2k-plaza-window.plaza-b{right:7%;top:15%}
+.n2k-demo-stage[data-scene="6"] .n2k-plaza-window.plaza-c{left:42%;bottom:8%}
+
+.n2k-demo-stage[data-scene="7"] .n2k-plaza-ambient{
+  opacity:.96;
+}
+.n2k-demo-stage[data-scene="7"] .n2k-plaza-network{
+  animation:n2kPlazaCinematic 12s ease-in-out infinite alternate;
+  opacity:.82;
+}
+.n2k-demo-stage[data-scene="7"] .n2k-plaza-network .plaza-routes path{
+  stroke-width:2;
+}
+
+.n2k-demo-stage[data-scene="8"] .n2k-plaza-network{
+  animation:n2kPlazaRadio 4.8s ease-in-out infinite alternate;
+}
+.n2k-demo-stage[data-scene="8"] .n2k-plaza-network .plaza-nodes circle:first-child{
+  animation-duration:1.9s;
+}
+
+.n2k-demo-stage[data-scene="9"] .n2k-plaza-window{
+  opacity:.34;
+}
+.n2k-demo-stage[data-scene="9"] .n2k-plaza-network{
+  filter:blur(.2px) saturate(.85);
+  opacity:.42;
+}
+
+.n2k-demo-stage[data-scene="10"] .n2k-plaza-network .plaza-packets circle{
+  animation:n2kPlazaStore 3.6s ease-in-out infinite;
+}
+.n2k-demo-stage[data-scene="10"] .n2k-plaza-window.plaza-b{
+  opacity:.9;
+}
+
+.n2k-demo-stage[data-scene="11"] .n2k-plaza-window{
+  opacity:.84;
+  animation-duration:5.5s;
+}
+.n2k-demo-stage[data-scene="11"] .n2k-plaza-network .plaza-routes path{
+  animation-duration:2.8s;
+}
+
+.n2k-demo-stage[data-scene="12"] .n2k-plaza-window.plaza-c{
+  opacity:1;
+  transform:scale(1.08);
+}
+.n2k-demo-stage[data-scene="12"] .n2k-plaza-network{
+  animation:n2kPlazaAutomation 7s ease-in-out infinite alternate;
+}
+
+.n2k-demo-stage[data-scene="13"] .n2k-plaza-ambient{
+  opacity:.9;
+}
+.n2k-demo-stage[data-scene="13"] .n2k-plaza-network{
+  filter:hue-rotate(12deg);
+}
+.n2k-demo-stage[data-scene="13"] .n2k-plaza-window.plaza-c{
+  border-color:rgba(130,244,192,.42);
+  box-shadow:0 0 28px rgba(103,231,180,.18),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.n2k-demo-stage[data-scene="13"] .n2k-plaza-window.plaza-a,
+.n2k-demo-stage[data-scene="13"] .n2k-plaza-window.plaza-b{
+  opacity:.32;
+}
+
+.n2k-demo-stage[data-scene="14"] .n2k-plaza-network{
+  animation:n2kPlazaDevCycle 6.5s steps(4,end) infinite;
+}
+.n2k-demo-stage[data-scene="14"] .n2k-plaza-window{
+  opacity:.7;
+}
+
+.n2k-demo-stage[data-scene="15"] .n2k-plaza-network{
+  transform:scale(1.08);
+  opacity:.7;
+}
+.n2k-demo-stage[data-scene="15"] .n2k-plaza-network .plaza-nodes circle:first-child{
+  stroke:rgba(255,207,119,.44);
+}
+
+.n2k-demo-stage[data-scene="16"]{
+  background:
+    radial-gradient(circle at 50% 42%,rgba(255,195,82,.24),transparent 35%),
+    radial-gradient(circle at 50% 55%,rgba(96,236,182,.18),transparent 45%),
+    linear-gradient(145deg,#152c38,#10242c 58%,#1a332c);
+}
+.n2k-demo-stage[data-scene="16"] .n2k-plaza-ambient{
+  opacity:1;
+}
+.n2k-demo-stage[data-scene="16"] .n2k-plaza-network{
+  animation:n2kPlazaFinale 8s ease-in-out infinite alternate;
+  opacity:.9;
+}
+.n2k-demo-stage[data-scene="16"] .n2k-plaza-window{
+  opacity:.92;
+  border-color:rgba(255,214,137,.25);
+}
+.n2k-demo-stage[data-scene="16"] .n2k-plaza-marquee{
+  opacity:.7;
+}
+
+@keyframes n2kPlazaDrift{
+  0%{transform:translate3d(-1%,1%,0) scale(1.02) rotate(-.4deg)}
+  100%{transform:translate3d(1.5%,-1%,0) scale(1.07) rotate(.5deg)}
+}
+@keyframes n2kPlazaRouteFlow{
+  to{stroke-dashoffset:-96}
+}
+@keyframes n2kPlazaNodePulse{
+  0%,100%{transform:scale(.9);opacity:.48}
+  50%{transform:scale(1.22);opacity:.92}
+}
+@keyframes n2kPlazaFloatA{
+  from{transform:translate3d(0,0,0) rotate(-1deg)}
+  to{transform:translate3d(18px,12px,0) rotate(1deg)}
+}
+@keyframes n2kPlazaFloatB{
+  from{transform:translate3d(0,0,0) rotate(1deg)}
+  to{transform:translate3d(-20px,18px,0) rotate(-1deg)}
+}
+@keyframes n2kPlazaFloatC{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(22px,-16px,0)}
+}
+@keyframes n2kPlazaMarquee{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+@keyframes n2kPlazaGather{
+  from{transform:translate(0,0)}
+  to{transform:translate(12px,-8px)}
+}
+@keyframes n2kPlazaOrbit{
+  from{transform:scale(1.04) rotate(-1.2deg)}
+  to{transform:scale(1.08) rotate(1.2deg)}
+}
+@keyframes n2kPlazaTransport{
+  from{transform:translate3d(-2%,0,0) scale(1.04)}
+  to{transform:translate3d(2%,0,0) scale(1.08)}
+}
+@keyframes n2kPlazaPacketBlink{
+  0%,100%{opacity:.35}
+  50%{opacity:1}
+}
+@keyframes n2kPlazaCinematic{
+  from{transform:translate3d(-2%,1%,0) scale(1.03) rotate(-.6deg)}
+  to{transform:translate3d(2%,-1.5%,0) scale(1.12) rotate(.8deg)}
+}
+@keyframes n2kPlazaRadio{
+  from{transform:scale(1.01);filter:brightness(.95)}
+  to{transform:scale(1.08);filter:brightness(1.18)}
+}
+@keyframes n2kPlazaStore{
+  0%,35%{opacity:.2}
+  50%,75%{opacity:1}
+  100%{opacity:.3}
+}
+@keyframes n2kPlazaAutomation{
+  from{transform:translate3d(-1%,1%,0) scale(1.04)}
+  to{transform:translate3d(1%,-1%,0) scale(1.1)}
+}
+@keyframes n2kPlazaDevCycle{
+  0%{filter:hue-rotate(0deg)}
+  25%{filter:hue-rotate(12deg)}
+  50%{filter:hue-rotate(-8deg)}
+  75%{filter:hue-rotate(18deg)}
+  100%{filter:hue-rotate(0deg)}
+}
+@keyframes n2kPlazaFinale{
+  from{transform:scale(1.02) rotate(-.5deg);filter:brightness(1)}
+  to{transform:scale(1.12) rotate(.5deg);filter:brightness(1.15)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .n2k-plaza-network,
+  .n2k-plaza-window,
+  .n2k-plaza-marquee span,
+  .n2k-plaza-network .plaza-routes path,
+  .n2k-plaza-network .plaza-nodes circle{
+    animation:none !important;
+  }
 }
